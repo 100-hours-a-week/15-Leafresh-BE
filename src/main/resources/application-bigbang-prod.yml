@@ -1,0 +1,22 @@
+spring:
+  datasource:
+    url: jdbc:mysql://${bigbang_db_host}:${db_port}/${bigbang_db_name}
+    username: ${bigbang_db_user}
+    password: ${bigbang_db_password}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  data:
+    redis:
+      host: ${bigbang_cache_host}
+      port: ${bigbang_cache_port}
+
+cookie:
+  secure: true
+  samesite: ${cookie_samesite:none}
+
+gcp:
+  project-id: ${gcp_project_id}
+  credentials:
+    location: classpath:${gcp_credentials_location}
+  storage:
+    bucket: ${gcp_storage_bucket}
