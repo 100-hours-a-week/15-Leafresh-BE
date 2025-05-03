@@ -3,9 +3,12 @@ package ktb.leafresh.backend.domain.auth.presentation.controller;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.servlet.http.HttpServletResponse;
 import ktb.leafresh.backend.domain.auth.application.service.oauth.OAuthLoginService;
+import ktb.leafresh.backend.domain.auth.application.service.oauth.OAuthReissueTokenService;
 import ktb.leafresh.backend.domain.auth.domain.entity.enums.OAuthProvider;
 import ktb.leafresh.backend.domain.auth.presentation.dto.response.OAuthLoginResponseDto;
 import ktb.leafresh.backend.domain.auth.presentation.dto.response.OAuthTokenResponseDto;
+import ktb.leafresh.backend.global.exception.CustomException;
+import ktb.leafresh.backend.global.exception.ErrorCode;
 import ktb.leafresh.backend.global.response.ApiResponse;
 import ktb.leafresh.backend.global.response.ApiResponseConstants;
 import ktb.leafresh.backend.global.security.AuthCookieProvider;
@@ -25,6 +28,7 @@ import java.net.URI;
 public class OAuthController {
 
     private final OAuthLoginService oAuthLoginService;
+    private final OAuthReissueTokenService oAuthReissueTokenService;
     private final AuthCookieProvider authCookieProvider;
 
     @GetMapping("/success")
@@ -82,18 +86,22 @@ public class OAuthController {
     @Operation(summary = "JWT 재발급", description = "Refresh Token을 기반으로 Access Token을 재발급합니다.")
     @ApiResponseConstants.SuccessResponses
     @ApiResponseConstants.ClientErrorResponses
-    @PostMapping("/{provider}/token")
+    @PostMapping("/token/reissue")
     public ResponseEntity<ApiResponse<Void>> reissueToken(
-            @PathVariable String provider,
-            @CookieValue("refreshToken") String refreshToken,
+            @CookieValue(value = "refreshToken", required = false) String refreshToken,
             HttpServletResponse response
     ) {
-        OAuthTokenResponseDto tokenDto = oAuthLoginService.reissueToken(refreshToken);
+        if (refreshToken == null || refreshToken.isBlank()) {
+            throw new CustomException(ErrorCode.UNAUTHORIZED);
+        }
+
+        OAuthTokenResponseDto newTokenDto = oAuthReissueTokenService.reissue(refreshToken);
 
         response.addHeader(HttpHeaders.SET_COOKIE,
-                oAuthLoginService.createAccessTokenCookie(tokenDto.accessToken(), tokenDto.accessTokenExpiresIn()).toString());
+                authCookieProvider.createAccessTokenCookie(newTokenDto.accessToken(), newTokenDto.accessTokenExpiresIn()).toString());
 
-        return ResponseEntity.ok(ApiResponse.success("AccessToken이 재발급되었습니다."));
+        return ResponseEntity.status(HttpStatus.NO_CONTENT)
+                .build();  // 204: 응답 본문 없음, 쿠키만 발급
     }
 
     @Operation(summary = "로그아웃", description = "AccessToken을 블랙리스트에 등록하고 쿠키를 제거합니다.")
