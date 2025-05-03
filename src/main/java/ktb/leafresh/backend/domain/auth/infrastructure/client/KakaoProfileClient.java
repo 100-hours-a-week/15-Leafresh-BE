@@ -28,7 +28,8 @@ public class KakaoProfileClient {
                         OAuthProvider.KAKAO,
                         profile.getId(),
                         profile.getKakaoAccountEmail(),
-                        profile.getProfileImageUrl()
+                        profile.getProfileImageUrl(),
+                        profile.getNickname()
                 ))
                 .blockOptional()
                 .orElseThrow(() -> new IllegalStateException("카카오 사용자 정보 조회 실패"));
@@ -49,6 +50,13 @@ public class KakaoProfileClient {
             Map<String, Object> profile = (Map<String, Object>) kakao_account.get("profile");
             if (profile == null) return null;
             return (String) profile.get("profile_image_url");
+        }
+
+        public String getNickname() {
+            if (kakao_account == null) return null;
+            Map<String, Object> profile = (Map<String, Object>) kakao_account.get("profile");
+            if (profile == null) return null;
+            return (String) profile.get("nickname");
         }
     }
 }
