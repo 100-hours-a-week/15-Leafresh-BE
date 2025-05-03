@@ -1,7 +1,7 @@
 package ktb.leafresh.backend.domain.auth.presentation.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
-import ktb.leafresh.backend.domain.member.domain.entity.enums.LoginType;
+import ktb.leafresh.backend.domain.auth.domain.entity.enums.OAuthProvider;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
 
@@ -28,7 +28,7 @@ public record OAuthSignupRequestDto(
         public record Provider(
                 @NotNull(message = "OAuth 제공자 이름은 필수입니다.")
                 @Schema(description = "OAuth 제공자 이름", example = "KAKAO")
-                LoginType name,
+                OAuthProvider name,
 
                 @NotBlank(message = "providerId는 필수입니다.")
                 @Schema(description = "OAuth 제공자에서 발급한 고유 ID", example = "1234567890")
