@@ -1,12 +1,14 @@
-package ktb.leafresh.backend.domain.auth.application.service;
+package ktb.leafresh.backend.domain.auth.application.service.oauth;
 
 import ktb.leafresh.backend.domain.auth.domain.entity.OAuth;
 import ktb.leafresh.backend.domain.auth.domain.entity.RefreshToken;
 import ktb.leafresh.backend.domain.auth.presentation.dto.request.OAuthSignupRequestDto;
 import ktb.leafresh.backend.domain.auth.presentation.dto.response.OAuthSignupResponseDto;
+import ktb.leafresh.backend.domain.auth.presentation.dto.result.OAuthSignupResult;
 import ktb.leafresh.backend.domain.member.application.service.MemberNicknameCheckService;
 import ktb.leafresh.backend.domain.member.domain.entity.Member;
 import ktb.leafresh.backend.domain.member.domain.entity.TreeLevel;
+import ktb.leafresh.backend.domain.member.domain.entity.enums.LoginType;
 import ktb.leafresh.backend.domain.member.domain.entity.enums.Role;
 import ktb.leafresh.backend.domain.member.domain.entity.enums.TreeLevelName;
 import ktb.leafresh.backend.domain.member.infrastructure.repository.MemberRepository;
@@ -32,7 +34,7 @@ public class OAuthSignupService {
     private final TokenProvider tokenProvider;
 
     @Transactional
-    public OAuthSignupResponseDto signup(OAuthSignupRequestDto request) {
+    public OAuthSignupResult signup(OAuthSignupRequestDto request) {
         log.info("회원가입 요청 수신 - email={}, nickname={}, provider={}, providerId={}",
                 request.email(), request.nickname(), request.provider(), request.provider().id());
 
@@ -54,12 +56,15 @@ public class OAuthSignupService {
 
         var tokenDto = tokenProvider.generateTokenDto(member.getId());
         log.info("토큰 발급 완료 - accessTokenLength={}, refreshTokenLength={}",
-                tokenDto.accessToken() != null ? tokenDto.accessToken().length() : 0,
-                tokenDto.refreshToken() != null ? tokenDto.refreshToken().length() : 0);
+                tokenDto.getAccessToken() != null ? tokenDto.getAccessToken().length() : 0,
+                tokenDto.getRefreshToken() != null ? tokenDto.getRefreshToken().length() : 0);
 
-        saveRefreshToken(member.getId(), tokenDto.refreshToken());
+        saveRefreshToken(member.getId(), tokenDto.getRefreshToken());
 
-        return new OAuthSignupResponseDto(member.getNickname(), member.getImageUrl());
+        return new OAuthSignupResult(
+                new OAuthSignupResponseDto(member.getNickname(), member.getImageUrl()),
+                tokenDto
+        );
     }
 
     private void validateNickname(String nickname) {
@@ -80,7 +85,7 @@ public class OAuthSignupService {
     private Member createMember(OAuthSignupRequestDto request, TreeLevel treeLevel) {
         return Member.builder()
                 .email(request.email())
-                .loginType(request.provider().name())
+                .loginType(LoginType.SOCIAL)
                 .nickname(request.nickname())
                 .imageUrl(request.imageUrl())
                 .role(Role.USER)
