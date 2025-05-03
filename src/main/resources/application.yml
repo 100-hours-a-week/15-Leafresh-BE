@@ -54,3 +54,6 @@ kakao:
 
 cookie:
   secure: true
+
+ai-server:
+  base-url: ${ai_server_base_url}

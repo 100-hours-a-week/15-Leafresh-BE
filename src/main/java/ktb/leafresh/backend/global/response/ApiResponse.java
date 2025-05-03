@@ -31,6 +31,10 @@ public class ApiResponse<T> {
         return new ApiResponse<>(HttpStatus.OK, message, data);
     }
 
+    public static <T> ApiResponse<T> created(String message, T data) {
+        return new ApiResponse<>(HttpStatus.CREATED, message, data);
+    }
+
     public static <T> ApiResponse<T> error(HttpStatus status, String message) {
         return new ApiResponse<>(status, message, null);
     }

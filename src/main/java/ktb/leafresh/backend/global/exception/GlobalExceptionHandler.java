@@ -11,6 +11,7 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 @Slf4j
 @RestControllerAdvice
@@ -73,6 +74,17 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(ErrorCode.INVALID_JSON_FORMAT.getStatus())
                 .body(ApiResponse.error(ErrorCode.INVALID_JSON_FORMAT.getStatus(), ErrorCode.INVALID_JSON_FORMAT.getMessage()));
+    }
+
+    /**
+     * 정적 리소스가 존재하지 않을 때 (ex. favicon.ico 요청 실패)
+     * - 에러 로그로 남기지 않고 404만 응답
+     */
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<Void> handleNoResourceFoundException(NoResourceFoundException ex) {
+        // 로그를 굳이 남길 필요 없다면 생략 가능
+        log.debug("정적 리소스를 찾을 수 없습니다.");
+        return ResponseEntity.notFound().build();
     }
 
     /**

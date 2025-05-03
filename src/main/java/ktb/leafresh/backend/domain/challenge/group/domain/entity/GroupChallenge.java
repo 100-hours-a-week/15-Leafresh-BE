@@ -33,6 +33,7 @@ public class GroupChallenge extends BaseEntity {
     @JoinColumn(name = "category_id", nullable = false)
     private GroupChallengeCategory category;
 
+    @Builder.Default
     @OneToMany(mappedBy = "groupChallenge", cascade = CascadeType.ALL)
     private List<GroupChallengeExampleImage> exampleImages = new ArrayList<>();
 
@@ -76,5 +77,12 @@ public class GroupChallenge extends BaseEntity {
     @PrePersist
     public void prePersist() {
         if (eventFlag == null) eventFlag = false;
+    }
+
+    public void addExampleImage(GroupChallengeExampleImage image) {
+        this.exampleImages.add(image);
+        if (image.getGroupChallenge() == null) {
+            image.setGroupChallenge(this);
+        }
     }
 }

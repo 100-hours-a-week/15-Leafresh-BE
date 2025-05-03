@@ -11,7 +11,7 @@ import lombok.*;
 })
 @Getter
 @Builder
-@AllArgsConstructor
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class GroupChallengeExampleImage extends BaseEntity {
 
@@ -21,6 +21,7 @@ public class GroupChallengeExampleImage extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "group_challenge_id", nullable = false)
+    @Setter
     private GroupChallenge groupChallenge;
 
     @Column(nullable = false, length = 512)
@@ -35,4 +36,23 @@ public class GroupChallengeExampleImage extends BaseEntity {
 
     @Column(nullable = false)
     private Integer sequenceNumber;
+
+    public static GroupChallengeExampleImage of(
+            GroupChallenge challenge,
+            String imageUrl,
+            ExampleImageType type,
+            String description,
+            Integer sequenceNumber
+    ) {
+        GroupChallengeExampleImage image = GroupChallengeExampleImage.builder()
+                .imageUrl(imageUrl)
+                .type(type)
+                .description(description)
+                .sequenceNumber(sequenceNumber)
+                .build();
+
+        image.setGroupChallenge(challenge);  // 연관관계만 설정
+
+        return image;
+    }
 }

@@ -121,12 +121,14 @@ public class TokenProvider {
     public Authentication getAuthentication(String accessToken) {
         // 토큰 복호화
         Claims claims = parseClaims(accessToken);
+        log.debug("Parsed subject: {}", claims.getSubject());
 
         if (claims.get(AUTHORITIES_KEY) == null) {
             throw new RuntimeException("권한 정보가 없는 토큰입니다.");
         }
 
         Long memberId = Long.parseLong(claims.getSubject());
+        log.debug("Searching member by ID: {}", memberId);
 
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND, "존재하지 않는 회원입니다."));
@@ -138,8 +140,7 @@ public class TokenProvider {
                         .collect(Collectors.toList());
 
         // UserDetails 객체를 만들어서 Authentication 리턴
-        UserDetails userDetails = new User(memberId.toString(), "", authorities);
-
+        UserDetails userDetails = new CustomUserDetails(memberId, authorities);
         return new UsernamePasswordAuthenticationToken(userDetails, "", authorities);
     }
 

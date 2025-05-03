@@ -25,7 +25,12 @@ public enum ErrorCode {
     NICKNAME_INVALID_FORMAT(HttpStatus.BAD_REQUEST, "닉네임 형식이 올바르지 않습니다. (최소 1자, 최대 20자, 특수문자 제외)"),
     NICKNAME_CHECK_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "서버 오류로 인해 닉네임 중복 검사에 실패했습니다."),
     TREE_LEVEL_NOT_FOUND(HttpStatus.NOT_FOUND, "기본 TreeLevel이 존재하지 않습니다."),
-    REFRESH_TOKEN_NOT_FOUND(HttpStatus.NOT_FOUND, "저장된 리프레시 토큰이 없습니다.");
+    REFRESH_TOKEN_NOT_FOUND(HttpStatus.NOT_FOUND, "저장된 리프레시 토큰이 없습니다."),
+    CHALLENGE_CATEGORY_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 챌린지 카테고리입니다."),
+    INVALID_DATE_RANGE(HttpStatus.BAD_REQUEST, "시작일은 종료일보다 이전이어야 합니다."),
+    INVALID_VERIFICATION_TIME(HttpStatus.BAD_REQUEST, "인증 시작 시간은 종료 시간보다 이전이어야 합니다."),
+    CHALLENGE_CREATION_REJECTED_BY_AI(HttpStatus.UNPROCESSABLE_ENTITY, "AI 판단 결과 챌린지 생성이 거부되었습니다.");
+
 
     private final HttpStatus status;
     private final String message;
