@@ -2,6 +2,7 @@ package ktb.leafresh.backend.global.security;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -30,6 +31,7 @@ public class JwtFilter extends OncePerRequestFilter {
 
         // 1. Request Header 에서 토큰을 꺼냄
         String jwt = resolveToken(request);
+        log.debug("JWT from cookie: {}", jwt);
 
         // 블랙리스트 검사
         if (StringUtils.hasText(jwt) && tokenBlacklistService.isBlacklisted(jwt)) {
@@ -47,12 +49,16 @@ public class JwtFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 
-    // Request Header 에서 토큰 정보를 꺼내오기
     private String resolveToken(HttpServletRequest request) {
-        String bearerToken = request.getHeader(AUTHORIZATION_HEADER);
-        if (StringUtils.hasText(bearerToken) && bearerToken.startsWith(BEARER_PREFIX)) {
-            return bearerToken.substring(7);
+        // 쿠키에서 accessToken 추출
+        if (request.getCookies() != null) {
+            for (Cookie cookie : request.getCookies()) {
+                if ("accessToken".equals(cookie.getName())) {
+                    return cookie.getValue();
+                }
+            }
         }
+
         return null;
     }
 }

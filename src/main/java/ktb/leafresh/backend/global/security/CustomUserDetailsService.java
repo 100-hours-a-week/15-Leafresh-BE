@@ -37,14 +37,8 @@ public class CustomUserDetailsService implements UserDetailsService {
                 .orElseThrow(() -> new UsernameNotFoundException("Email " + username + " -> 데이터베이스에서 찾을 수 없습니다."));
     }
 
-    // DB 에 User 값이 존재한다면 UserDetails 객체로 만들어서 리턴
     private UserDetails createUserDetails(Member member) {
         GrantedAuthority grantedAuthority = new SimpleGrantedAuthority(member.getRole().name());
-
-        return new User(
-                member.getId().toString(), // ID를 username으로 사용 (JWT에서 ID 저장하니까)
-                member.getPassword() != null ? member.getPassword() : "",  // 소셜로그인 회원은 password 없을 수 있음
-                Collections.singleton(grantedAuthority)
-        );
+        return new CustomUserDetails(member.getId(), Collections.singleton(grantedAuthority));
     }
 }
