@@ -60,13 +60,13 @@ public class SecurityConfig {
 
                 // 인증, 인가 설정
                 .authorizeHttpRequests(auth -> auth
+                        // 테스트 컨트롤러용 허용 경로 추가
+                        .requestMatchers("/spring/**").permitAll()
+
                         // 소셜 로그인 요청(리다이렉트), 콜백, 로그아웃 모두 허용
                         .requestMatchers("/oauth/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/members/nickname").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/members/signup").permitAll()
-
-                        // 닉네임 중복 검사 허용
-                        .requestMatchers(HttpMethod.GET, "/api/members/nickname").permitAll()
 
                         // Swagger/OpenAPI
                         .requestMatchers(
