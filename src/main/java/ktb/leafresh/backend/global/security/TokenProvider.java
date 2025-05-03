@@ -55,7 +55,7 @@ public class TokenProvider {
                 .getSubject();
     }
 
-    public OAuthTokenResponseDto generateTokenDto(Long memberId) {
+    public TokenDto generateTokenDto(Long memberId) {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND, "존재하지 않는 회원입니다."));
 
@@ -69,14 +69,7 @@ public class TokenProvider {
 
         TokenDto tokenDto = generateTokenDto(authentication, memberId);
 
-        return OAuthTokenResponseDto.builder()
-                .grantType(tokenDto.getGrantType())
-                .accessToken(tokenDto.getAccessToken())
-                .accessTokenExpiresIn(tokenDto.getAccessTokenExpiresIn())
-                .refreshToken(tokenDto.getRefreshToken())
-                .nickname(member.getNickname())
-                .imageUrl(member.getImageUrl())
-                .build();
+        return generateTokenDto(authentication, memberId);
     }
 
     public long getTokenExpiration(String token) {
