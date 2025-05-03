@@ -1,7 +1,7 @@
 package ktb.leafresh.backend.domain.auth.infrastructure.client;
 
 import ktb.leafresh.backend.domain.auth.application.dto.OAuthUserInfoDto;
-import ktb.leafresh.backend.domain.member.domain.entity.enums.LoginType;
+import ktb.leafresh.backend.domain.auth.domain.entity.enums.OAuthProvider;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -25,7 +25,7 @@ public class KakaoProfileClient {
                 .retrieve()
                 .bodyToMono(KakaoProfileResponse.class)
                 .map(profile -> new OAuthUserInfoDto(
-                        LoginType.KAKAO,
+                        OAuthProvider.KAKAO,
                         profile.getId(),
                         profile.getKakaoAccountEmail(),
                         profile.getProfileImageUrl()

@@ -1,18 +1,17 @@
-package ktb.leafresh.backend.domain.auth.application.service;
+package ktb.leafresh.backend.domain.auth.application.service.oauth;
 
 import ktb.leafresh.backend.domain.auth.application.dto.OAuthUserInfoDto;
 import ktb.leafresh.backend.domain.auth.application.factory.OAuthTokenFactory;
+import ktb.leafresh.backend.domain.auth.application.service.jwt.JwtLogoutService;
 import ktb.leafresh.backend.domain.auth.domain.entity.RefreshToken;
 import ktb.leafresh.backend.domain.auth.infrastructure.client.OAuthKakaoService;
 import ktb.leafresh.backend.domain.auth.presentation.dto.response.OAuthTokenResponseDto;
 import ktb.leafresh.backend.domain.member.domain.entity.Member;
 import ktb.leafresh.backend.domain.member.infrastructure.repository.MemberRepository;
 import ktb.leafresh.backend.domain.member.infrastructure.repository.RefreshTokenRepository;
+import ktb.leafresh.backend.global.security.*;
 import ktb.leafresh.backend.global.exception.CustomException;
 import ktb.leafresh.backend.global.exception.ErrorCode;
-import ktb.leafresh.backend.global.security.AuthCookieProvider;
-import ktb.leafresh.backend.global.security.JwtProvider;
-import ktb.leafresh.backend.global.security.TokenDto;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -41,7 +40,9 @@ public class OAuthLoginService {
     private String redirectUri;
 
     private final OAuthKakaoService oAuthKakaoService;
+    private final JwtLogoutService jwtLogoutService;
     private final JwtProvider jwtProvider;
+    private final TokenProvider tokenProvider;
     private final OAuthTokenFactory tokenFactory;
     private final MemberRepository memberRepository;
     private final RefreshTokenRepository refreshTokenRepository;
@@ -66,8 +67,13 @@ public class OAuthLoginService {
         return createResponseForNewUser(userInfo);
     }
 
+    @Transactional
+    public void logout(String accessToken, String refreshToken) {
+        jwtLogoutService.logout(accessToken, refreshToken);
+    }
+
     public OAuthTokenResponseDto reissueToken(String refreshToken) {
-        String memberId = jwtProvider.getSubject(refreshToken);
+        String memberId = tokenProvider.getSubject(refreshToken);
         RefreshToken savedToken = validateRefreshToken(refreshToken, memberId);
         Member member = findMemberOrThrow(Long.parseLong(memberId));
 
@@ -79,25 +85,12 @@ public class OAuthLoginService {
         return authCookieProvider.createAccessTokenCookie(accessToken, expiresIn);
     }
 
-    public ResponseCookie createAccessTokenCookie(OAuthTokenResponseDto tokenDto) {
-        return createAccessTokenCookie(tokenDto.accessToken(), tokenDto.accessTokenExpiresIn());
-    }
-
-    public ResponseCookie createRefreshTokenCookie(String refreshToken) {
-        return authCookieProvider.createRefreshTokenCookie(refreshToken);
-    }
-
-    public ResponseCookie createRefreshTokenCookie(OAuthTokenResponseDto tokenDto) {
-        return createRefreshTokenCookie(tokenDto.refreshToken());
-    }
-
-    public Long getTokenExpiration(String accessToken) {
-        return jwtProvider.getExpiration(accessToken);
-    }
-
     private OAuthTokenResponseDto createTokenResponseForExistingMember(Member member, OAuthUserInfoDto userInfo) {
         Authentication authentication = createAuthentication(member);
         TokenDto tokenDto = jwtProvider.generateTokenDto(member.getId(), authentication.getAuthorities());
+
+        saveRefreshToken(member.getId(), tokenDto.getRefreshToken());
+
         return tokenFactory.create(member, tokenDto);
     }
 
@@ -108,6 +101,14 @@ public class OAuthLoginService {
                 List.of(new SimpleGrantedAuthority(member.getRole().name()))
         );
         return new UsernamePasswordAuthenticationToken(userDetails, "", userDetails.getAuthorities());
+    }
+
+    private void saveRefreshToken(Long memberId, String refreshTokenValue) {
+        RefreshToken refreshToken = RefreshToken.builder()
+                .rtKey(String.valueOf(memberId))
+                .rtValue(refreshTokenValue)
+                .build();
+        refreshTokenRepository.save(refreshToken);
     }
 
     private OAuthTokenResponseDto createResponseForNewUser(OAuthUserInfoDto userInfo) {
@@ -124,7 +125,7 @@ public class OAuthLoginService {
     }
 
     private RefreshToken validateRefreshToken(String refreshToken, String memberId) {
-        if (!jwtProvider.validateToken(refreshToken)) {
+        if (!tokenProvider.validateToken(refreshToken)) {
             throw new CustomException(ErrorCode.INVALID_TOKEN);
         }
 

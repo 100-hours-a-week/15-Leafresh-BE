@@ -5,15 +5,17 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.servlet.http.HttpServletResponse;
-import ktb.leafresh.backend.domain.auth.application.service.OAuthSignupService;
+import ktb.leafresh.backend.domain.auth.application.service.oauth.OAuthSignupService;
 import ktb.leafresh.backend.domain.auth.presentation.dto.request.OAuthSignupRequestDto;
 import ktb.leafresh.backend.domain.auth.presentation.dto.response.OAuthLoginResponseDto;
 import ktb.leafresh.backend.domain.auth.presentation.dto.response.OAuthSignupResponseDto;
+import ktb.leafresh.backend.domain.auth.presentation.dto.result.OAuthSignupResult;
 import ktb.leafresh.backend.global.response.ApiResponse;
+import ktb.leafresh.backend.global.security.AuthCookieProvider;
+import ktb.leafresh.backend.global.security.TokenDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -27,6 +29,7 @@ import java.time.Duration;
 public class OAuthSignupController {
 
     private final OAuthSignupService signupService;
+    private final AuthCookieProvider authCookieProvider;
 
     @Operation(
             summary = "OAuth 회원가입",
@@ -50,16 +53,14 @@ public class OAuthSignupController {
         log.info("회원가입 요청 수신 - email={}, provider={}, providerId={}, nickname={}",
                 request.email(), request.provider(), request.provider().id(), request.nickname());
 
-        OAuthSignupResponseDto dto = signupService.signup(request);
+        OAuthSignupResult result = signupService.signup(request);
+        TokenDto tokenDto = result.tokenDto();
 
-        response.addHeader(HttpHeaders.SET_COOKIE, ResponseCookie.from("accessToken", "JWT_ACCESS")
-                .httpOnly(true).secure(true).path("/").sameSite("Strict")
-                .maxAge(Duration.ofMinutes(30)).build().toString());
+        response.addHeader(HttpHeaders.SET_COOKIE,
+                authCookieProvider.createAccessTokenCookie(tokenDto.getAccessToken(), tokenDto.getAccessTokenExpiresIn()).toString());
+        response.addHeader(HttpHeaders.SET_COOKIE,
+                authCookieProvider.createRefreshTokenCookie(tokenDto.getRefreshToken()).toString());
 
-        response.addHeader(HttpHeaders.SET_COOKIE, ResponseCookie.from("refreshToken", "JWT_REFRESH")
-                .httpOnly(true).secure(true).path("/").sameSite("Strict")
-                .maxAge(Duration.ofDays(7)).build().toString());
-
-        return ResponseEntity.ok(ApiResponse.success("회원가입이 완료되었습니다.", dto));
+        return ResponseEntity.ok(ApiResponse.success("회원가입이 완료되었습니다.", result.signupResponse()));
     }
 }

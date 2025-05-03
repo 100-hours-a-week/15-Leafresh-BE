@@ -2,19 +2,17 @@ package ktb.leafresh.backend.domain.auth.presentation.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.servlet.http.HttpServletResponse;
-import ktb.leafresh.backend.domain.auth.application.service.OAuthLoginService;
+import ktb.leafresh.backend.domain.auth.application.service.oauth.OAuthLoginService;
+import ktb.leafresh.backend.domain.auth.domain.entity.enums.OAuthProvider;
 import ktb.leafresh.backend.domain.auth.presentation.dto.response.OAuthLoginResponseDto;
 import ktb.leafresh.backend.domain.auth.presentation.dto.response.OAuthTokenResponseDto;
-import ktb.leafresh.backend.global.exception.CustomException;
-import ktb.leafresh.backend.global.exception.ErrorCode;
 import ktb.leafresh.backend.global.response.ApiResponse;
 import ktb.leafresh.backend.global.response.ApiResponseConstants;
-import ktb.leafresh.backend.global.security.TokenBlacklistService;
+import ktb.leafresh.backend.global.security.AuthCookieProvider;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -27,7 +25,7 @@ import java.net.URI;
 public class OAuthController {
 
     private final OAuthLoginService oAuthLoginService;
-    private final TokenBlacklistService tokenBlacklistService;
+    private final AuthCookieProvider authCookieProvider;
 
     @GetMapping("/success")
     public ResponseEntity<String> oauthSuccessPage() {
@@ -38,9 +36,7 @@ public class OAuthController {
     @ApiResponseConstants.RedirectResponses
     @GetMapping("/{provider}")
     public ResponseEntity<Void> redirectToProvider(@PathVariable String provider) {
-        if (!provider.equalsIgnoreCase("kakao")) {
-            throw new CustomException(ErrorCode.INVALID_PROVIDER);
-        }
+        OAuthProvider providerEnum = OAuthProvider.from(provider);
 
         String redirectUrl = oAuthLoginService.getRedirectUrl();
         return ResponseEntity.status(HttpStatus.FOUND)
@@ -60,9 +56,7 @@ public class OAuthController {
     ) {
         log.info("인가 코드 수신 - code={}", code);
 
-        if (!provider.equalsIgnoreCase("kakao")) {
-            throw new CustomException(ErrorCode.INVALID_PROVIDER);
-        }
+        OAuthProvider providerEnum = OAuthProvider.from(provider);
 
         OAuthTokenResponseDto tokenDto = oAuthLoginService.loginWithKakao(code);
         log.info("카카오 로그인 토큰 발급 완료 - accessToken={}, refreshToken={}",
@@ -90,12 +84,14 @@ public class OAuthController {
     @ApiResponseConstants.ClientErrorResponses
     @PostMapping("/{provider}/token")
     public ResponseEntity<ApiResponse<Void>> reissueToken(
+            @PathVariable String provider,
             @CookieValue("refreshToken") String refreshToken,
             HttpServletResponse response
     ) {
         OAuthTokenResponseDto tokenDto = oAuthLoginService.reissueToken(refreshToken);
 
-        response.addHeader(HttpHeaders.SET_COOKIE, oAuthLoginService.createAccessTokenCookie(tokenDto).toString());
+        response.addHeader(HttpHeaders.SET_COOKIE,
+                oAuthLoginService.createAccessTokenCookie(tokenDto.accessToken(), tokenDto.accessTokenExpiresIn()).toString());
 
         return ResponseEntity.ok(ApiResponse.success("AccessToken이 재발급되었습니다."));
     }
@@ -105,30 +101,23 @@ public class OAuthController {
     @ApiResponseConstants.ClientErrorResponses
     @DeleteMapping("/{provider}/token")
     public ResponseEntity<ApiResponse<Void>> logout(
+            @PathVariable String provider,
             @CookieValue("accessToken") String accessToken,
+            @CookieValue("refreshToken") String refreshToken,
             HttpServletResponse response
     ) {
-        Long expireTime = oAuthLoginService.getTokenExpiration(accessToken);
-        tokenBlacklistService.blacklistAccessToken(accessToken, expireTime);
+        oAuthLoginService.logout(accessToken, refreshToken);
 
-        removeAccessTokenCookie(response);
+        response.addHeader(HttpHeaders.SET_COOKIE, authCookieProvider.clearAccessTokenCookie().toString());
+        response.addHeader(HttpHeaders.SET_COOKIE, authCookieProvider.clearRefreshTokenCookie().toString());
 
         return ResponseEntity.ok(ApiResponse.success("로그아웃이 성공적으로 처리되었습니다."));
     }
 
     private void addLoginCookies(HttpServletResponse response, OAuthTokenResponseDto tokenDto) {
-        response.addHeader(HttpHeaders.SET_COOKIE, oAuthLoginService.createAccessTokenCookie(tokenDto).toString());
-        response.addHeader(HttpHeaders.SET_COOKIE, oAuthLoginService.createRefreshTokenCookie(tokenDto).toString());
-    }
-
-    private void removeAccessTokenCookie(HttpServletResponse response) {
-        ResponseCookie deleteCookie = ResponseCookie.from("accessToken", null)
-                .httpOnly(true)
-                .secure(true)
-                .path("/")
-                .sameSite("Strict")
-                .maxAge(0)
-                .build();
-        response.addHeader(HttpHeaders.SET_COOKIE, deleteCookie.toString());
+        response.addHeader(HttpHeaders.SET_COOKIE,
+                authCookieProvider.createAccessTokenCookie(tokenDto.accessToken(), tokenDto.accessTokenExpiresIn()).toString());
+        response.addHeader(HttpHeaders.SET_COOKIE,
+                authCookieProvider.createRefreshTokenCookie(tokenDto.refreshToken()).toString());
     }
 }

@@ -13,7 +13,6 @@ public class OAuthTokenFactory {
 
     public OAuthTokenResponseDto create(Member member, TokenDto tokenDto) {
         String providerId = member.getAuths().stream()
-                .filter(auth -> auth.getProvider() == member.getLoginType()) // loginType 기반으로 추출
                 .findFirst()
                 .map(OAuth::getProviderId)
                 .orElse(null);
