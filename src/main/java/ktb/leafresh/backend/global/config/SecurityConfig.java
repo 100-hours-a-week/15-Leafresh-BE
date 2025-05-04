@@ -69,6 +69,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/members/signup").permitAll()
 
                         .requestMatchers(HttpMethod.GET, "/api/challenges/group/categories").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/challenges/group/categories/{categoryId}").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/challenges/group/{challengeId:\\d+}").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/challenges/events").permitAll()
 
