@@ -1,6 +1,9 @@
 package ktb.leafresh.backend.domain.challenge.group.application.service;
 
 import ktb.leafresh.backend.domain.challenge.group.domain.entity.GroupChallenge;
+import ktb.leafresh.backend.domain.challenge.group.infrastructure.repository.GroupChallengeQueryRepository;
+import ktb.leafresh.backend.domain.challenge.group.presentation.dto.response.GroupChallengeListResponseDto;
+import ktb.leafresh.backend.domain.challenge.group.presentation.dto.response.GroupChallengeSummaryDto;
 import ktb.leafresh.backend.domain.verification.domain.entity.GroupChallengeVerification;
 import ktb.leafresh.backend.domain.challenge.group.infrastructure.repository.GroupChallengeRepository;
 import ktb.leafresh.backend.domain.verification.infrastructure.repository.GroupChallengeVerificationRepository;
@@ -9,6 +12,8 @@ import ktb.leafresh.backend.domain.challenge.group.presentation.dto.response.Gro
 import ktb.leafresh.backend.global.common.entity.enums.ChallengeStatus;
 import ktb.leafresh.backend.global.exception.CustomException;
 import ktb.leafresh.backend.global.exception.ErrorCode;
+import ktb.leafresh.backend.global.util.pagination.CursorPaginationHelper;
+import ktb.leafresh.backend.global.util.pagination.CursorPaginationResult;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -22,8 +27,26 @@ import java.util.List;
 @Transactional(readOnly = true)
 public class GroupChallengeReadService {
 
+    private final GroupChallengeQueryRepository groupChallengeQueryRepository;
     private final GroupChallengeRepository groupChallengeRepository;
     private final GroupChallengeVerificationRepository verificationRepository;
+
+    public GroupChallengeListResponseDto getGroupChallengesByCategory(
+            Long categoryId, String input, Long cursorId, int size
+    ) {
+        CursorPaginationResult<GroupChallengeSummaryDto> page = CursorPaginationHelper.paginate(
+                groupChallengeQueryRepository.findByCategoryWithSearch(categoryId, input, cursorId, size + 1),
+                size,
+                GroupChallengeSummaryDto::from,
+                GroupChallengeSummaryDto::id
+        );
+
+        return GroupChallengeListResponseDto.builder()
+                .groupChallenges(page.items())
+                .hasNext(page.hasNext())
+                .lastCursorId(page.lastCursorId())
+                .build();
+    }
 
     public GroupChallengeDetailResponseDto getChallengeDetail(Long memberIdOrNull, Long challengeId) {
         GroupChallenge challenge = getChallengeOrThrow(challengeId);

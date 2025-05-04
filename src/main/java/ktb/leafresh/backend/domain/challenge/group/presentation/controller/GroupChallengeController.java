@@ -9,6 +9,7 @@ import ktb.leafresh.backend.domain.challenge.group.presentation.dto.request.Grou
 import ktb.leafresh.backend.domain.challenge.group.presentation.dto.request.GroupChallengeUpdateRequestDto;
 import ktb.leafresh.backend.domain.challenge.group.presentation.dto.response.GroupChallengeCreateResponseDto;
 import ktb.leafresh.backend.domain.challenge.group.presentation.dto.response.GroupChallengeDetailResponseDto;
+import ktb.leafresh.backend.domain.challenge.group.presentation.dto.response.GroupChallengeListResponseDto;
 import ktb.leafresh.backend.global.response.ApiResponse;
 import ktb.leafresh.backend.global.security.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
@@ -28,6 +29,19 @@ public class GroupChallengeController {
     private final GroupChallengeReadService groupChallengeReadService;
     private final GroupChallengeUpdateService groupChallengeUpdateService;
     private final GroupChallengeDeleteService groupChallengeDeleteService;
+
+    @GetMapping("/categories/{categoryId}")
+    public ResponseEntity<ApiResponse<GroupChallengeListResponseDto>> getGroupChallengesByCategory(
+            @PathVariable Long categoryId,
+            @RequestParam(required = false) String input,
+            @RequestParam(required = false) Long cursorId,
+            @RequestParam(defaultValue = "12") int size
+    ) {
+        GroupChallengeListResponseDto response = groupChallengeReadService
+                .getGroupChallengesByCategory(categoryId, input, cursorId, size);
+
+        return ResponseEntity.ok(ApiResponse.success("단체 챌린지 목록 조회에 성공하였습니다.", response));
+    }
 
     @PostMapping
     public ResponseEntity<ApiResponse<GroupChallengeCreateResponseDto>> createGroupChallenge(
