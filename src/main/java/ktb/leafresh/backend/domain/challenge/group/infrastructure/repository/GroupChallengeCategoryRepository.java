@@ -4,7 +4,11 @@ import ktb.leafresh.backend.domain.challenge.group.domain.entity.GroupChallengeC
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;
+import java.util.List;
 
 public interface GroupChallengeCategoryRepository extends JpaRepository<GroupChallengeCategory, Long> {
+
     Optional<GroupChallengeCategory> findByName(String name);
+
+    List<GroupChallengeCategory> findAllByActivatedIsTrueOrderBySequenceNumberAsc();
 }
