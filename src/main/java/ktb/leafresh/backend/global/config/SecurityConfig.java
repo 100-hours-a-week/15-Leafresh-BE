@@ -68,8 +68,9 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/members/nickname").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/members/signup").permitAll()
 
-                        // 단체 챌린지 상세 조회만 비회원 허용
                         .requestMatchers(HttpMethod.GET, "/api/challenges/group/{challengeId:\\d+}").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/challenges/events").permitAll()
+
                         // 그 외 단체 챌린지 API는 인증 필요
                         .requestMatchers("/api/challenges/group/**").authenticated()
 
