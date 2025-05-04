@@ -11,6 +11,7 @@ import java.util.List;
 @Builder
 public record GroupChallengeDetailResponseDto(
         Long id,
+        boolean isEvent,
         String title,
         String description,
         LocalDate startDate,
@@ -31,6 +32,7 @@ public record GroupChallengeDetailResponseDto(
                                                      ChallengeStatus status) {
         return GroupChallengeDetailResponseDto.builder()
                 .id(challenge.getId())
+                .isEvent(Boolean.TRUE.equals(challenge.getEventFlag()))
                 .title(challenge.getTitle())
                 .description(challenge.getDescription())
                 .startDate(challenge.getStartDate().toLocalDate())
