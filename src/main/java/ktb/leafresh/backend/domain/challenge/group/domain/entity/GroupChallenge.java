@@ -9,6 +9,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.*;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 
@@ -84,5 +85,29 @@ public class GroupChallenge extends BaseEntity {
         if (image.getGroupChallenge() == null) {
             image.setGroupChallenge(this);
         }
+    }
+
+    public void updateInfo(
+            String title,
+            String description,
+            String imageUrl,
+            int maxParticipantCount,
+            LocalDate startDate,
+            LocalDate endDate,
+            LocalTime verificationStart,
+            LocalTime verificationEnd
+    ) {
+        this.title = title;
+        this.description = description;
+        this.imageUrl = imageUrl;
+        this.maxParticipantCount = maxParticipantCount;
+        this.startDate = startDate.atStartOfDay();
+        this.endDate = endDate.atTime(23, 59, 59);
+        this.verificationStartTime = verificationStart;
+        this.verificationEndTime = verificationEnd;
+    }
+
+    public void changeCategory(GroupChallengeCategory newCategory) {
+        this.category = newCategory;
     }
 }
