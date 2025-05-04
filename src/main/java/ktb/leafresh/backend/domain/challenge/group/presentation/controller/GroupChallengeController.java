@@ -2,6 +2,7 @@ package ktb.leafresh.backend.domain.challenge.group.presentation.controller;
 
 import jakarta.validation.Valid;
 import ktb.leafresh.backend.domain.challenge.group.application.service.GroupChallengeCreateService;
+import ktb.leafresh.backend.domain.challenge.group.application.service.GroupChallengeDeleteService;
 import ktb.leafresh.backend.domain.challenge.group.application.service.GroupChallengeReadService;
 import ktb.leafresh.backend.domain.challenge.group.application.service.GroupChallengeUpdateService;
 import ktb.leafresh.backend.domain.challenge.group.presentation.dto.request.GroupChallengeCreateRequestDto;
@@ -16,6 +17,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/challenges/group")
@@ -24,6 +27,7 @@ public class GroupChallengeController {
     private final GroupChallengeCreateService groupChallengeCreateService;
     private final GroupChallengeReadService groupChallengeReadService;
     private final GroupChallengeUpdateService groupChallengeUpdateService;
+    private final GroupChallengeDeleteService groupChallengeDeleteService;
 
     @PostMapping
     public ResponseEntity<ApiResponse<GroupChallengeCreateResponseDto>> createGroupChallenge(
@@ -54,5 +58,16 @@ public class GroupChallengeController {
     ) {
         groupChallengeUpdateService.update(userDetails.getMemberId(), challengeId, request);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+    }
+
+    @DeleteMapping("/{challengeId}")
+    public ResponseEntity<ApiResponse<Map<String, Long>>> deleteGroupChallenge(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @PathVariable Long challengeId
+    ) {
+        Long memberId = userDetails.getMemberId();
+        Long deletedId = groupChallengeDeleteService.delete(memberId, challengeId);
+        return ResponseEntity.ok(ApiResponse.success("단체 챌린지가 성공적으로 삭제되었습니다.",
+                Map.of("deletedChallengeId", deletedId)));
     }
 }

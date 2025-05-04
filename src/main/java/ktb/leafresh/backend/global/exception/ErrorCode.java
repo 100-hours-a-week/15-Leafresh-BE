@@ -32,7 +32,9 @@ public enum ErrorCode {
     VERIFICATION_DURATION_TOO_SHORT(HttpStatus.BAD_REQUEST, "인증 가능 시간은 최소 10분 이상이어야 합니다."),
     INVALID_DATE_RANGE(HttpStatus.BAD_REQUEST, "시작일은 종료일보다 이전이어야 합니다."),
     INVALID_VERIFICATION_TIME(HttpStatus.BAD_REQUEST, "인증 시작 시간은 종료 시간보다 이전이어야 합니다."),
-    CHALLENGE_CREATION_REJECTED_BY_AI(HttpStatus.UNPROCESSABLE_ENTITY, "AI 판단 결과 챌린지 생성이 거부되었습니다.");
+    CHALLENGE_CREATION_REJECTED_BY_AI(HttpStatus.UNPROCESSABLE_ENTITY, "AI 판단 결과 챌린지 생성이 거부되었습니다."),
+    CHALLENGE_ALREADY_DELETED(HttpStatus.BAD_REQUEST, "이미 삭제된 단체 챌린지입니다."),
+    CHALLENGE_HAS_PARTICIPANTS(HttpStatus.BAD_REQUEST, "해당 챌린지에 참여자가 있어 삭제할 수 없습니다.");
 
 
     private final HttpStatus status;
