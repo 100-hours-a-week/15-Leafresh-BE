@@ -21,7 +21,6 @@ public class SecurityUtil {
 
         if (authentication == null
                 || authentication.getName() == null
-//                || authentication.getName().equals("anonymousUser")) {
                 || "anonymousUser".equals(authentication.getName())) {
             throw new AuthenticationCredentialsNotFoundException("인증이 필요합니다.");  // 401 Unauthorized 처리
         }
@@ -42,5 +41,25 @@ public class SecurityUtil {
         } catch (Exception e) {
             throw new AuthenticationCredentialsNotFoundException("인증 정보 처리 중 오류가 발생했습니다.");
         }
+    }
+
+    public Long getCurrentMemberIdIfPresent() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || !authentication.isAuthenticated()
+                || "anonymousUser".equals(authentication.getName())) {
+            return null;
+        }
+
+        Object principal = authentication.getPrincipal();
+        if (principal instanceof UserDetails userDetails) {
+            try {
+                return Long.parseLong(userDetails.getUsername());
+            } catch (NumberFormatException e) {
+                return null;
+            }
+        }
+
+        return null;
     }
 }
