@@ -18,6 +18,7 @@ public class GroupChallengeCategoryService {
         return categoryRepository.findAllByActivatedIsTrueOrderBySequenceNumberAsc()
                 .stream()
                 .map(category -> GroupChallengeCategoryResponseDto.builder()
+                        .id(category.getId())
                         .category(category.getName())
                         .label(getLabelFromCategoryName(category.getName()))
                         .imageUrl(category.getImageUrl())
