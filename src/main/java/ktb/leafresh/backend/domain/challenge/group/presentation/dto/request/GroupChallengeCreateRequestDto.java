@@ -37,7 +37,7 @@ public record GroupChallengeCreateRequestDto(
         @NotNull
         @Schema(description = "인증 종료 시간") LocalTime verificationEndTime,
 
-        @Size(max = 10)
+        @Size(max = 5)
         @Schema(description = "인증 예시 이미지 목록") List<ExampleImageRequestDto> exampleImages
 ) {
     public record ExampleImageRequestDto(
