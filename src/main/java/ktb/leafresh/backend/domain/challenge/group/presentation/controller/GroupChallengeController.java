@@ -3,7 +3,9 @@ package ktb.leafresh.backend.domain.challenge.group.presentation.controller;
 import jakarta.validation.Valid;
 import ktb.leafresh.backend.domain.challenge.group.application.service.GroupChallengeCreateService;
 import ktb.leafresh.backend.domain.challenge.group.application.service.GroupChallengeReadService;
+import ktb.leafresh.backend.domain.challenge.group.application.service.GroupChallengeUpdateService;
 import ktb.leafresh.backend.domain.challenge.group.presentation.dto.request.GroupChallengeCreateRequestDto;
+import ktb.leafresh.backend.domain.challenge.group.presentation.dto.request.GroupChallengeUpdateRequestDto;
 import ktb.leafresh.backend.domain.challenge.group.presentation.dto.response.GroupChallengeCreateResponseDto;
 import ktb.leafresh.backend.domain.challenge.group.presentation.dto.response.GroupChallengeDetailResponseDto;
 import ktb.leafresh.backend.global.response.ApiResponse;
@@ -21,6 +23,7 @@ public class GroupChallengeController {
 
     private final GroupChallengeCreateService groupChallengeCreateService;
     private final GroupChallengeReadService groupChallengeReadService;
+    private final GroupChallengeUpdateService groupChallengeUpdateService;
 
     @PostMapping
     public ResponseEntity<ApiResponse<GroupChallengeCreateResponseDto>> createGroupChallenge(
@@ -41,5 +44,15 @@ public class GroupChallengeController {
         Long memberId = (userDetails != null) ? userDetails.getMemberId() : null;
         GroupChallengeDetailResponseDto response = groupChallengeReadService.getChallengeDetail(memberId, challengeId);
         return ResponseEntity.ok(ApiResponse.success("단체 챌린지 상세 정보를 성공적으로 조회했습니다.", response));
+    }
+
+    @PatchMapping("/{challengeId}")
+    public ResponseEntity<ApiResponse<Void>> updateGroupChallenge(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @PathVariable Long challengeId,
+            @Valid @RequestBody GroupChallengeUpdateRequestDto request
+    ) {
+        groupChallengeUpdateService.update(userDetails.getMemberId(), challengeId, request);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 }

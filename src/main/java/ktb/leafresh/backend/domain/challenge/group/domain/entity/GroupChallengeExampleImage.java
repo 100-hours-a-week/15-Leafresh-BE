@@ -3,6 +3,7 @@ package ktb.leafresh.backend.domain.challenge.group.domain.entity;
 import jakarta.persistence.*;
 import ktb.leafresh.backend.global.common.entity.BaseEntity;
 import ktb.leafresh.backend.global.common.entity.enums.ExampleImageType;
+import ktb.leafresh.backend.global.util.image.ImageEntity;
 import lombok.*;
 
 @Entity
@@ -13,7 +14,7 @@ import lombok.*;
 @Builder
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class GroupChallengeExampleImage extends BaseEntity {
+public class GroupChallengeExampleImage extends BaseEntity implements ImageEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -54,5 +55,28 @@ public class GroupChallengeExampleImage extends BaseEntity {
         image.setGroupChallenge(challenge);  // 연관관계만 설정
 
         return image;
+    }
+
+    @Override
+    public void updateSequenceNumber(int sequenceNumber) {
+        this.sequenceNumber = sequenceNumber;
+    }
+
+    @Override
+    public Long getId() {
+        return this.id;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof GroupChallengeExampleImage)) return false;
+        GroupChallengeExampleImage other = (GroupChallengeExampleImage) o;
+        return id != null && id.equals(other.getId());
+    }
+
+    @Override
+    public int hashCode() {
+        return java.util.Objects.hashCode(id);
     }
 }
