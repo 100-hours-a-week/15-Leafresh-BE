@@ -1,30 +1,25 @@
 package ktb.leafresh.backend.domain.challenge.personal.presentation.controller;
 
-import jakarta.validation.Valid;
-import ktb.leafresh.backend.domain.challenge.personal.application.service.PersonalChallengeCreateService;
-import ktb.leafresh.backend.domain.challenge.personal.presentation.dto.request.PersonalChallengeCreateRequestDto;
-import ktb.leafresh.backend.domain.challenge.personal.presentation.dto.response.PersonalChallengeCreateResponseDto;
+import ktb.leafresh.backend.domain.challenge.personal.application.service.PersonalChallengeReadService;
+import ktb.leafresh.backend.domain.challenge.personal.presentation.dto.response.PersonalChallengeListResponseDto;
+import ktb.leafresh.backend.global.common.entity.enums.DayOfWeek;
 import ktb.leafresh.backend.global.response.ApiResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/admin/challenges/personal")
+@RequestMapping("/api/challenges/personal")
 public class PersonalChallengeController {
 
-    private final PersonalChallengeCreateService createService;
+    private final PersonalChallengeReadService readService;
 
-    @PostMapping
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ApiResponse<PersonalChallengeCreateResponseDto>> create(
-            @Valid @RequestBody PersonalChallengeCreateRequestDto request
+    @GetMapping
+    public ResponseEntity<ApiResponse<PersonalChallengeListResponseDto>> getPersonalChallengesByDay(
+            @RequestParam DayOfWeek dayOfWeek
     ) {
-        PersonalChallengeCreateResponseDto response = createService.create(request);
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.created("개인 챌린지 템플릿이 성공적으로 생성되었습니다.", response));
+        PersonalChallengeListResponseDto response = readService.getByDayOfWeek(dayOfWeek);
+        return ResponseEntity.ok(ApiResponse.success("개인챌린지 목록 조회에 성공하였습니다.", response));
     }
 }
