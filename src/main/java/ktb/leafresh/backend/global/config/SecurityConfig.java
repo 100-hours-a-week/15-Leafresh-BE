@@ -68,6 +68,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/members/nickname").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/members/signup").permitAll()
 
+                        // 단체 챌린지
                         .requestMatchers(HttpMethod.GET, "/api/challenges/group/categories").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/challenges/group").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/challenges/group/{challengeId:\\d+}").permitAll()
@@ -75,6 +76,12 @@ public class SecurityConfig {
 
                         // 그 외 단체 챌린지 API는 인증 필요
                         .requestMatchers("/api/challenges/group/**").authenticated()
+
+                        // 개인 챌린지
+                        .requestMatchers(HttpMethod.GET, "/api/challenges/personal").permitAll()
+
+                        // 그 외 개인 챌린지 API는 인증 필요
+                        .requestMatchers("/api/challenges/personal/**").authenticated()
 
                         // Swagger/OpenAPI
                         .requestMatchers(
