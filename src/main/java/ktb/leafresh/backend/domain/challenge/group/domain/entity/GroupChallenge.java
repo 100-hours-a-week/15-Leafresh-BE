@@ -110,4 +110,18 @@ public class GroupChallenge extends BaseEntity {
     public void changeCategory(GroupChallengeCategory newCategory) {
         this.category = newCategory;
     }
+
+    public void increaseParticipantCount() {
+        this.currentParticipantCount++;
+    }
+
+    public void decreaseParticipantCount() {
+        if (this.currentParticipantCount > 0) {
+            this.currentParticipantCount--;
+        }
+    }
+
+    public boolean isFull() {
+        return this.currentParticipantCount >= this.maxParticipantCount;
+    }
 }
