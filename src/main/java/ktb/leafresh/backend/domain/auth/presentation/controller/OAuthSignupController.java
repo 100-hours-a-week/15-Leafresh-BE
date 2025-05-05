@@ -44,7 +44,7 @@ public class OAuthSignupController {
                     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "500", description = "서버 내부 오류입니다.")
             }
     )
-    @PostMapping("/signup")
+    @PostMapping
     public ResponseEntity<ApiResponse<OAuthSignupResponseDto>> signup(
             @RequestBody OAuthSignupRequestDto request,
             HttpServletResponse response
