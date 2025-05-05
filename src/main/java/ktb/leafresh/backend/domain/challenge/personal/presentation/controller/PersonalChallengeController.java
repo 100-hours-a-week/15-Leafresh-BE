@@ -3,6 +3,7 @@ package ktb.leafresh.backend.domain.challenge.personal.presentation.controller;
 import ktb.leafresh.backend.domain.challenge.personal.application.service.PersonalChallengeReadService;
 import ktb.leafresh.backend.domain.challenge.personal.presentation.dto.response.PersonalChallengeDetailResponseDto;
 import ktb.leafresh.backend.domain.challenge.personal.presentation.dto.response.PersonalChallengeListResponseDto;
+import ktb.leafresh.backend.domain.challenge.personal.presentation.dto.response.PersonalChallengeRuleResponseDto;
 import ktb.leafresh.backend.global.common.entity.enums.DayOfWeek;
 import ktb.leafresh.backend.global.response.ApiResponse;
 import ktb.leafresh.backend.global.security.CustomUserDetails;
@@ -34,5 +35,13 @@ public class PersonalChallengeController {
         Long memberId = (userDetails != null) ? userDetails.getMemberId() : null;
         PersonalChallengeDetailResponseDto response = readService.getChallengeDetail(memberId, challengeId);
         return ResponseEntity.ok(ApiResponse.success("개인 챌린지 상세 정보를 성공적으로 조회했습니다.", response));
+    }
+
+    @GetMapping("/{challengeId}/rules")
+    public ResponseEntity<ApiResponse<PersonalChallengeRuleResponseDto>> getPersonalChallengeRules(
+            @PathVariable Long challengeId
+    ) {
+        PersonalChallengeRuleResponseDto response = readService.getChallengeRules(challengeId);
+        return ResponseEntity.ok(ApiResponse.success("개인 챌린지 인증 규약 정보를 성공적으로 조회했습니다.", response));
     }
 }
