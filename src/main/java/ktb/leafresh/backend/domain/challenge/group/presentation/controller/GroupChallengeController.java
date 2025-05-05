@@ -1,10 +1,7 @@
 package ktb.leafresh.backend.domain.challenge.group.presentation.controller;
 
 import jakarta.validation.Valid;
-import ktb.leafresh.backend.domain.challenge.group.application.service.GroupChallengeCreateService;
-import ktb.leafresh.backend.domain.challenge.group.application.service.GroupChallengeDeleteService;
-import ktb.leafresh.backend.domain.challenge.group.application.service.GroupChallengeReadService;
-import ktb.leafresh.backend.domain.challenge.group.application.service.GroupChallengeUpdateService;
+import ktb.leafresh.backend.domain.challenge.group.application.service.*;
 import ktb.leafresh.backend.domain.challenge.group.presentation.dto.request.GroupChallengeCreateRequestDto;
 import ktb.leafresh.backend.domain.challenge.group.presentation.dto.request.GroupChallengeUpdateRequestDto;
 import ktb.leafresh.backend.domain.challenge.group.presentation.dto.response.*;
@@ -27,6 +24,7 @@ public class GroupChallengeController {
     private final GroupChallengeReadService groupChallengeReadService;
     private final GroupChallengeUpdateService groupChallengeUpdateService;
     private final GroupChallengeDeleteService groupChallengeDeleteService;
+    private final GroupChallengeParticipationService groupChallengeParticipationService;
 
     @GetMapping
     public ResponseEntity<ApiResponse<GroupChallengeListResponseDto>> getGroupChallenges(
@@ -101,5 +99,26 @@ public class GroupChallengeController {
     ) {
         GroupChallengeRuleResponseDto response = groupChallengeReadService.getChallengeRules(challengeId);
         return ResponseEntity.ok(ApiResponse.success("단체 챌린지 인증 규약 정보를 성공적으로 조회했습니다.", response));
+    }
+
+    @PostMapping("/{challengeId}/participations")
+    public ResponseEntity<ApiResponse<Map<String, Long>>> participateGroupChallenge(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @PathVariable Long challengeId
+    ) {
+        Long memberId = userDetails.getMemberId();
+        Long recordId = groupChallengeParticipationService.participate(memberId, challengeId);
+
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.created("단체 챌린지에 참여하였습니다.", Map.of("id", recordId)));
+    }
+
+    @DeleteMapping("/{challengeId}/participations")
+    public ResponseEntity<ApiResponse<Void>> cancelParticipation(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @PathVariable Long challengeId
+    ) {
+        groupChallengeParticipationService.drop(userDetails.getMemberId(), challengeId);
+        return ResponseEntity.noContent().build();
     }
 }
