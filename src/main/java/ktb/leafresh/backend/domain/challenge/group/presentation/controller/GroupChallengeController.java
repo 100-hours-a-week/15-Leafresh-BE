@@ -10,6 +10,7 @@ import ktb.leafresh.backend.domain.challenge.group.presentation.dto.request.Grou
 import ktb.leafresh.backend.domain.challenge.group.presentation.dto.response.GroupChallengeCreateResponseDto;
 import ktb.leafresh.backend.domain.challenge.group.presentation.dto.response.GroupChallengeDetailResponseDto;
 import ktb.leafresh.backend.domain.challenge.group.presentation.dto.response.GroupChallengeListResponseDto;
+import ktb.leafresh.backend.domain.challenge.group.presentation.dto.response.GroupChallengeVerificationListResponseDto;
 import ktb.leafresh.backend.global.response.ApiResponse;
 import ktb.leafresh.backend.global.security.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
@@ -83,5 +84,17 @@ public class GroupChallengeController {
         Long deletedId = groupChallengeDeleteService.delete(memberId, challengeId);
         return ResponseEntity.ok(ApiResponse.success("단체 챌린지가 성공적으로 삭제되었습니다.",
                 Map.of("deletedChallengeId", deletedId)));
+    }
+
+    @GetMapping("/{challengeId}/verifications")
+    public ResponseEntity<ApiResponse<GroupChallengeVerificationListResponseDto>> getVerifications(
+            @PathVariable Long challengeId,
+            @RequestParam(required = false) Long cursorId,
+            @RequestParam(defaultValue = "12") int size
+    ) {
+        GroupChallengeVerificationListResponseDto response = groupChallengeReadService
+                .getVerifications(challengeId, cursorId, size);
+
+        return ResponseEntity.ok(ApiResponse.success("단체 챌린지 인증 내역 조회에 성공했습니다.", response));
     }
 }
