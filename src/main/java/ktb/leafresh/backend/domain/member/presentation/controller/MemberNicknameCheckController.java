@@ -5,7 +5,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import ktb.leafresh.backend.domain.member.application.service.MemberNicknameCheckService;
 import ktb.leafresh.backend.domain.member.presentation.dto.response.NicknameCheckResponseDto;
 import ktb.leafresh.backend.global.exception.CustomException;
-import ktb.leafresh.backend.global.exception.ErrorCode;
+import ktb.leafresh.backend.global.exception.MemberErrorCode;
 import ktb.leafresh.backend.global.response.ApiResponse;
 import ktb.leafresh.backend.global.response.ApiResponseConstants;
 import lombok.RequiredArgsConstructor;
@@ -36,11 +36,11 @@ public class MemberNicknameCheckController {
             @RequestParam(value = "input", required = false) String input) {
 
         if (input == null || input.trim().isEmpty()) {
-            throw new CustomException(ErrorCode.NICKNAME_REQUIRED);
+            throw new CustomException(MemberErrorCode.NICKNAME_REQUIRED);
         }
 
         if (!input.matches("^[a-zA-Z0-9가-힣]{1,20}$")) {
-            throw new CustomException(ErrorCode.NICKNAME_INVALID_FORMAT);
+            throw new CustomException(MemberErrorCode.NICKNAME_INVALID_FORMAT);
         }
 
         boolean isDuplicated = memberNicknameCheckService.isDuplicated(input);

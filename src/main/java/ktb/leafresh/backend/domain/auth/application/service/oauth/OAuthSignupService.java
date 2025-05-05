@@ -15,7 +15,7 @@ import ktb.leafresh.backend.domain.member.infrastructure.repository.MemberReposi
 import ktb.leafresh.backend.domain.member.infrastructure.repository.RefreshTokenRepository;
 import ktb.leafresh.backend.domain.member.infrastructure.repository.TreeLevelRepository;
 import ktb.leafresh.backend.global.exception.CustomException;
-import ktb.leafresh.backend.global.exception.ErrorCode;
+import ktb.leafresh.backend.global.exception.MemberErrorCode;
 import ktb.leafresh.backend.global.security.TokenProvider;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -70,7 +70,7 @@ public class OAuthSignupService {
     private void validateNickname(String nickname) {
         if (nicknameCheckService.isDuplicated(nickname)) {
             log.warn("닉네임 중복 - nickname={}", nickname);
-            throw new CustomException(ErrorCode.ALREADY_EXISTS);
+            throw new CustomException(MemberErrorCode.ALREADY_EXISTS);
         }
     }
 
@@ -78,7 +78,7 @@ public class OAuthSignupService {
         return treeLevelRepository.findByName(TreeLevelName.SPROUT)
                 .orElseThrow(() -> {
                     log.error("기본 TreeLevel 조회 실패 - name={}", TreeLevelName.SPROUT);
-                    return new CustomException(ErrorCode.TREE_LEVEL_NOT_FOUND);
+                    return new CustomException(MemberErrorCode.TREE_LEVEL_NOT_FOUND);
                 });
     }
 

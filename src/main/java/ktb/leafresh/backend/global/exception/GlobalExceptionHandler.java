@@ -22,10 +22,11 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(CustomException.class)
     public ResponseEntity<ApiResponse<String>> handleCustomException(CustomException ex) {
-        log.error("CustomException 처리 - code={}, message={}", ex.getErrorCode(), ex.getMessage());
+        BaseErrorCode code = ex.getErrorCode();
+        log.error("CustomException 처리 - code={}, message={}", code, ex.getMessage());
         return ResponseEntity
-                .status(ex.getErrorCode().getStatus())
-                .body(ApiResponse.error(ex.getErrorCode().getStatus(), ex.getMessage()));
+                .status(code.getStatus())
+                .body(ApiResponse.error(code.getStatus(), ex.getMessage()));
     }
 
     /**
@@ -39,8 +40,8 @@ public class GlobalExceptionHandler {
                 .getDefaultMessage(); // 첫 번째 에러 메시지만 반환
         log.warn("DTO 유효성 검사 실패 - message={}", errorMessage);
         return ResponseEntity
-                .status(ErrorCode.INVALID_REQUEST.getStatus())
-                .body(ApiResponse.error(ErrorCode.INVALID_REQUEST.getStatus(), errorMessage));
+                .status(GlobalErrorCode.INVALID_REQUEST.getStatus())
+                .body(ApiResponse.error(GlobalErrorCode.INVALID_REQUEST.getStatus(), errorMessage));
     }
 
     /**
@@ -50,8 +51,8 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiResponse<String>> handleAuthenticationException(Exception ex) {
         log.warn("인증 실패 - message={}", ex.getMessage());
         return ResponseEntity
-                .status(ErrorCode.INVALID_TOKEN.getStatus())
-                .body(ApiResponse.error(ErrorCode.INVALID_TOKEN.getStatus(), ErrorCode.INVALID_TOKEN.getMessage()));
+                .status(GlobalErrorCode.INVALID_TOKEN.getStatus())
+                .body(ApiResponse.error(GlobalErrorCode.INVALID_TOKEN.getStatus(), GlobalErrorCode.INVALID_TOKEN.getMessage()));
     }
 
     /**
@@ -61,8 +62,8 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiResponse<String>> handleAccessDeniedException(AccessDeniedException ex) {
         log.warn("접근 권한 부족 - message={}", ex.getMessage());
         return ResponseEntity
-                .status(ErrorCode.ACCESS_DENIED.getStatus())
-                .body(ApiResponse.error(ErrorCode.ACCESS_DENIED.getStatus(), ErrorCode.ACCESS_DENIED.getMessage()));
+                .status(GlobalErrorCode.ACCESS_DENIED.getStatus())
+                .body(ApiResponse.error(GlobalErrorCode.ACCESS_DENIED.getStatus(), GlobalErrorCode.ACCESS_DENIED.getMessage()));
     }
 
     /**
@@ -72,8 +73,8 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiResponse<String>> handleParseException(HttpMessageNotReadableException ex) {
         log.error("요청 본문 파싱 실패 - message={}", ex.getMessage(), ex);
         return ResponseEntity
-                .status(ErrorCode.INVALID_JSON_FORMAT.getStatus())
-                .body(ApiResponse.error(ErrorCode.INVALID_JSON_FORMAT.getStatus(), ErrorCode.INVALID_JSON_FORMAT.getMessage()));
+                .status(GlobalErrorCode.INVALID_JSON_FORMAT.getStatus())
+                .body(ApiResponse.error(GlobalErrorCode.INVALID_JSON_FORMAT.getStatus(), GlobalErrorCode.INVALID_JSON_FORMAT.getMessage()));
     }
 
     /**
@@ -94,7 +95,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiResponse<String>> handleException(Exception ex) {
         log.error("예상치 못한 서버 내부 오류 - message={}", ex.getMessage(), ex);
         return ResponseEntity
-                .status(ErrorCode.NOT_FOUND.getStatus())
-                .body(ApiResponse.error(ErrorCode.NOT_FOUND.getStatus(), ErrorCode.NOT_FOUND.getMessage()));
+                .status(GlobalErrorCode.NOT_FOUND.getStatus())
+                .body(ApiResponse.error(GlobalErrorCode.NOT_FOUND.getStatus(), GlobalErrorCode.NOT_FOUND.getMessage()));
     }
 }

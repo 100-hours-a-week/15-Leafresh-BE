@@ -1,7 +1,7 @@
 package ktb.leafresh.backend.domain.auth.domain.entity.enums;
 
 import ktb.leafresh.backend.global.exception.CustomException;
-import ktb.leafresh.backend.global.exception.ErrorCode;
+import ktb.leafresh.backend.global.exception.MemberErrorCode;
 
 import java.util.Arrays;
 
@@ -12,6 +12,6 @@ public enum OAuthProvider {
         return Arrays.stream(values())
                 .filter(p -> p.name().equalsIgnoreCase(name))
                 .findFirst()
-                .orElseThrow(() -> new CustomException(ErrorCode.INVALID_PROVIDER));
+                .orElseThrow(() -> new CustomException(MemberErrorCode.INVALID_PROVIDER));
     }
 }

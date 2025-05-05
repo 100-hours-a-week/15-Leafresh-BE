@@ -3,11 +3,10 @@ package ktb.leafresh.backend.global.security;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
-import ktb.leafresh.backend.domain.auth.presentation.dto.response.OAuthTokenResponseDto;
 import ktb.leafresh.backend.domain.member.domain.entity.Member;
 import ktb.leafresh.backend.domain.member.infrastructure.repository.MemberRepository;
 import ktb.leafresh.backend.global.exception.CustomException;
-import ktb.leafresh.backend.global.exception.ErrorCode;
+import ktb.leafresh.backend.global.exception.MemberErrorCode;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -57,7 +56,7 @@ public class TokenProvider {
 
     public TokenDto generateTokenDto(Long memberId) {
         Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND, "존재하지 않는 회원입니다."));
+                .orElseThrow(() -> new CustomException(MemberErrorCode.MEMBER_NOT_FOUND, "존재하지 않는 회원입니다."));
 
         UserDetails userDetails = new User(
                 memberId.toString(),
@@ -131,7 +130,7 @@ public class TokenProvider {
         log.debug("Searching member by ID: {}", memberId);
 
         Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND, "존재하지 않는 회원입니다."));
+                .orElseThrow(() -> new CustomException(MemberErrorCode.MEMBER_NOT_FOUND, "존재하지 않는 회원입니다."));
 
         // 클레임에서 권한 정보 가져오기
         Collection<? extends GrantedAuthority> authorities =

@@ -7,8 +7,8 @@ import ktb.leafresh.backend.domain.verification.domain.entity.PersonalChallengeV
 import ktb.leafresh.backend.domain.verification.infrastructure.repository.PersonalChallengeVerificationRepository;
 import ktb.leafresh.backend.global.common.entity.enums.ChallengeStatus;
 import ktb.leafresh.backend.global.common.entity.enums.DayOfWeek;
+import ktb.leafresh.backend.global.exception.ChallengeErrorCode;
 import ktb.leafresh.backend.global.exception.CustomException;
-import ktb.leafresh.backend.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -31,7 +31,7 @@ public class PersonalChallengeReadService {
         List<PersonalChallenge> challenges = repository.findAllByDayOfWeek(dayOfWeek);
 
         if (challenges.isEmpty()) {
-            throw new CustomException(ErrorCode.NOT_FOUND, "현재 등록된 개인 챌린지가 없습니다.");
+            throw new CustomException(ChallengeErrorCode.PERSONAL_CHALLENGE_EMPTY);
         }
 
         return new PersonalChallengeListResponseDto(PersonalChallengeSummaryDto.fromEntities(challenges));
@@ -39,7 +39,7 @@ public class PersonalChallengeReadService {
 
     public PersonalChallengeDetailResponseDto getChallengeDetail(Long memberIdOrNull, Long challengeId) {
         PersonalChallenge challenge = repository.findById(challengeId)
-                .orElseThrow(() -> new CustomException(ErrorCode.PERSONAL_CHALLENGE_NOT_FOUND));
+                .orElseThrow(() -> new CustomException(ChallengeErrorCode.PERSONAL_CHALLENGE_NOT_FOUND));
 
         List<PersonalChallengeExampleImageDto> exampleImages = challenge.getExampleImages().stream()
                 .map(PersonalChallengeExampleImageDto::from)
@@ -58,7 +58,7 @@ public class PersonalChallengeReadService {
 
         // 1. 챌린지 가져오기
         PersonalChallenge challenge = repository.findById(challengeId)
-                .orElseThrow(() -> new CustomException(ErrorCode.PERSONAL_CHALLENGE_NOT_FOUND));
+                .orElseThrow(() -> new CustomException(ChallengeErrorCode.PERSONAL_CHALLENGE_NOT_FOUND));
 
         // 2. 요일 계산
         java.time.DayOfWeek javaDayOfWeek = java.time.DayOfWeek.valueOf(challenge.getDayOfWeek().name()); // enum 변환
@@ -77,7 +77,7 @@ public class PersonalChallengeReadService {
 
     public PersonalChallengeRuleResponseDto getChallengeRules(Long challengeId) {
         PersonalChallenge challenge = repository.findById(challengeId)
-                .orElseThrow(() -> new CustomException(ErrorCode.PERSONAL_CHALLENGE_NOT_FOUND));
+                .orElseThrow(() -> new CustomException(ChallengeErrorCode.PERSONAL_CHALLENGE_NOT_FOUND));
 
         List<PersonalChallengeExampleImageDto> exampleImages = challenge.getExampleImages().stream()
                 .map(PersonalChallengeExampleImageDto::from)

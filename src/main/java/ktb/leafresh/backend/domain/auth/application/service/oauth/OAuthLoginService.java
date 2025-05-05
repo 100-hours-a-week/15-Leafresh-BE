@@ -9,9 +9,10 @@ import ktb.leafresh.backend.domain.auth.presentation.dto.response.OAuthTokenResp
 import ktb.leafresh.backend.domain.member.domain.entity.Member;
 import ktb.leafresh.backend.domain.member.infrastructure.repository.MemberRepository;
 import ktb.leafresh.backend.domain.member.infrastructure.repository.RefreshTokenRepository;
+import ktb.leafresh.backend.global.exception.GlobalErrorCode;
+import ktb.leafresh.backend.global.exception.MemberErrorCode;
 import ktb.leafresh.backend.global.security.*;
 import ktb.leafresh.backend.global.exception.CustomException;
-import ktb.leafresh.backend.global.exception.ErrorCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -128,14 +129,14 @@ public class OAuthLoginService {
 
     private RefreshToken validateRefreshToken(String refreshToken, String memberId) {
         if (!tokenProvider.validateToken(refreshToken)) {
-            throw new CustomException(ErrorCode.INVALID_TOKEN);
+            throw new CustomException(GlobalErrorCode.INVALID_TOKEN);
         }
 
         RefreshToken saved = refreshTokenRepository.findById(memberId)
-                .orElseThrow(() -> new CustomException(ErrorCode.REFRESH_TOKEN_NOT_FOUND));
+                .orElseThrow(() -> new CustomException(GlobalErrorCode.REFRESH_TOKEN_NOT_FOUND));
 
         if (!saved.getRtValue().equals(refreshToken)) {
-            throw new CustomException(ErrorCode.INVALID_TOKEN);
+            throw new CustomException(GlobalErrorCode.INVALID_TOKEN);
         }
 
         return saved;
@@ -143,6 +144,6 @@ public class OAuthLoginService {
 
     private Member findMemberOrThrow(Long memberId) {
         return memberRepository.findById(memberId)
-                .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+                .orElseThrow(() -> new CustomException(MemberErrorCode.MEMBER_NOT_FOUND));
     }
 }

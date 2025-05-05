@@ -7,7 +7,8 @@ import ktb.leafresh.backend.domain.member.domain.entity.Member;
 import ktb.leafresh.backend.domain.member.infrastructure.repository.MemberRepository;
 import ktb.leafresh.backend.domain.member.infrastructure.repository.RefreshTokenRepository;
 import ktb.leafresh.backend.global.exception.CustomException;
-import ktb.leafresh.backend.global.exception.ErrorCode;
+import ktb.leafresh.backend.global.exception.GlobalErrorCode;
+import ktb.leafresh.backend.global.exception.MemberErrorCode;
 import ktb.leafresh.backend.global.security.TokenProvider;
 import ktb.leafresh.backend.global.security.TokenDto;
 import lombok.RequiredArgsConstructor;
@@ -36,14 +37,14 @@ public class OAuthReissueTokenService {
 
     private RefreshToken validateRefreshToken(String refreshToken, String memberId) {
         if (!tokenProvider.validateToken(refreshToken)) {
-            throw new CustomException(ErrorCode.INVALID_TOKEN, "유효하지 않은 Refresh Token입니다.");
+            throw new CustomException(GlobalErrorCode.INVALID_TOKEN, "유효하지 않은 Refresh Token입니다.");
         }
 
         RefreshToken saved = refreshTokenRepository.findById(memberId)
-                .orElseThrow(() -> new CustomException(ErrorCode.REFRESH_TOKEN_NOT_FOUND, "Refresh Token을 찾을 수 없습니다."));
+                .orElseThrow(() -> new CustomException(GlobalErrorCode.REFRESH_TOKEN_NOT_FOUND, "Refresh Token을 찾을 수 없습니다."));
 
         if (!saved.getRtValue().equals(refreshToken)) {
-            throw new CustomException(ErrorCode.INVALID_TOKEN, "Refresh Token이 일치하지 않습니다.");
+            throw new CustomException(GlobalErrorCode.INVALID_TOKEN, "Refresh Token이 일치하지 않습니다.");
         }
 
         return saved;
@@ -51,6 +52,6 @@ public class OAuthReissueTokenService {
 
     private Member findMemberOrThrow(Long memberId) {
         return memberRepository.findById(memberId)
-                .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND, "존재하지 않는 회원입니다."));
+                .orElseThrow(() -> new CustomException(MemberErrorCode.MEMBER_NOT_FOUND, "존재하지 않는 회원입니다."));
     }
 }

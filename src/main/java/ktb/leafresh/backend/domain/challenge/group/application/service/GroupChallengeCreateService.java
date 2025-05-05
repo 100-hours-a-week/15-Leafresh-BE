@@ -11,7 +11,7 @@ import ktb.leafresh.backend.domain.challenge.group.presentation.dto.response.Gro
 import ktb.leafresh.backend.domain.member.domain.entity.Member;
 import ktb.leafresh.backend.domain.member.infrastructure.repository.MemberRepository;
 import ktb.leafresh.backend.global.exception.CustomException;
-import ktb.leafresh.backend.global.exception.ErrorCode;
+import ktb.leafresh.backend.global.exception.MemberErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,7 +30,7 @@ public class GroupChallengeCreateService {
     @Transactional
     public GroupChallengeCreateResponseDto create(Long memberId, GroupChallengeCreateRequestDto dto) {
         Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+                .orElseThrow(() -> new CustomException(MemberErrorCode.MEMBER_NOT_FOUND));
 
         domainValidator.validate(dto);
         aiValidator.validate(memberId, dto);

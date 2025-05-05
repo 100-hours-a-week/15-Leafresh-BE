@@ -9,8 +9,9 @@ import ktb.leafresh.backend.domain.verification.domain.entity.GroupChallengeVeri
 import ktb.leafresh.backend.domain.challenge.group.infrastructure.repository.GroupChallengeRepository;
 import ktb.leafresh.backend.domain.verification.infrastructure.repository.GroupChallengeVerificationRepository;
 import ktb.leafresh.backend.global.common.entity.enums.ChallengeStatus;
+import ktb.leafresh.backend.global.exception.ChallengeErrorCode;
 import ktb.leafresh.backend.global.exception.CustomException;
-import ktb.leafresh.backend.global.exception.ErrorCode;
+import ktb.leafresh.backend.global.exception.GlobalErrorCode;
 import ktb.leafresh.backend.global.util.pagination.CursorPaginationHelper;
 import ktb.leafresh.backend.global.util.pagination.CursorPaginationResult;
 import lombok.RequiredArgsConstructor;
@@ -33,7 +34,7 @@ public class GroupChallengeReadService {
 
     public GroupChallengeListResponseDto getGroupChallenges(String input, String category, Long cursorId, int size) {
         if (category == null || category.trim().isEmpty()) {
-            throw new CustomException(ErrorCode.INVALID_REQUEST);
+            throw new CustomException(GlobalErrorCode.INVALID_REQUEST);
         }
 
         String internalCategoryName = resolveCategoryNameOrThrow(category);
@@ -55,7 +56,7 @@ public class GroupChallengeReadService {
     private String resolveCategoryNameOrThrow(String label) {
         String name = GroupChallengeCategoryName.toEnglish(label);
         if (name == null) {
-            throw new CustomException(ErrorCode.CHALLENGE_CATEGORY_NOT_FOUND);
+            throw new CustomException(ChallengeErrorCode.CHALLENGE_CATEGORY_NOT_FOUND);
         }
         return name;
     }
@@ -71,7 +72,7 @@ public class GroupChallengeReadService {
 
     private GroupChallenge getChallengeOrThrow(Long challengeId) {
         return groupChallengeRepository.findById(challengeId)
-                .orElseThrow(() -> new CustomException(ErrorCode.GROUP_CHALLENGE_NOT_FOUND));
+                .orElseThrow(() -> new CustomException(ChallengeErrorCode.GROUP_CHALLENGE_NOT_FOUND));
     }
 
     private List<String> getVerificationImages(Long challengeId) {
@@ -120,7 +121,7 @@ public class GroupChallengeReadService {
 
     public GroupChallengeRuleResponseDto getChallengeRules(Long challengeId) {
         GroupChallenge challenge = groupChallengeRepository.findById(challengeId)
-                .orElseThrow(() -> new CustomException(ErrorCode.GROUP_CHALLENGE_NOT_FOUND));
+                .orElseThrow(() -> new CustomException(ChallengeErrorCode.GROUP_CHALLENGE_NOT_FOUND));
 
         List<GroupChallengeExampleImageDto> exampleImages = challenge.getExampleImages().stream()
                 .map(GroupChallengeExampleImageDto::from)

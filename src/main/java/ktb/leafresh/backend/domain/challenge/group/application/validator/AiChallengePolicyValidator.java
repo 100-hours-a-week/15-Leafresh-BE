@@ -7,8 +7,8 @@ import ktb.leafresh.backend.domain.challenge.group.infrastructure.dto.request.Ai
 import ktb.leafresh.backend.domain.challenge.group.infrastructure.dto.response.AiChallengeValidationResponseDto;
 import ktb.leafresh.backend.domain.challenge.group.infrastructure.repository.GroupChallengeRepository;
 import ktb.leafresh.backend.domain.challenge.group.presentation.dto.request.GroupChallengeCreateRequestDto;
+import ktb.leafresh.backend.global.exception.ChallengeErrorCode;
 import ktb.leafresh.backend.global.exception.CustomException;
-import ktb.leafresh.backend.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -49,7 +49,7 @@ public class AiChallengePolicyValidator {
         AiChallengeValidationResponseDto aiResponse = aiChallengeValidationClient.validateChallenge(aiRequest);
 
         if (!aiResponse.result()) {
-            throw new CustomException(ErrorCode.CHALLENGE_CREATION_REJECTED_BY_AI);
+            throw new CustomException(ChallengeErrorCode.CHALLENGE_CREATION_REJECTED_BY_AI);
         }
     }
 }
