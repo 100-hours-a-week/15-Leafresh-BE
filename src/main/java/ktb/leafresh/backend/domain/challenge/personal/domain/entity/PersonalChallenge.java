@@ -4,6 +4,7 @@ import ktb.leafresh.backend.domain.verification.domain.entity.PersonalChallengeV
 
 import jakarta.persistence.*;
 import ktb.leafresh.backend.global.common.entity.BaseEntity;
+import ktb.leafresh.backend.global.common.entity.enums.DayOfWeek;
 import lombok.*;
 
 import java.time.LocalTime;
@@ -40,8 +41,9 @@ public class PersonalChallenge extends BaseEntity {
     @Column(nullable = false)
     private Integer leafReward;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
-    private String dayOfWeek;
+    private DayOfWeek dayOfWeek;
 
     @Column(nullable = false)
     private LocalTime verificationStartTime;
