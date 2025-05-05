@@ -7,17 +7,17 @@ import lombok.Builder;
 public record GroupChallengeExampleImageDto(
         Long id,
         String imageUrl,
-        String type,
         String description,
-        int sequenceNumber
+        int sequenceNumber,
+        String type
 ) {
     public static GroupChallengeExampleImageDto from(GroupChallengeExampleImage image) {
         return GroupChallengeExampleImageDto.builder()
                 .id(image.getId())
                 .imageUrl(image.getImageUrl())
-                .type(image.getType().name())
                 .description(image.getDescription())
                 .sequenceNumber(image.getSequenceNumber())
+                .type(image.getType().name())
                 .build();
     }
 }

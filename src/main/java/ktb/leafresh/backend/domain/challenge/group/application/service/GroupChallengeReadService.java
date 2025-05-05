@@ -117,4 +117,15 @@ public class GroupChallengeReadService {
                 .lastCursorId(page.lastCursorId())
                 .build();
     }
+
+    public GroupChallengeRuleResponseDto getChallengeRules(Long challengeId) {
+        GroupChallenge challenge = groupChallengeRepository.findById(challengeId)
+                .orElseThrow(() -> new CustomException(ErrorCode.GROUP_CHALLENGE_NOT_FOUND));
+
+        List<GroupChallengeExampleImageDto> exampleImages = challenge.getExampleImages().stream()
+                .map(GroupChallengeExampleImageDto::from)
+                .toList();
+
+        return GroupChallengeRuleResponseDto.of(challenge, exampleImages);
+    }
 }
