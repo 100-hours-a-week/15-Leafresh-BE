@@ -1,6 +1,7 @@
 package ktb.leafresh.backend.domain.challenge.group.application.service;
 
 import ktb.leafresh.backend.domain.challenge.group.domain.entity.GroupChallenge;
+import ktb.leafresh.backend.domain.challenge.group.domain.entity.enums.GroupChallengeCategoryName;
 import ktb.leafresh.backend.domain.challenge.group.infrastructure.repository.GroupChallengeQueryRepository;
 import ktb.leafresh.backend.domain.challenge.group.infrastructure.repository.GroupChallengeVerificationQueryRepository;
 import ktb.leafresh.backend.domain.challenge.group.presentation.dto.response.*;
@@ -35,8 +36,10 @@ public class GroupChallengeReadService {
             throw new CustomException(ErrorCode.INVALID_REQUEST);
         }
 
+        String internalCategoryName = resolveCategoryNameOrThrow(category);
+
         CursorPaginationResult<GroupChallengeSummaryDto> page = CursorPaginationHelper.paginate(
-                groupChallengeQueryRepository.findByFilter(input, category, cursorId, size + 1),
+                groupChallengeQueryRepository.findByFilter(input, internalCategoryName, cursorId, size + 1),
                 size,
                 GroupChallengeSummaryDto::from,
                 GroupChallengeSummaryDto::id
@@ -47,6 +50,14 @@ public class GroupChallengeReadService {
                 .hasNext(page.hasNext())
                 .lastCursorId(page.lastCursorId())
                 .build();
+    }
+
+    private String resolveCategoryNameOrThrow(String label) {
+        String name = GroupChallengeCategoryName.toEnglish(label);
+        if (name == null) {
+            throw new CustomException(ErrorCode.CHALLENGE_CATEGORY_NOT_FOUND);
+        }
+        return name;
     }
 
     public GroupChallengeDetailResponseDto getChallengeDetail(Long memberIdOrNull, Long challengeId) {
