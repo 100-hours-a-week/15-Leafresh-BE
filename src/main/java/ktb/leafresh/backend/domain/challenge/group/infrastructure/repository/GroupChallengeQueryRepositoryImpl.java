@@ -18,13 +18,13 @@ public class GroupChallengeQueryRepositoryImpl implements GroupChallengeQueryRep
     private final QGroupChallenge gc = QGroupChallenge.groupChallenge;
 
     @Override
-    public List<GroupChallenge> findByCategoryWithSearch(Long categoryId, String input, Long cursorId, int size) {
+    public List<GroupChallenge> findByFilter(String input, String category, Long cursorId, int size) {
         return queryFactory.selectFrom(gc)
                 .where(
-                        gc.category.id.eq(categoryId),
                         gc.deletedAt.isNull(),
                         gc.endDate.goe(LocalDateTime.now()),
                         likeInput(input),
+                        eqCategory(category),
                         ltCursorId(cursorId)
                 )
                 .orderBy(gc.id.desc())
@@ -36,6 +36,10 @@ public class GroupChallengeQueryRepositoryImpl implements GroupChallengeQueryRep
         if (input == null || input.trim().isEmpty()) return null;
         return gc.title.containsIgnoreCase(input)
                 .or(gc.description.containsIgnoreCase(input));
+    }
+
+    private BooleanExpression eqCategory(String category) {
+        return category != null ? gc.category.name.eq(category) : null;
     }
 
     private BooleanExpression ltCursorId(Long cursorId) {
