@@ -2,9 +2,9 @@ package ktb.leafresh.backend.domain.challenge.group.application.validator;
 
 import ktb.leafresh.backend.domain.challenge.group.domain.entity.GroupChallenge;
 import ktb.leafresh.backend.domain.challenge.group.infrastructure.client.AiChallengeValidationClient;
-import ktb.leafresh.backend.domain.challenge.group.infrastructure.dto.AiChallengeValidationRequestDto;
-import ktb.leafresh.backend.domain.challenge.group.infrastructure.dto.AiChallengeValidationRequestDto.ChallengeSummary;
-import ktb.leafresh.backend.domain.challenge.group.infrastructure.dto.AiChallengeValidationResponseDto;
+import ktb.leafresh.backend.domain.challenge.group.infrastructure.dto.request.AiChallengeValidationRequestDto;
+import ktb.leafresh.backend.domain.challenge.group.infrastructure.dto.request.AiChallengeValidationRequestDto.ChallengeSummary;
+import ktb.leafresh.backend.domain.challenge.group.infrastructure.dto.response.AiChallengeValidationResponseDto;
 import ktb.leafresh.backend.domain.challenge.group.infrastructure.repository.GroupChallengeRepository;
 import ktb.leafresh.backend.domain.challenge.group.presentation.dto.request.GroupChallengeCreateRequestDto;
 import ktb.leafresh.backend.global.exception.CustomException;
@@ -12,7 +12,6 @@ import ktb.leafresh.backend.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 

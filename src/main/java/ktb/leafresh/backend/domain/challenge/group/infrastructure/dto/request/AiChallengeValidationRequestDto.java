@@ -1,4 +1,4 @@
-package ktb.leafresh.backend.domain.challenge.group.infrastructure.dto;
+package ktb.leafresh.backend.domain.challenge.group.infrastructure.dto.request;
 
 import java.util.List;
 

@@ -1,7 +1,7 @@
 package ktb.leafresh.backend.domain.challenge.group.infrastructure.client;
 
-import ktb.leafresh.backend.domain.challenge.group.infrastructure.dto.AiChallengeValidationRequestDto;
-import ktb.leafresh.backend.domain.challenge.group.infrastructure.dto.AiChallengeValidationResponseDto;
+import ktb.leafresh.backend.domain.challenge.group.infrastructure.dto.request.AiChallengeValidationRequestDto;
+import ktb.leafresh.backend.domain.challenge.group.infrastructure.dto.response.AiChallengeValidationResponseDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
