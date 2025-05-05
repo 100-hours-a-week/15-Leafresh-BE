@@ -39,4 +39,20 @@ public class GroupChallengeParticipantRecord extends BaseEntity {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private ParticipantStatus status;
+
+    public void changeStatus(ParticipantStatus newStatus) {
+        this.status = newStatus;
+    }
+
+    public static GroupChallengeParticipantRecord create(Member member, GroupChallenge challenge, ParticipantStatus status) {
+        return GroupChallengeParticipantRecord.builder()
+                .member(member)
+                .groupChallenge(challenge)
+                .status(status)
+                .build();
+    }
+
+    public boolean isActive() {
+        return this.status == ParticipantStatus.ACTIVE;
+    }
 }

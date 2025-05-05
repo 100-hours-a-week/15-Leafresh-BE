@@ -36,7 +36,11 @@ public enum ErrorCode {
     CHALLENGE_ALREADY_DELETED(HttpStatus.BAD_REQUEST, "이미 삭제된 단체 챌린지입니다."),
     CHALLENGE_HAS_PARTICIPANTS(HttpStatus.BAD_REQUEST, "해당 챌린지에 참여자가 있어 삭제할 수 없습니다."),
     EXCEEDS_DAILY_PERSONAL_CHALLENGE_LIMIT(HttpStatus.BAD_REQUEST, "요일별 챌린지는 최대 3개까지만 등록할 수 있습니다."),
-    PERSONAL_CHALLENGE_NOT_FOUND(HttpStatus.NOT_FOUND, "개인 챌린지를 찾을 수 없습니다.");
+    PERSONAL_CHALLENGE_NOT_FOUND(HttpStatus.NOT_FOUND, "개인 챌린지를 찾을 수 없습니다."),
+    CHALLENGE_ALREADY_PARTICIPATED(HttpStatus.BAD_REQUEST, "이미 참여한 챌린지입니다."),
+    CHALLENGE_FULL(HttpStatus.FORBIDDEN, "참여 인원이 초과되었습니다."),
+    CHALLENGE_ALREADY_DROPPED(HttpStatus.BAD_REQUEST, "이미 취소된 참여 이력입니다.");
+
 
     private final HttpStatus status;
     private final String message;
