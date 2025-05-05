@@ -5,6 +5,7 @@ import ktb.leafresh.backend.domain.verification.domain.entity.PersonalChallengeV
 import jakarta.persistence.*;
 import ktb.leafresh.backend.global.common.entity.BaseEntity;
 import ktb.leafresh.backend.global.common.entity.enums.DayOfWeek;
+import ktb.leafresh.backend.global.common.entity.enums.ExampleImageType;
 import lombok.*;
 
 import java.time.LocalTime;
@@ -23,9 +24,11 @@ public class PersonalChallenge extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Builder.Default
     @OneToMany(mappedBy = "personalChallenge", cascade = CascadeType.ALL)
     private List<PersonalChallengeExampleImage> exampleImages = new ArrayList<>();
 
+    @Builder.Default
     @OneToMany(mappedBy = "personalChallenge", cascade = CascadeType.ALL)
     private List<PersonalChallengeVerification> verifications = new ArrayList<>();
 
@@ -50,4 +53,24 @@ public class PersonalChallenge extends BaseEntity {
 
     @Column(nullable = false)
     private LocalTime verificationEndTime;
+
+    public static PersonalChallengeExampleImage of(
+            PersonalChallenge challenge, String imageUrl, ExampleImageType type, String description, int sequenceNumber) {
+        PersonalChallengeExampleImage image = PersonalChallengeExampleImage.builder()
+                .imageUrl(imageUrl)
+                .type(type)
+                .description(description)
+                .sequenceNumber(sequenceNumber)
+                .build();
+
+        image.setPersonalChallenge(challenge);
+        return image;
+    }
+
+    public void addExampleImage(PersonalChallengeExampleImage image) {
+        this.exampleImages.add(image);
+        if (image.getPersonalChallenge() == null) {
+            image.setPersonalChallenge(this);
+        }
+    }
 }
