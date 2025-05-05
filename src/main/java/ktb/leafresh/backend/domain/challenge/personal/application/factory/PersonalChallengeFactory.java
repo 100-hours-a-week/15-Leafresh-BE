@@ -6,6 +6,7 @@ import org.springframework.stereotype.Component;
 
 import java.time.LocalTime;
 
+
 @Component
 public class PersonalChallengeFactory {
 
@@ -14,10 +15,10 @@ public class PersonalChallengeFactory {
                 .title(dto.title())
                 .description(dto.description())
                 .dayOfWeek(dto.dayOfWeek())
-                .imageUrl(dto.imageUrl())
-                .leafReward(dto.leafReward())
-                .verificationStartTime(LocalTime.of(6, 0))
-                .verificationEndTime(LocalTime.of(23, 59))
+                .imageUrl(dto.thumbnailImageUrl())
+                .verificationStartTime(dto.verificationStartTime())
+                .verificationEndTime(dto.verificationEndTime())
+                .leafReward(30)
                 .build();
     }
 }
