@@ -21,6 +21,7 @@ public class PersonalChallengeExampleImage extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "personal_challenge_id", nullable = false)
+    @Setter
     private PersonalChallenge personalChallenge;
 
     @Column(nullable = false, length = 512)
@@ -35,4 +36,22 @@ public class PersonalChallengeExampleImage extends BaseEntity {
 
     @Column(nullable = false)
     private Integer sequenceNumber;
+
+    public static PersonalChallengeExampleImage of(
+            PersonalChallenge challenge,
+            String imageUrl,
+            ExampleImageType type,
+            String description,
+            int sequenceNumber
+    ) {
+        PersonalChallengeExampleImage image = PersonalChallengeExampleImage.builder()
+                .imageUrl(imageUrl)
+                .type(type)
+                .description(description)
+                .sequenceNumber(sequenceNumber)
+                .build();
+
+        image.setPersonalChallenge(challenge);
+        return image;
+    }
 }
