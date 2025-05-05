@@ -8,17 +8,17 @@ import lombok.Builder;
 public record PersonalChallengeExampleImageDto(
         Long id,
         String imageUrl,
-        ExampleImageType type,
         String description,
-        Integer sequenceNumber
+        int sequenceNumber,
+        String type
 ) {
     public static PersonalChallengeExampleImageDto from(PersonalChallengeExampleImage image) {
         return PersonalChallengeExampleImageDto.builder()
                 .id(image.getId())
                 .imageUrl(image.getImageUrl())
-                .type(image.getType())
                 .description(image.getDescription())
                 .sequenceNumber(image.getSequenceNumber())
+                .type(image.getType().name())
                 .build();
     }
 }
