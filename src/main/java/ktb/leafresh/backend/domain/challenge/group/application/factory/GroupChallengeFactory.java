@@ -5,8 +5,8 @@ import ktb.leafresh.backend.domain.challenge.group.domain.entity.GroupChallengeC
 import ktb.leafresh.backend.domain.challenge.group.infrastructure.repository.GroupChallengeCategoryRepository;
 import ktb.leafresh.backend.domain.challenge.group.presentation.dto.request.GroupChallengeCreateRequestDto;
 import ktb.leafresh.backend.domain.member.domain.entity.Member;
+import ktb.leafresh.backend.global.exception.ChallengeErrorCode;
 import ktb.leafresh.backend.global.exception.CustomException;
-import ktb.leafresh.backend.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -18,7 +18,7 @@ public class GroupChallengeFactory {
 
     public GroupChallenge create(GroupChallengeCreateRequestDto dto, Member member) {
         GroupChallengeCategory category = categoryRepository.findByName(dto.category())
-                .orElseThrow(() -> new CustomException(ErrorCode.CHALLENGE_CATEGORY_NOT_FOUND));
+                .orElseThrow(() -> new CustomException(ChallengeErrorCode.CHALLENGE_CATEGORY_NOT_FOUND));
 
         return GroupChallenge.builder()
                 .member(member)

@@ -8,7 +8,7 @@ import ktb.leafresh.backend.domain.auth.domain.entity.enums.OAuthProvider;
 import ktb.leafresh.backend.domain.auth.presentation.dto.response.OAuthLoginResponseDto;
 import ktb.leafresh.backend.domain.auth.presentation.dto.response.OAuthTokenResponseDto;
 import ktb.leafresh.backend.global.exception.CustomException;
-import ktb.leafresh.backend.global.exception.ErrorCode;
+import ktb.leafresh.backend.global.exception.GlobalErrorCode;
 import ktb.leafresh.backend.global.response.ApiResponse;
 import ktb.leafresh.backend.global.response.ApiResponseConstants;
 import ktb.leafresh.backend.global.security.AuthCookieProvider;
@@ -92,7 +92,7 @@ public class OAuthController {
             HttpServletResponse response
     ) {
         if (refreshToken == null || refreshToken.isBlank()) {
-            throw new CustomException(ErrorCode.UNAUTHORIZED);
+            throw new CustomException(GlobalErrorCode.UNAUTHORIZED);
         }
 
         OAuthTokenResponseDto newTokenDto = oAuthReissueTokenService.reissue(refreshToken);

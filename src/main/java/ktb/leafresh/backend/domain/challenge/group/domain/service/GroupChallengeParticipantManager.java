@@ -8,8 +8,9 @@ import ktb.leafresh.backend.domain.challenge.group.infrastructure.repository.Gro
 import ktb.leafresh.backend.domain.member.domain.entity.Member;
 import ktb.leafresh.backend.domain.member.infrastructure.repository.MemberRepository;
 import ktb.leafresh.backend.global.common.entity.enums.ParticipantStatus;
+import ktb.leafresh.backend.global.exception.ChallengeErrorCode;
 import ktb.leafresh.backend.global.exception.CustomException;
-import ktb.leafresh.backend.global.exception.ErrorCode;
+import ktb.leafresh.backend.global.exception.MemberErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -44,7 +45,7 @@ public class GroupChallengeParticipantManager {
     public void drop(Long memberId, Long challengeId) {
         GroupChallengeParticipantRecord record = participantRepository
                 .findByGroupChallengeIdAndMemberIdAndDeletedAtIsNull(challengeId, memberId)
-                .orElseThrow(() -> new CustomException(ErrorCode.CHALLENGE_ALREADY_DELETED));
+                .orElseThrow(() -> new CustomException(ChallengeErrorCode.CHALLENGE_ALREADY_DELETED));
 
         validator.validateDroppable(record);
 
@@ -59,11 +60,11 @@ public class GroupChallengeParticipantManager {
 
     private Member findMember(Long memberId) {
         return memberRepository.findById(memberId)
-                .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+                .orElseThrow(() -> new CustomException(MemberErrorCode.MEMBER_NOT_FOUND));
     }
 
     private GroupChallenge findChallenge(Long challengeId) {
         return groupChallengeRepository.findById(challengeId)
-                .orElseThrow(() -> new CustomException(ErrorCode.GROUP_CHALLENGE_NOT_FOUND));
+                .orElseThrow(() -> new CustomException(ChallengeErrorCode.GROUP_CHALLENGE_NOT_FOUND));
     }
 }

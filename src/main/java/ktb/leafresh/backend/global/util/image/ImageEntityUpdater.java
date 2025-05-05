@@ -3,7 +3,7 @@ package ktb.leafresh.backend.global.util.image;
 import jakarta.transaction.Transactional;
 import ktb.leafresh.backend.global.common.entity.BaseEntity;
 import ktb.leafresh.backend.global.exception.CustomException;
-import ktb.leafresh.backend.global.exception.ErrorCode;
+import ktb.leafresh.backend.global.exception.GlobalErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
@@ -41,7 +41,7 @@ public class ImageEntityUpdater {
         if (keepList != null) {
             for (KeepImage keep : keepList) {
                 E entity = repository.findById(keep.id())
-                        .orElseThrow(() -> new CustomException(ErrorCode.ACCESS_DENIED));
+                        .orElseThrow(() -> new CustomException(GlobalErrorCode.ACCESS_DENIED));
                 entity.updateSequenceNumber(keep.sequenceNumber());
             }
         }

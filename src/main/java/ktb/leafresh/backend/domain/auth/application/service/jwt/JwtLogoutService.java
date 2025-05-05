@@ -3,7 +3,7 @@ package ktb.leafresh.backend.domain.auth.application.service.jwt;
 import ktb.leafresh.backend.domain.auth.domain.entity.RefreshToken;
 import ktb.leafresh.backend.domain.member.infrastructure.repository.RefreshTokenRepository;
 import ktb.leafresh.backend.global.exception.CustomException;
-import ktb.leafresh.backend.global.exception.ErrorCode;
+import ktb.leafresh.backend.global.exception.GlobalErrorCode;
 import ktb.leafresh.backend.global.security.JwtProvider;
 import ktb.leafresh.backend.global.security.TokenBlacklistService;
 import ktb.leafresh.backend.global.security.TokenProvider;
@@ -32,13 +32,13 @@ public class JwtLogoutService {
 
     private void validateRefreshToken(String refreshToken) {
         if (!tokenProvider.validateToken(refreshToken)) {
-            throw new CustomException(ErrorCode.INVALID_TOKEN, "유효하지 않은 RefreshToken입니다.");
+            throw new CustomException(GlobalErrorCode.INVALID_TOKEN);
         }
     }
 
     private void deleteRefreshToken(String memberId) {
         RefreshToken refreshToken = refreshTokenRepository.findById(memberId)
-                .orElseThrow(() -> new CustomException(ErrorCode.REFRESH_TOKEN_NOT_FOUND, "이미 로그아웃된 사용자입니다."));
+                .orElseThrow(() -> new CustomException(GlobalErrorCode.REFRESH_TOKEN_NOT_FOUND));
         refreshTokenRepository.delete(refreshToken);
     }
 
