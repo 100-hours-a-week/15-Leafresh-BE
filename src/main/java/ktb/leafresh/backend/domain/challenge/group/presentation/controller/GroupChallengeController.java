@@ -31,15 +31,15 @@ public class GroupChallengeController {
     private final GroupChallengeUpdateService groupChallengeUpdateService;
     private final GroupChallengeDeleteService groupChallengeDeleteService;
 
-    @GetMapping("/categories/{categoryId}")
-    public ResponseEntity<ApiResponse<GroupChallengeListResponseDto>> getGroupChallengesByCategory(
-            @PathVariable Long categoryId,
+    @GetMapping
+    public ResponseEntity<ApiResponse<GroupChallengeListResponseDto>> getGroupChallenges(
             @RequestParam(required = false) String input,
+            @RequestParam(required = false) String category,
             @RequestParam(required = false) Long cursorId,
             @RequestParam(defaultValue = "12") int size
     ) {
         GroupChallengeListResponseDto response = groupChallengeReadService
-                .getGroupChallengesByCategory(categoryId, input, cursorId, size);
+                .getGroupChallenges(input, category, cursorId, size);
 
         return ResponseEntity.ok(ApiResponse.success("단체 챌린지 목록 조회에 성공하였습니다.", response));
     }
