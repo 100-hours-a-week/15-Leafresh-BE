@@ -1,6 +1,7 @@
 package ktb.leafresh.backend.global.init;
 
 import ktb.leafresh.backend.domain.challenge.group.domain.entity.GroupChallengeCategory;
+import ktb.leafresh.backend.domain.challenge.group.domain.entity.enums.GroupChallengeCategoryName;
 import ktb.leafresh.backend.domain.challenge.group.infrastructure.repository.GroupChallengeCategoryRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
@@ -26,31 +27,18 @@ public class GroupChallengeCategoryInitializer implements CommandLineRunner {
     @Override
     @Transactional
     public void run(String... args) {
-        List<GroupChallengeCategorySeed> seeds = List.of(
-                new GroupChallengeCategorySeed("ZERO_WASTE", "제로웨이스트", "imageUrl1", 1),
-                new GroupChallengeCategorySeed("PLOGGING", "플로깅", "imageUrl2", 2),
-                new GroupChallengeCategorySeed("CARBON_FOOTPRINT", "탄소 발자국", "imageUrl3", 3),
-                new GroupChallengeCategorySeed("ENERGY_SAVING", "에너지 절약", "imageUrl4", 4),
-                new GroupChallengeCategorySeed("UPCYCLING", "중고거래/업사이클", "imageUrl5", 5),
-                new GroupChallengeCategorySeed("MEDIA", "서적, 영화", "imageUrl6", 6),
-                new GroupChallengeCategorySeed("DIGITAL_CARBON", "디지털 탄소", "imageUrl7", 7),
-                new GroupChallengeCategorySeed("VEGAN", "비건", "imageUrl8", 8),
-                new GroupChallengeCategorySeed("ETC", "기타", "imageUrl9", 9)
-        );
-
-        for (GroupChallengeCategorySeed seed : seeds) {
-            if (categoryRepository.findByName(seed.name()).isEmpty()) {
+        for (GroupChallengeCategoryName seed : GroupChallengeCategoryName.seeds()) {
+            String name = seed.name();
+            if (categoryRepository.findByName(name).isEmpty()) {
                 categoryRepository.save(
                         GroupChallengeCategory.builder()
-                                .name(seed.name())
-                                .imageUrl(seed.imageUrl())
-                                .sequenceNumber(seed.sequenceNumber())
+                                .name(name)
+                                .imageUrl(GroupChallengeCategoryName.getImageUrl(name))
+                                .sequenceNumber(GroupChallengeCategoryName.getSequence(name))
                                 .activated(true)
                                 .build()
                 );
             }
         }
     }
-
-    private record GroupChallengeCategorySeed(String name, String label, String imageUrl, int sequenceNumber) {}
 }
