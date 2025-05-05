@@ -2,10 +2,7 @@ package ktb.leafresh.backend.domain.challenge.personal.application.service;
 
 import ktb.leafresh.backend.domain.challenge.personal.domain.entity.PersonalChallenge;
 import ktb.leafresh.backend.domain.challenge.personal.infrastructure.repository.PersonalChallengeRepository;
-import ktb.leafresh.backend.domain.challenge.personal.presentation.dto.response.PersonalChallengeDetailResponseDto;
-import ktb.leafresh.backend.domain.challenge.personal.presentation.dto.response.PersonalChallengeExampleImageDto;
-import ktb.leafresh.backend.domain.challenge.personal.presentation.dto.response.PersonalChallengeListResponseDto;
-import ktb.leafresh.backend.domain.challenge.personal.presentation.dto.response.PersonalChallengeSummaryDto;
+import ktb.leafresh.backend.domain.challenge.personal.presentation.dto.response.*;
 import ktb.leafresh.backend.domain.verification.domain.entity.PersonalChallengeVerification;
 import ktb.leafresh.backend.domain.verification.infrastructure.repository.PersonalChallengeVerificationRepository;
 import ktb.leafresh.backend.global.common.entity.enums.ChallengeStatus;
@@ -76,5 +73,16 @@ public class PersonalChallengeReadService {
                 .findTopByMemberIdAndPersonalChallengeIdAndCreatedAtBetween(memberIdOrNull, challengeId, startOfDay, endOfDay)
                 .map(PersonalChallengeVerification::getStatus)
                 .orElse(ChallengeStatus.NOT_SUBMITTED);
+    }
+
+    public PersonalChallengeRuleResponseDto getChallengeRules(Long challengeId) {
+        PersonalChallenge challenge = repository.findById(challengeId)
+                .orElseThrow(() -> new CustomException(ErrorCode.PERSONAL_CHALLENGE_NOT_FOUND));
+
+        List<PersonalChallengeExampleImageDto> exampleImages = challenge.getExampleImages().stream()
+                .map(PersonalChallengeExampleImageDto::from)
+                .toList();
+
+        return PersonalChallengeRuleResponseDto.of(challenge, exampleImages);
     }
 }
