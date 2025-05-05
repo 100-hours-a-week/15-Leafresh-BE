@@ -30,11 +30,13 @@ public class GroupChallengeReadService {
     private final GroupChallengeVerificationRepository verificationRepository;
     private final GroupChallengeVerificationQueryRepository groupChallengeVerificationQueryRepository;
 
-    public GroupChallengeListResponseDto getGroupChallengesByCategory(
-            Long categoryId, String input, Long cursorId, int size
-    ) {
+    public GroupChallengeListResponseDto getGroupChallenges(String input, String category, Long cursorId, int size) {
+        if (category == null || category.trim().isEmpty()) {
+            throw new CustomException(ErrorCode.INVALID_REQUEST);
+        }
+
         CursorPaginationResult<GroupChallengeSummaryDto> page = CursorPaginationHelper.paginate(
-                groupChallengeQueryRepository.findByCategoryWithSearch(categoryId, input, cursorId, size + 1),
+                groupChallengeQueryRepository.findByFilter(input, category, cursorId, size + 1),
                 size,
                 GroupChallengeSummaryDto::from,
                 GroupChallengeSummaryDto::id

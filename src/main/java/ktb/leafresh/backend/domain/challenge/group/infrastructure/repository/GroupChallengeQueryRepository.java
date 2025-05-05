@@ -5,5 +5,5 @@ import ktb.leafresh.backend.domain.challenge.group.domain.entity.GroupChallenge;
 import java.util.List;
 
 public interface GroupChallengeQueryRepository {
-    List<GroupChallenge> findByCategoryWithSearch(Long categoryId, String input, Long cursorId, int size);
+    List<GroupChallenge> findByFilter(String input, String category, Long cursorId, int size);
 }
