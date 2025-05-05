@@ -79,6 +79,7 @@ public class SecurityConfig {
 
                         // 개인 챌린지
                         .requestMatchers(HttpMethod.GET, "/api/challenges/personal").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/challenges/personal/{challengeId:\\d+}").permitAll()
 
                         // 그 외 개인 챌린지 API는 인증 필요
                         .requestMatchers("/api/challenges/personal/**").authenticated()
