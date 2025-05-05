@@ -7,10 +7,7 @@ import ktb.leafresh.backend.domain.challenge.group.application.service.GroupChal
 import ktb.leafresh.backend.domain.challenge.group.application.service.GroupChallengeUpdateService;
 import ktb.leafresh.backend.domain.challenge.group.presentation.dto.request.GroupChallengeCreateRequestDto;
 import ktb.leafresh.backend.domain.challenge.group.presentation.dto.request.GroupChallengeUpdateRequestDto;
-import ktb.leafresh.backend.domain.challenge.group.presentation.dto.response.GroupChallengeCreateResponseDto;
-import ktb.leafresh.backend.domain.challenge.group.presentation.dto.response.GroupChallengeDetailResponseDto;
-import ktb.leafresh.backend.domain.challenge.group.presentation.dto.response.GroupChallengeListResponseDto;
-import ktb.leafresh.backend.domain.challenge.group.presentation.dto.response.GroupChallengeVerificationListResponseDto;
+import ktb.leafresh.backend.domain.challenge.group.presentation.dto.response.*;
 import ktb.leafresh.backend.global.response.ApiResponse;
 import ktb.leafresh.backend.global.security.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
@@ -96,5 +93,13 @@ public class GroupChallengeController {
                 .getVerifications(challengeId, cursorId, size);
 
         return ResponseEntity.ok(ApiResponse.success("단체 챌린지 인증 내역 조회에 성공했습니다.", response));
+    }
+
+    @GetMapping("/{challengeId}/rules")
+    public ResponseEntity<ApiResponse<GroupChallengeRuleResponseDto>> getGroupChallengeRules(
+            @PathVariable Long challengeId
+    ) {
+        GroupChallengeRuleResponseDto response = groupChallengeReadService.getChallengeRules(challengeId);
+        return ResponseEntity.ok(ApiResponse.success("단체 챌린지 인증 규약 정보를 성공적으로 조회했습니다.", response));
     }
 }
