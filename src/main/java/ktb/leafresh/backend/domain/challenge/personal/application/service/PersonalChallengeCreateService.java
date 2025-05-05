@@ -1,5 +1,6 @@
 package ktb.leafresh.backend.domain.challenge.personal.application.service;
 
+import ktb.leafresh.backend.domain.challenge.personal.application.factory.PersonalChallengeExampleImageAssembler;
 import ktb.leafresh.backend.domain.challenge.personal.application.factory.PersonalChallengeFactory;
 import ktb.leafresh.backend.domain.challenge.personal.application.validator.PersonalChallengeDomainValidator;
 import ktb.leafresh.backend.domain.challenge.personal.domain.entity.PersonalChallenge;
@@ -16,12 +17,16 @@ public class PersonalChallengeCreateService {
 
     private final PersonalChallengeDomainValidator validator;
     private final PersonalChallengeFactory factory;
+    private final PersonalChallengeExampleImageAssembler assembler;
     private final PersonalChallengeRepository repository;
 
     @Transactional
     public PersonalChallengeCreateResponseDto create(PersonalChallengeCreateRequestDto dto) {
         validator.validate(dto.dayOfWeek());
+
         PersonalChallenge challenge = factory.create(dto);
+        assembler.assemble(challenge, dto);
+
         repository.save(challenge);
         return new PersonalChallengeCreateResponseDto(challenge.getId());
     }
