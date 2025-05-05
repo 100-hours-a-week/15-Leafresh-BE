@@ -1,9 +1,9 @@
 package ktb.leafresh.backend.domain.challenge.personal.application.validator;
 
 import ktb.leafresh.backend.domain.challenge.personal.infrastructure.repository.PersonalChallengeRepository;
-import ktb.leafresh.backend.global.common.entity.enums.DayOfWeek;
 import ktb.leafresh.backend.global.exception.CustomException;
 import ktb.leafresh.backend.global.exception.ErrorCode;
+import ktb.leafresh.backend.global.common.entity.enums.DayOfWeek;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
