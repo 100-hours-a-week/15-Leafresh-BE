@@ -25,6 +25,6 @@ public class PersonalChallengeAdminController {
     ) {
         PersonalChallengeCreateResponseDto response = createService.create(request);
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.created("개인 챌린지 템플릿이 성공적으로 생성되었습니다.", response));
+                .body(ApiResponse.created("개인 챌린지가 성공적으로 생성되었습니다.", response));
     }
 }
