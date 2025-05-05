@@ -2,13 +2,11 @@ package ktb.leafresh.backend.domain.challenge.group.application.service;
 
 import ktb.leafresh.backend.domain.challenge.group.domain.entity.GroupChallenge;
 import ktb.leafresh.backend.domain.challenge.group.infrastructure.repository.GroupChallengeQueryRepository;
-import ktb.leafresh.backend.domain.challenge.group.presentation.dto.response.GroupChallengeListResponseDto;
-import ktb.leafresh.backend.domain.challenge.group.presentation.dto.response.GroupChallengeSummaryDto;
+import ktb.leafresh.backend.domain.challenge.group.infrastructure.repository.GroupChallengeVerificationQueryRepository;
+import ktb.leafresh.backend.domain.challenge.group.presentation.dto.response.*;
 import ktb.leafresh.backend.domain.verification.domain.entity.GroupChallengeVerification;
 import ktb.leafresh.backend.domain.challenge.group.infrastructure.repository.GroupChallengeRepository;
 import ktb.leafresh.backend.domain.verification.infrastructure.repository.GroupChallengeVerificationRepository;
-import ktb.leafresh.backend.domain.challenge.group.presentation.dto.response.GroupChallengeDetailResponseDto;
-import ktb.leafresh.backend.domain.challenge.group.presentation.dto.response.GroupChallengeExampleImageDto;
 import ktb.leafresh.backend.global.common.entity.enums.ChallengeStatus;
 import ktb.leafresh.backend.global.exception.CustomException;
 import ktb.leafresh.backend.global.exception.ErrorCode;
@@ -30,6 +28,7 @@ public class GroupChallengeReadService {
     private final GroupChallengeQueryRepository groupChallengeQueryRepository;
     private final GroupChallengeRepository groupChallengeRepository;
     private final GroupChallengeVerificationRepository verificationRepository;
+    private final GroupChallengeVerificationQueryRepository groupChallengeVerificationQueryRepository;
 
     public GroupChallengeListResponseDto getGroupChallengesByCategory(
             Long categoryId, String input, Long cursorId, int size
@@ -87,5 +86,22 @@ public class GroupChallengeReadService {
                 .findTopByParticipantRecord_Member_IdAndParticipantRecord_GroupChallenge_IdOrderByCreatedAtDesc(memberIdOrNull, challengeId)
                 .map(GroupChallengeVerification::getStatus)
                 .orElse(ChallengeStatus.NOT_SUBMITTED);
+    }
+
+    public GroupChallengeVerificationListResponseDto getVerifications(
+            Long challengeId, Long cursorId, int size
+    ) {
+        CursorPaginationResult<GroupChallengeVerificationSummaryDto> page = CursorPaginationHelper.paginate(
+                groupChallengeVerificationQueryRepository.findByChallengeId(challengeId, cursorId, size + 1),
+                size,
+                GroupChallengeVerificationSummaryDto::from,
+                GroupChallengeVerificationSummaryDto::id
+        );
+
+        return GroupChallengeVerificationListResponseDto.builder()
+                .verifications(page.items())
+                .hasNext(page.hasNext())
+                .lastCursorId(page.lastCursorId())
+                .build();
     }
 }
