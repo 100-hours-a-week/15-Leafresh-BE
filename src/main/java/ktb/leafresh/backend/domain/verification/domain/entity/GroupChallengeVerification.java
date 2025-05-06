@@ -36,4 +36,9 @@ public class GroupChallengeVerification extends BaseEntity {
 
     @Column(name = "verified_at")
     private LocalDateTime verifiedAt;
+
+    public void markVerified(ChallengeStatus status) {
+        this.status = status;
+        this.verifiedAt = LocalDateTime.now();
+    }
 }
