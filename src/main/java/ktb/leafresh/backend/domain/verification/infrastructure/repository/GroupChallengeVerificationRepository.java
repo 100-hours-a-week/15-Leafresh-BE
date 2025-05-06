@@ -3,6 +3,7 @@ package ktb.leafresh.backend.domain.verification.infrastructure.repository;
 import ktb.leafresh.backend.domain.verification.domain.entity.GroupChallengeVerification;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -20,4 +21,11 @@ public interface GroupChallengeVerificationRepository extends JpaRepository<Grou
      * 단체 챌린지 상세 페이지에 보여줄 최신 인증 이미지 9개 조회
      */
     List<GroupChallengeVerification> findTop9ByParticipantRecord_GroupChallenge_IdOrderByCreatedAtDesc(Long challengeId);
+
+    Optional<GroupChallengeVerification> findTopByParticipantRecord_Member_IdAndParticipantRecord_GroupChallenge_IdAndCreatedAtBetween(
+            Long memberId,
+            Long challengeId,
+            LocalDateTime start,
+            LocalDateTime end
+    );
 }
