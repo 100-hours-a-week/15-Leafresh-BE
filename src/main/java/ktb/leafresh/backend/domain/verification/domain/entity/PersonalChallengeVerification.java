@@ -52,4 +52,8 @@ public class PersonalChallengeVerification extends BaseEntity {
         this.status = status;
         this.verifiedAt = LocalDateTime.now();
     }
+
+    public boolean isFinalized() {
+        return this.status != ChallengeStatus.PENDING_APPROVAL;
+    }
 }
