@@ -84,6 +84,9 @@ public class SecurityConfig {
                         // 그 외 개인 챌린지 API는 인증 필요
                         .requestMatchers("/api/challenges/personal/**").authenticated()
 
+                        // AI로부터 챌린지 인증 결과 받는 API
+                        .requestMatchers(HttpMethod.POST, "/api/verifications/*/result").permitAll()
+
                         // Swagger/OpenAPI
                         .requestMatchers(
                                 "/swagger-ui/**",
