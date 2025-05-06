@@ -35,6 +35,10 @@ public class ApiResponse<T> {
         return new ApiResponse<>(HttpStatus.CREATED, message, data);
     }
 
+    public static <T> ApiResponse<T> accepted(String message, T data) {
+        return new ApiResponse<>(HttpStatus.ACCEPTED, message, data);
+    }
+
     public static <T> ApiResponse<T> error(HttpStatus status, String message) {
         return new ApiResponse<>(status, message, null);
     }
