@@ -6,4 +6,6 @@ import java.util.List;
 
 public interface GroupChallengeQueryRepository {
     List<GroupChallenge> findByFilter(String input, String category, Long cursorId, int size);
+
+    List<GroupChallenge> findCreatedByMember(Long memberId, Long cursorId, int size);
 }

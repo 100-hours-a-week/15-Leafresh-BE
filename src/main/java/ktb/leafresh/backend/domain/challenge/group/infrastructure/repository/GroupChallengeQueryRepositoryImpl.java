@@ -45,4 +45,17 @@ public class GroupChallengeQueryRepositoryImpl implements GroupChallengeQueryRep
     private BooleanExpression ltCursorId(Long cursorId) {
         return cursorId != null ? gc.id.lt(cursorId) : null;
     }
+
+    @Override
+    public List<GroupChallenge> findCreatedByMember(Long memberId, Long cursorId, int size) {
+        return queryFactory.selectFrom(gc)
+                .where(
+                        gc.deletedAt.isNull(),
+                        gc.member.id.eq(memberId),
+                        ltCursorId(cursorId)
+                )
+                .orderBy(gc.id.desc())
+                .limit(size + 1)
+                .fetch();
+    }
 }
