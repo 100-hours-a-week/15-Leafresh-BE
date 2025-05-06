@@ -129,4 +129,18 @@ public class GroupChallengeReadService {
 
         return GroupChallengeRuleResponseDto.of(challenge, exampleImages);
     }
+
+    public GroupChallengeListResponseDto getCreatedChallengesByMember(Long memberId, Long cursorId, int size) {
+        List<GroupChallenge> entities =
+                groupChallengeQueryRepository.findCreatedByMember(memberId, cursorId, size + 1);
+
+        CursorPaginationResult<GroupChallengeSummaryDto> result =
+                CursorPaginationHelper.paginate(entities, size, GroupChallengeSummaryDto::from, GroupChallengeSummaryDto::id);
+
+        return GroupChallengeListResponseDto.builder()
+                .groupChallenges(result.items())
+                .hasNext(result.hasNext())
+                .lastCursorId(result.lastCursorId())
+                .build();
+    }
 }
