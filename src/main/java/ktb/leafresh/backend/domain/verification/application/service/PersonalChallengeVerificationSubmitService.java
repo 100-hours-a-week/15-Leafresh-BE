@@ -1,4 +1,3 @@
-// Application layer
 package ktb.leafresh.backend.domain.verification.application.service;
 
 import ktb.leafresh.backend.domain.challenge.personal.domain.entity.PersonalChallenge;
@@ -19,7 +18,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
