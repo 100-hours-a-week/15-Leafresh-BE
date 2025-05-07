@@ -37,4 +37,9 @@ out/
 .vscode/
 
 ### .env ###
-.env
+.env.local
+.env.bigbang
+.env.docker-local
+.env.docker-prod
+.env.eks-local
+.env.eks-prod
