@@ -28,4 +28,6 @@ public interface GroupChallengeVerificationRepository extends JpaRepository<Grou
             LocalDateTime start,
             LocalDateTime end
     );
+
+    List<GroupChallengeVerification> findAllByParticipantRecordId(Long participantRecordId);
 }

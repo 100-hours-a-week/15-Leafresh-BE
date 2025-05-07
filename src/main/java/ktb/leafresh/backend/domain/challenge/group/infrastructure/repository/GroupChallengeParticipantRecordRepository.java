@@ -14,4 +14,6 @@ public interface GroupChallengeParticipantRecordRepository extends JpaRepository
     Optional<GroupChallengeParticipantRecord> findFirstByGroupChallengeIdAndStatusOrderByCreatedAtAsc(Long challengeId, ParticipantStatus status);
 
     Optional<GroupChallengeParticipantRecord> findByGroupChallengeIdAndMemberIdAndDeletedAtIsNull(Long groupChallengeId, Long memberId);
+
+    Optional<GroupChallengeParticipantRecord> findByMemberIdAndGroupChallengeIdAndDeletedAtIsNull(Long memberId, Long challengeId);
 }

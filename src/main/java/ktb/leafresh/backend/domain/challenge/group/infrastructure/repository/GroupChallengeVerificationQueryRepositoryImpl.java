@@ -32,4 +32,12 @@ public class GroupChallengeVerificationQueryRepositoryImpl implements GroupChall
     private BooleanExpression ltCursorId(Long cursorId) {
         return cursorId != null ? gv.id.lt(cursorId) : null;
     }
+
+    @Override
+    public List<GroupChallengeVerification> findByParticipantRecordId(Long participantRecordId) {
+        return queryFactory.selectFrom(gv)
+                .where(gv.participantRecord.id.eq(participantRecordId), gv.deletedAt.isNull())
+                .orderBy(gv.createdAt.desc())
+                .fetch();
+    }
 }
