@@ -22,7 +22,7 @@ import static ktb.leafresh.backend.global.exception.GlobalErrorCode.UNAUTHORIZED
 @RestController
 @RequestMapping("/api/challenges/personal")
 @RequiredArgsConstructor
-public class PersonalChallengeVerificationController {
+public class PersonalChallengeVerificationSubmitController {
 
     private final PersonalChallengeVerificationSubmitService submitService;
     private final PersonalChallengeVerificationResultQueryService resultQueryService;
