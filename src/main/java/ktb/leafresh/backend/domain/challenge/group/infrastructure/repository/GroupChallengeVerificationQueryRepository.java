@@ -6,4 +6,6 @@ import java.util.List;
 
 public interface GroupChallengeVerificationQueryRepository {
     List<GroupChallengeVerification> findByChallengeId(Long challengeId, Long cursorId, int size);
+
+    List<GroupChallengeVerification> findByParticipantRecordId(Long participantRecordId);
 }

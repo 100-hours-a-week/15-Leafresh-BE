@@ -13,6 +13,7 @@ public enum ChallengeErrorCode implements BaseErrorCode {
     CHALLENGE_CATEGORY_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 챌린지 카테고리입니다."),
     GROUP_CHALLENGE_NOT_FOUND(HttpStatus.NOT_FOUND, "단체 챌린지를 찾을 수 없습니다."),
     GROUP_CHALLENGE_RECORD_NOT_FOUND(HttpStatus.NOT_FOUND, "참여 기록이 존재하지 않습니다."),
+    GROUP_CHALLENGE_PARTICIPATION_NOT_FOUND(HttpStatus.NOT_FOUND, "단체 챌린지 참여 정보를 찾을 수 없습니다."),
     CHALLENGE_DURATION_TOO_SHORT(HttpStatus.BAD_REQUEST, "챌린지 기간은 최소 1일 이상이어야 합니다."),
     INVALID_DATE_RANGE(HttpStatus.BAD_REQUEST, "시작일은 종료일보다 이전이어야 합니다."),
     CHALLENGE_CREATION_REJECTED_BY_AI(HttpStatus.UNPROCESSABLE_ENTITY, "AI 판단 결과 챌린지 생성이 거부되었습니다."),

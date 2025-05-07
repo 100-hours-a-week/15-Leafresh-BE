@@ -18,13 +18,13 @@ import java.util.Map;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/challenges/group")
-public class GroupChallengeController {
+public class GroupChallengeManageController {
 
     private final GroupChallengeCreateService groupChallengeCreateService;
-    private final GroupChallengeReadService groupChallengeReadService;
     private final GroupChallengeUpdateService groupChallengeUpdateService;
     private final GroupChallengeDeleteService groupChallengeDeleteService;
-    private final GroupChallengeParticipationService groupChallengeParticipationService;
+    private final GroupChallengeSearchReadService searchReadService;
+    private final GroupChallengeDetailReadService detailReadService;
 
     @GetMapping
     public ResponseEntity<ApiResponse<GroupChallengeListResponseDto>> getGroupChallenges(
@@ -33,7 +33,7 @@ public class GroupChallengeController {
             @RequestParam(required = false) Long cursorId,
             @RequestParam(defaultValue = "12") int size
     ) {
-        GroupChallengeListResponseDto response = groupChallengeReadService
+        GroupChallengeListResponseDto response = searchReadService
                 .getGroupChallenges(input, category, cursorId, size);
 
         return ResponseEntity.ok(ApiResponse.success("단체 챌린지 목록 조회에 성공하였습니다.", response));
@@ -56,7 +56,7 @@ public class GroupChallengeController {
             @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
         Long memberId = (userDetails != null) ? userDetails.getMemberId() : null;
-        GroupChallengeDetailResponseDto response = groupChallengeReadService.getChallengeDetail(memberId, challengeId);
+        GroupChallengeDetailResponseDto response = detailReadService.getChallengeDetail(memberId, challengeId);
         return ResponseEntity.ok(ApiResponse.success("단체 챌린지 상세 정보를 성공적으로 조회했습니다.", response));
     }
 
@@ -79,46 +79,5 @@ public class GroupChallengeController {
         Long deletedId = groupChallengeDeleteService.delete(memberId, challengeId);
         return ResponseEntity.ok(ApiResponse.success("단체 챌린지가 성공적으로 삭제되었습니다.",
                 Map.of("deletedChallengeId", deletedId)));
-    }
-
-    @GetMapping("/{challengeId}/verifications")
-    public ResponseEntity<ApiResponse<GroupChallengeVerificationListResponseDto>> getVerifications(
-            @PathVariable Long challengeId,
-            @RequestParam(required = false) Long cursorId,
-            @RequestParam(defaultValue = "12") int size
-    ) {
-        GroupChallengeVerificationListResponseDto response = groupChallengeReadService
-                .getVerifications(challengeId, cursorId, size);
-
-        return ResponseEntity.ok(ApiResponse.success("단체 챌린지 인증 내역 조회에 성공했습니다.", response));
-    }
-
-    @GetMapping("/{challengeId}/rules")
-    public ResponseEntity<ApiResponse<GroupChallengeRuleResponseDto>> getGroupChallengeRules(
-            @PathVariable Long challengeId
-    ) {
-        GroupChallengeRuleResponseDto response = groupChallengeReadService.getChallengeRules(challengeId);
-        return ResponseEntity.ok(ApiResponse.success("단체 챌린지 인증 규약 정보를 성공적으로 조회했습니다.", response));
-    }
-
-    @PostMapping("/{challengeId}/participations")
-    public ResponseEntity<ApiResponse<Map<String, Long>>> participateGroupChallenge(
-            @AuthenticationPrincipal CustomUserDetails userDetails,
-            @PathVariable Long challengeId
-    ) {
-        Long memberId = userDetails.getMemberId();
-        Long recordId = groupChallengeParticipationService.participate(memberId, challengeId);
-
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.created("단체 챌린지에 참여하였습니다.", Map.of("id", recordId)));
-    }
-
-    @DeleteMapping("/{challengeId}/participations")
-    public ResponseEntity<ApiResponse<Void>> cancelParticipation(
-            @AuthenticationPrincipal CustomUserDetails userDetails,
-            @PathVariable Long challengeId
-    ) {
-        groupChallengeParticipationService.drop(userDetails.getMemberId(), challengeId);
-        return ResponseEntity.noContent().build();
     }
 }
