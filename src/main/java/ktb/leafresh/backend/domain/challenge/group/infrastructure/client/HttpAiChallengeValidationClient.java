@@ -2,17 +2,22 @@ package ktb.leafresh.backend.domain.challenge.group.infrastructure.client;
 
 import ktb.leafresh.backend.domain.challenge.group.infrastructure.dto.request.AiChallengeValidationRequestDto;
 import ktb.leafresh.backend.domain.challenge.group.infrastructure.dto.response.AiChallengeValidationResponseDto;
-import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 
 @Component
-@Profile("!local") // local이 아닐 때만 이 구현 사용
-@RequiredArgsConstructor
+@Profile("!local")
 public class HttpAiChallengeValidationClient implements AiChallengeValidationClient {
 
     private final WebClient aiServerWebClient;
+
+    public HttpAiChallengeValidationClient(
+            @Qualifier("aiServerWebClient") WebClient aiServerWebClient
+    ) {
+        this.aiServerWebClient = aiServerWebClient;
+    }
 
     @Override
     public AiChallengeValidationResponseDto validateChallenge(AiChallengeValidationRequestDto requestDto) {

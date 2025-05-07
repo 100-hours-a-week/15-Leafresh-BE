@@ -2,17 +2,22 @@ package ktb.leafresh.backend.domain.chatbot.infrastructure.client;
 
 import ktb.leafresh.backend.domain.chatbot.infrastructure.dto.request.AiChatbotFreeTextRequestDto;
 import ktb.leafresh.backend.domain.chatbot.infrastructure.dto.response.AiChatbotFreeTextResponseDto;
-import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 
 @Component
 @Profile("!local")
-@RequiredArgsConstructor
 public class HttpAiChatbotFreeTextClient implements AiChatbotFreeTextClient {
 
     private final WebClient aiServerWebClient;
+
+    public HttpAiChatbotFreeTextClient(
+            @Qualifier("aiServerWebClient") WebClient aiServerWebClient
+    ) {
+        this.aiServerWebClient = aiServerWebClient;
+    }
 
     @Override
     public AiChatbotFreeTextResponseDto getRecommendation(AiChatbotFreeTextRequestDto requestDto) {
