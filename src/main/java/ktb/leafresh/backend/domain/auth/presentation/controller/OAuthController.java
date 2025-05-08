@@ -6,6 +6,7 @@ import ktb.leafresh.backend.domain.auth.application.service.oauth.OAuthLoginServ
 import ktb.leafresh.backend.domain.auth.application.service.oauth.OAuthReissueTokenService;
 import ktb.leafresh.backend.domain.auth.domain.entity.enums.OAuthProvider;
 import ktb.leafresh.backend.domain.auth.presentation.dto.response.OAuthLoginResponseDto;
+import ktb.leafresh.backend.domain.auth.presentation.dto.response.OAuthRedirectUrlResponseDto;
 import ktb.leafresh.backend.domain.auth.presentation.dto.response.OAuthTokenResponseDto;
 import ktb.leafresh.backend.global.exception.CustomException;
 import ktb.leafresh.backend.global.exception.GlobalErrorCode;
@@ -39,13 +40,12 @@ public class OAuthController {
     @Operation(summary = "카카오 로그인 리다이렉트", description = "카카오 인증 페이지로 리다이렉트합니다.")
     @ApiResponseConstants.RedirectResponses
     @GetMapping("/{provider}")
-    public ResponseEntity<Void> redirectToProvider(@PathVariable String provider) {
+    public ResponseEntity<ApiResponse<OAuthRedirectUrlResponseDto>> redirectToProvider(@PathVariable String provider) {
         OAuthProvider providerEnum = OAuthProvider.from(provider);
-
         String redirectUrl = oAuthLoginService.getRedirectUrl();
-        return ResponseEntity.status(HttpStatus.FOUND)
-                .location(URI.create(redirectUrl))
-                .build();
+
+        OAuthRedirectUrlResponseDto responseData = new OAuthRedirectUrlResponseDto(redirectUrl);
+        return ResponseEntity.ok(ApiResponse.success("소셜 로그인 URL을 반환합니다.", responseData));
     }
 
     @Operation(summary = "카카오 로그인 콜백", description = "인가 코드를 받아 JWT를 발급하고 쿠키에 저장하며 사용자 정보를 반환합니다.")

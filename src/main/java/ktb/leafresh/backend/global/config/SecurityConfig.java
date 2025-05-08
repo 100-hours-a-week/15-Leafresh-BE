@@ -66,7 +66,7 @@ public class SecurityConfig {
                         // 소셜 로그인 요청(리다이렉트), 콜백, 로그아웃 모두 허용
                         .requestMatchers("/oauth/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/members/nickname").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/members/signup").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/members").permitAll()
 
                         // 단체 챌린지
                         .requestMatchers(HttpMethod.GET, "/api/challenges/group/categories").permitAll()
@@ -82,7 +82,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/challenges/personal/{challengeId:\\d+}").permitAll()
 
                         // 그 외 개인 챌린지 API는 인증 필요
-                        .requestMatchers("/api/challenges/personal/**").authenticated()
+                        .requestMatchers("/api/chalglenges/personal/**").authenticated()
 
                         // AI로부터 챌린지 인증 결과 받는 API
                         .requestMatchers(HttpMethod.POST, "/api/verifications/*/result").permitAll()
