@@ -5,8 +5,11 @@ import ktb.leafresh.backend.domain.challenge.group.application.service.*;
 import ktb.leafresh.backend.domain.challenge.group.presentation.dto.request.GroupChallengeCreateRequestDto;
 import ktb.leafresh.backend.domain.challenge.group.presentation.dto.request.GroupChallengeUpdateRequestDto;
 import ktb.leafresh.backend.domain.challenge.group.presentation.dto.response.*;
+import ktb.leafresh.backend.global.exception.CustomException;
+import ktb.leafresh.backend.global.exception.GlobalErrorCode;
 import ktb.leafresh.backend.global.response.ApiResponse;
 import ktb.leafresh.backend.global.security.CustomUserDetails;
+import ktb.leafresh.backend.global.util.pagination.CursorPaginationResult;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -27,14 +30,19 @@ public class GroupChallengeManageController {
     private final GroupChallengeDetailReadService detailReadService;
 
     @GetMapping
-    public ResponseEntity<ApiResponse<GroupChallengeListResponseDto>> getGroupChallenges(
+    public ResponseEntity<ApiResponse<CursorPaginationResult<GroupChallengeSummaryDto>>> getGroupChallenges(
             @RequestParam(required = false) String input,
             @RequestParam(required = false) String category,
             @RequestParam(required = false) Long cursorId,
+            @RequestParam(required = false) String cursorTimestamp,
             @RequestParam(defaultValue = "12") int size
     ) {
-        GroupChallengeListResponseDto response = searchReadService
-                .getGroupChallenges(input, category, cursorId, size);
+        if ((cursorId == null) != (cursorTimestamp == null)) {
+            throw new CustomException(GlobalErrorCode.INVALID_CURSOR);
+        }
+
+        CursorPaginationResult<GroupChallengeSummaryDto> response =
+                searchReadService.getGroupChallenges(input, category, cursorId, cursorTimestamp, size);
 
         return ResponseEntity.ok(ApiResponse.success("단체 챌린지 목록 조회에 성공하였습니다.", response));
     }

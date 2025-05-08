@@ -4,12 +4,12 @@ import io.swagger.v3.oas.annotations.Operation;
 import ktb.leafresh.backend.domain.challenge.group.application.service.GroupChallengeCreatedReadService;
 import ktb.leafresh.backend.domain.challenge.group.application.service.GroupChallengeParticipationReadService;
 import ktb.leafresh.backend.domain.challenge.group.application.service.GroupChallengeVerificationHistoryService;
-import ktb.leafresh.backend.domain.challenge.group.presentation.dto.response.GroupChallengeListResponseDto;
-import ktb.leafresh.backend.domain.challenge.group.presentation.dto.response.GroupChallengeParticipationCountResponseDto;
-import ktb.leafresh.backend.domain.challenge.group.presentation.dto.response.GroupChallengeParticipationListResponseDto;
-import ktb.leafresh.backend.domain.challenge.group.presentation.dto.response.GroupChallengeVerificationHistoryResponseDto;
+import ktb.leafresh.backend.domain.challenge.group.presentation.dto.response.*;
+import ktb.leafresh.backend.global.exception.CustomException;
+import ktb.leafresh.backend.global.exception.GlobalErrorCode;
 import ktb.leafresh.backend.global.response.ApiResponse;
 import ktb.leafresh.backend.global.security.CustomUserDetails;
+import ktb.leafresh.backend.global.util.pagination.CursorPaginationResult;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -26,14 +26,19 @@ public class GroupChallengeMemberController {
 
     @GetMapping("/creations")
     @Operation(summary = "생성한 단체 챌린지 목록 조회", description = "회원이 생성한 단체 챌린지를 커서 기반으로 조회합니다.")
-    public ResponseEntity<ApiResponse<GroupChallengeListResponseDto>> getCreatedChallenges(
+    public ResponseEntity<ApiResponse<CursorPaginationResult<GroupChallengeSummaryDto>>> getCreatedChallenges(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @RequestParam(required = false) Long cursorId,
+            @RequestParam(required = false) String cursorTimestamp,
             @RequestParam(defaultValue = "12") int size
     ) {
+        if ((cursorId == null) != (cursorTimestamp == null)) {
+            throw new CustomException(GlobalErrorCode.INVALID_CURSOR);
+        }
+
         Long memberId = userDetails.getMemberId();
-        GroupChallengeListResponseDto response =
-                groupChallengeCreatedReadService.getCreatedChallengesByMember(memberId, cursorId, size);
+        var response = groupChallengeCreatedReadService
+                .getCreatedChallengesByMember(memberId, cursorId, cursorTimestamp, size);
 
         return ResponseEntity.ok(ApiResponse.success("생성한 단체 챌린지 목록 조회에 성공했습니다.", response));
     }
@@ -54,11 +59,11 @@ public class GroupChallengeMemberController {
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @RequestParam String status,
             @RequestParam(required = false) Long cursorId,
+            @RequestParam(required = false) String cursorTimestamp,
             @RequestParam(defaultValue = "12") int size
     ) {
-        GroupChallengeParticipationListResponseDto response =
-                groupChallengeParticipationReadService.getParticipatedChallenges(userDetails.getMemberId(), status, cursorId, size);
-
+        var response = groupChallengeParticipationReadService
+                .getParticipatedChallenges(userDetails.getMemberId(), status, cursorId, cursorTimestamp, size);
         return ResponseEntity.ok(ApiResponse.success("참여한 단체 챌린지 목록을 성공적으로 조회했습니다.", response));
     }
 
