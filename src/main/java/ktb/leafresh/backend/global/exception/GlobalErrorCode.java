@@ -11,7 +11,8 @@ public enum GlobalErrorCode implements BaseErrorCode {
     UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "인증이 필요합니다."),
     INVALID_TOKEN(HttpStatus.UNAUTHORIZED, "유효하지 않은 토큰입니다."),
     NOT_FOUND(HttpStatus.NOT_FOUND, "찾을 수 없습니다."),
-    REFRESH_TOKEN_NOT_FOUND(HttpStatus.NOT_FOUND, "저장된 리프레시 토큰이 없습니다.");
+    REFRESH_TOKEN_NOT_FOUND(HttpStatus.NOT_FOUND, "저장된 리프레시 토큰이 없습니다."),
+    INVALID_CURSOR(HttpStatus.BAD_REQUEST, "cursorId와 cursorTimestamp는 반드시 함께 전달되어야 합니다.");
 
     private final HttpStatus status;
     private final String message;

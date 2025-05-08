@@ -3,6 +3,8 @@ package ktb.leafresh.backend.domain.challenge.group.presentation.dto.query;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+
 @Getter
 @NoArgsConstructor
 public class GroupChallengeParticipationDto {
@@ -13,11 +15,17 @@ public class GroupChallengeParticipationDto {
     private String endDate;
     private Long success;
     private Long total;
+    private LocalDateTime createdAt;
 
     public GroupChallengeParticipationDto(
-            Long id, String title, String thumbnailUrl,
-            String startDate, String endDate,
-            Long success, Long total
+            Long id,
+            String title,
+            String thumbnailUrl,
+            String startDate,
+            String endDate,
+            Long success,
+            Long total,
+            LocalDateTime createdAt
     ) {
         this.id = id;
         this.title = title;
@@ -26,5 +34,6 @@ public class GroupChallengeParticipationDto {
         this.endDate = endDate;
         this.success = success;
         this.total = total;
+        this.createdAt = createdAt;
     }
 }

@@ -20,16 +20,18 @@ public class GroupChallengeCreatedReadService {
 
     private final GroupChallengeCreatedQueryRepository createdRepository;
 
-    public GroupChallengeListResponseDto getCreatedChallengesByMember(Long memberId, Long cursorId, int size) {
-        List<GroupChallenge> entities = createdRepository.findCreatedByMember(memberId, cursorId, size + 1);
+    public CursorPaginationResult<GroupChallengeSummaryDto> getCreatedChallengesByMember(
+            Long memberId, Long cursorId, String cursorTimestamp, int size
+    ) {
+        List<GroupChallenge> entities =
+                createdRepository.findCreatedByMember(memberId, cursorId, cursorTimestamp, size + 1);
 
-        CursorPaginationResult<GroupChallengeSummaryDto> result =
-                CursorPaginationHelper.paginate(entities, size, GroupChallengeSummaryDto::from, GroupChallengeSummaryDto::id);
-
-        return GroupChallengeListResponseDto.builder()
-                .groupChallenges(result.items())
-                .hasNext(result.hasNext())
-                .lastCursorId(result.lastCursorId())
-                .build();
+        return CursorPaginationHelper.paginateWithTimestamp(
+                entities,
+                size,
+                GroupChallengeSummaryDto::from,
+                GroupChallengeSummaryDto::id,
+                GroupChallengeSummaryDto::createdAt
+        );
     }
 }

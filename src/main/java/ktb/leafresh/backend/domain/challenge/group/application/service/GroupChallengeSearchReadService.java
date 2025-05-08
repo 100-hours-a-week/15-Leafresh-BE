@@ -1,5 +1,6 @@
 package ktb.leafresh.backend.domain.challenge.group.application.service;
 
+import ktb.leafresh.backend.domain.challenge.group.domain.entity.GroupChallenge;
 import ktb.leafresh.backend.domain.challenge.group.domain.entity.enums.GroupChallengeCategoryName;
 import ktb.leafresh.backend.domain.challenge.group.infrastructure.repository.*;
 import ktb.leafresh.backend.domain.challenge.group.presentation.dto.response.*;
@@ -23,25 +24,25 @@ public class GroupChallengeSearchReadService {
 
     private final GroupChallengeSearchQueryRepository searchRepository;
 
-    public GroupChallengeListResponseDto getGroupChallenges(String input, String category, Long cursorId, int size) {
+    public CursorPaginationResult<GroupChallengeSummaryDto> getGroupChallenges(
+            String input, String category, Long cursorId, String cursorTimestamp, int size) {
+
         if (category == null || category.trim().isEmpty()) {
             throw new CustomException(GlobalErrorCode.INVALID_REQUEST);
         }
 
         String internalCategoryName = resolveCategoryNameOrThrow(category);
 
-        CursorPaginationResult<GroupChallengeSummaryDto> page = CursorPaginationHelper.paginate(
-                searchRepository.findByFilter(input, internalCategoryName, cursorId, size + 1),
+        List<GroupChallenge> challenges = searchRepository
+                .findByFilter(input, internalCategoryName, cursorId, cursorTimestamp, size + 1);
+
+        return CursorPaginationHelper.paginateWithTimestamp(
+                challenges,
                 size,
                 GroupChallengeSummaryDto::from,
-                GroupChallengeSummaryDto::id
+                GroupChallengeSummaryDto::id,
+                GroupChallengeSummaryDto::createdAt
         );
-
-        return GroupChallengeListResponseDto.builder()
-                .groupChallenges(page.items())
-                .hasNext(page.hasNext())
-                .lastCursorId(page.lastCursorId())
-                .build();
     }
 
     private String resolveCategoryNameOrThrow(String label) {

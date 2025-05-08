@@ -29,12 +29,13 @@ public class GroupChallengeParticipationReadService {
     }
 
     public GroupChallengeParticipationListResponseDto getParticipatedChallenges(
-            Long memberId, String status, Long cursorId, int size
+            Long memberId, String status, Long cursorId, String cursorTimestamp, int size
     ) {
         List<GroupChallengeParticipationDto> dtos =
-                groupChallengeParticipationRecordQueryRepository.findParticipatedByStatus(memberId, status, cursorId, size + 1);
+                groupChallengeParticipationRecordQueryRepository
+                        .findParticipatedByStatus(memberId, status, cursorId, cursorTimestamp, size + 1);
 
-        CursorPaginationResult<GroupChallengeParticipationSummaryDto> page = CursorPaginationHelper.paginate(
+        CursorPaginationResult<GroupChallengeParticipationSummaryDto> page = CursorPaginationHelper.paginateWithTimestamp(
                 dtos,
                 size,
                 dto -> GroupChallengeParticipationSummaryDto.of(
@@ -44,15 +45,17 @@ public class GroupChallengeParticipationReadService {
                         dto.getStartDate(),
                         dto.getEndDate(),
                         dto.getSuccess(),
-                        dto.getTotal()
+                        dto.getTotal(),
+                        dto.getCreatedAt()
                 ),
-                GroupChallengeParticipationSummaryDto::id
+                GroupChallengeParticipationSummaryDto::id,
+                GroupChallengeParticipationSummaryDto::createdAt
         );
 
         return GroupChallengeParticipationListResponseDto.builder()
                 .challenges(page.items())
                 .hasNext(page.hasNext())
-                .lastCursorId(page.lastCursorId())
+                .cursorInfo(page.cursorInfo())
                 .build();
     }
 }
