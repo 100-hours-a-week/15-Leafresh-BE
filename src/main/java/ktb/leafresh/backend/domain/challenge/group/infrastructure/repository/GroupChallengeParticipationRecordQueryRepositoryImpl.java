@@ -16,6 +16,7 @@ import ktb.leafresh.backend.global.common.entity.enums.ChallengeStatus;
 import ktb.leafresh.backend.global.common.entity.enums.ParticipantStatus;
 import ktb.leafresh.backend.global.exception.CustomException;
 import ktb.leafresh.backend.global.exception.GlobalErrorCode;
+import ktb.leafresh.backend.global.util.pagination.CursorConditionUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -67,17 +68,19 @@ public class GroupChallengeParticipationRecordQueryRepositoryImpl implements Gro
     }
 
     @Override
-    public List<GroupChallengeParticipationDto> findParticipatedByStatus(Long memberId, String status, Long cursorId, int size) {
-        LocalDateTime now = LocalDateTime.now();
+    public List<GroupChallengeParticipationDto> findParticipatedByStatus(
+            Long memberId, String status, Long cursorId, String cursorTimestamp, int size
+    ) {
+        LocalDateTime ts = CursorConditionUtils.parseTimestamp(cursorTimestamp);
 
         return queryFactory
-                .select(Projections.fields(
+                .select(Projections.constructor(
                         GroupChallengeParticipationDto.class,
-                        challenge.id.as("id"),
-                        challenge.title.as("title"),
-                        challenge.imageUrl.as("thumbnailUrl"),
-                        challenge.startDate.stringValue().as("startDate"),
-                        challenge.endDate.stringValue().as("endDate"),
+                        challenge.id,
+                        challenge.title,
+                        challenge.imageUrl,
+                        challenge.startDate.stringValue(),
+                        challenge.endDate.stringValue(),
                         ExpressionUtils.as(
                                 JPAExpressions.select(verification.count())
                                         .from(verification)
@@ -92,7 +95,8 @@ public class GroupChallengeParticipationRecordQueryRepositoryImpl implements Gro
                                         .from(verification)
                                         .where(verification.participantRecord.eq(record)),
                                 "total"
-                        )
+                        ),
+                        challenge.createdAt
                 ))
                 .from(record)
                 .join(record.groupChallenge, challenge)
@@ -100,10 +104,10 @@ public class GroupChallengeParticipationRecordQueryRepositoryImpl implements Gro
                         record.member.id.eq(memberId),
                         record.deletedAt.isNull(),
                         challenge.deletedAt.isNull(),
-                        applyStatusFilter(status, now),
-                        cursorId != null ? challenge.id.lt(cursorId) : null
+                        applyStatusFilter(status, LocalDateTime.now()),
+                        CursorConditionUtils.ltCursorWithTimestamp(challenge.createdAt, challenge.id, ts, cursorId)
                 )
-                .orderBy(challenge.id.desc())
+                .orderBy(challenge.createdAt.desc(), challenge.id.desc())
                 .limit(size + 1)
                 .fetch();
     }

@@ -4,9 +4,11 @@ import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import ktb.leafresh.backend.domain.verification.domain.entity.GroupChallengeVerification;
 import ktb.leafresh.backend.domain.verification.domain.entity.QGroupChallengeVerification;
+import ktb.leafresh.backend.global.util.pagination.CursorConditionUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Repository
@@ -17,20 +19,23 @@ public class GroupChallengeVerificationQueryRepositoryImpl implements GroupChall
     private final QGroupChallengeVerification gv = QGroupChallengeVerification.groupChallengeVerification;
 
     @Override
-    public List<GroupChallengeVerification> findByChallengeId(Long challengeId, Long cursorId, int size) {
+    public List<GroupChallengeVerification> findByChallengeId(Long challengeId, Long cursorId, String cursorTimestamp, int size) {
+        LocalDateTime ts = CursorConditionUtils.parseTimestamp(cursorTimestamp);
+
         return queryFactory.selectFrom(gv)
                 .where(
                         gv.participantRecord.groupChallenge.id.eq(challengeId),
                         gv.deletedAt.isNull(),
-                        ltCursorId(cursorId)
+                        CursorConditionUtils.ltCursorWithTimestamp(gv.createdAt, gv.id, ts, cursorId)
                 )
-                .orderBy(gv.id.desc())
+                .orderBy(gv.createdAt.desc(), gv.id.desc())
                 .limit(size)
                 .fetch();
     }
 
-    private BooleanExpression ltCursorId(Long cursorId) {
-        return cursorId != null ? gv.id.lt(cursorId) : null;
+    private BooleanExpression ltCursor(LocalDateTime ts, Long id) {
+        if (ts == null || id == null) return null;
+        return gv.createdAt.lt(ts).or(gv.createdAt.eq(ts).and(gv.id.lt(id)));
     }
 
     @Override
