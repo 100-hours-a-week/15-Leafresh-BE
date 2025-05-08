@@ -9,5 +9,6 @@ import java.util.List;
 public interface GroupChallengeParticipationRecordQueryRepository {
     GroupChallengeParticipationCountSummaryDto countParticipationByStatus(Long memberId, LocalDateTime now);
 
-    List<GroupChallengeParticipationDto> findParticipatedByStatus(Long memberId, String status, Long cursorId, int size);
+    List<GroupChallengeParticipationDto> findParticipatedByStatus(
+            Long memberId, String status, Long cursorId, String cursorTimestamp, int size);
 }

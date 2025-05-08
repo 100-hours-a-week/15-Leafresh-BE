@@ -5,7 +5,7 @@ import ktb.leafresh.backend.domain.verification.domain.entity.GroupChallengeVeri
 import java.util.List;
 
 public interface GroupChallengeVerificationQueryRepository {
-    List<GroupChallengeVerification> findByChallengeId(Long challengeId, Long cursorId, int size);
+    List<GroupChallengeVerification> findByChallengeId(Long challengeId, Long cursorId, String cursorTimestamp, int size);
 
     List<GroupChallengeVerification> findByParticipantRecordId(Long participantRecordId);
 }
