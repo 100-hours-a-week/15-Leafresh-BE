@@ -87,6 +87,10 @@ public class SecurityConfig {
                         // AI로부터 챌린지 인증 결과 받는 API
                         .requestMatchers(HttpMethod.POST, "/api/verifications/*/result").permitAll()
 
+                        // 챗봇
+                        .requestMatchers(HttpMethod.POST, "/api/chatbot/recommendation/base-info").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/chatbot/recommendation/free-text").permitAll()
+
                         // Swagger/OpenAPI
                         .requestMatchers(
                                 "/swagger-ui/**",
