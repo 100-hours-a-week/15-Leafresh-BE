@@ -8,6 +8,5 @@ import java.util.List;
 public record CursorPaginationResult<T>(
         List<T> items,
         boolean hasNext,
-        Long lastCursorId
-) {
-}
+        CursorInfo cursorInfo
+) {}
