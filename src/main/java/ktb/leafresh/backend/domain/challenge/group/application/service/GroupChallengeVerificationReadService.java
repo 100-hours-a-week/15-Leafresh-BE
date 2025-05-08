@@ -3,6 +3,7 @@ package ktb.leafresh.backend.domain.challenge.group.application.service;
 import ktb.leafresh.backend.domain.challenge.group.domain.entity.GroupChallenge;
 import ktb.leafresh.backend.domain.challenge.group.infrastructure.repository.*;
 import ktb.leafresh.backend.domain.challenge.group.presentation.dto.response.*;
+import ktb.leafresh.backend.domain.verification.domain.entity.GroupChallengeVerification;
 import ktb.leafresh.backend.global.exception.ChallengeErrorCode;
 import ktb.leafresh.backend.global.exception.CustomException;
 import ktb.leafresh.backend.global.util.pagination.CursorPaginationHelper;
@@ -23,21 +24,19 @@ public class GroupChallengeVerificationReadService {
     private final GroupChallengeRepository groupChallengeRepository;
     private final GroupChallengeVerificationQueryRepository groupChallengeVerificationQueryRepository;
 
-    public GroupChallengeVerificationListResponseDto getVerifications(
-            Long challengeId, Long cursorId, int size
+    public CursorPaginationResult<GroupChallengeVerificationSummaryDto> getVerifications(
+            Long challengeId, Long cursorId, String cursorTimestamp, int size
     ) {
-        CursorPaginationResult<GroupChallengeVerificationSummaryDto> page = CursorPaginationHelper.paginate(
-                groupChallengeVerificationQueryRepository.findByChallengeId(challengeId, cursorId, size + 1),
+        List<GroupChallengeVerification> entities =
+                groupChallengeVerificationQueryRepository.findByChallengeId(challengeId, cursorId, cursorTimestamp, size + 1);
+
+        return CursorPaginationHelper.paginateWithTimestamp(
+                entities,
                 size,
                 GroupChallengeVerificationSummaryDto::from,
-                GroupChallengeVerificationSummaryDto::id
+                GroupChallengeVerificationSummaryDto::id,
+                GroupChallengeVerificationSummaryDto::createdAt
         );
-
-        return GroupChallengeVerificationListResponseDto.builder()
-                .verifications(page.items())
-                .hasNext(page.hasNext())
-                .lastCursorId(page.lastCursorId())
-                .build();
     }
 
     public GroupChallengeRuleResponseDto getChallengeRules(Long challengeId) {
