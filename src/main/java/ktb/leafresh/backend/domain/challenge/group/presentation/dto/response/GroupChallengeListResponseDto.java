@@ -8,5 +8,6 @@ import java.util.List;
 public record GroupChallengeListResponseDto(
         List<GroupChallengeSummaryDto> groupChallenges,
         boolean hasNext,
-        Long lastCursorId
+        Long lastCursorId,
+        String lastCursorCreatedAt
 ) {}
