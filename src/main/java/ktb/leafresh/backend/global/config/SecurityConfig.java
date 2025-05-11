@@ -60,6 +60,10 @@ public class SecurityConfig {
 
                 // 인증, 인가 설정
                 .authorizeHttpRequests(auth -> auth
+
+                        // images
+                        .requestMatchers("/s3/images/presigned-url").permitAll()
+
                         // 테스트 컨트롤러용 허용 경로 추가
                         .requestMatchers("/spring/**").permitAll()
 
@@ -85,7 +89,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/chalglenges/personal/**").authenticated()
 
                         // AI로부터 챌린지 인증 결과 받는 API
-                        .requestMatchers(HttpMethod.POST, "/api/verifications/*/result").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/verifications/**").permitAll()
 
                         // 챗봇
                         .requestMatchers(HttpMethod.POST, "/api/chatbot/recommendation/base-info").permitAll()
