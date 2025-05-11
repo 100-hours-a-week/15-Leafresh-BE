@@ -1,8 +1,10 @@
 package ktb.leafresh.backend.domain.challenge.group.presentation.dto.request;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 import ktb.leafresh.backend.global.common.entity.enums.ExampleImageType;
+import ktb.leafresh.backend.global.validator.ValidGcsImageUrl;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -23,6 +25,7 @@ public record GroupChallengeCreateRequestDto(
         @Schema(description = "최대 인원 수") int maxParticipantCount,
 
         @NotBlank
+        @ValidGcsImageUrl
         @Schema(description = "썸네일 이미지 URL") String thumbnailImageUrl,
 
         @NotNull
@@ -37,11 +40,12 @@ public record GroupChallengeCreateRequestDto(
         @NotNull
         @Schema(description = "인증 종료 시간") LocalTime verificationEndTime,
 
+        @Valid
         @Size(max = 5)
         @Schema(description = "인증 예시 이미지 목록") List<ExampleImageRequestDto> exampleImages
 ) {
     public record ExampleImageRequestDto(
-            @NotBlank String imageUrl,
+            @NotBlank @ValidGcsImageUrl String imageUrl,
             @NotNull ExampleImageType type,
             @NotBlank String description,
             @Min(1) int sequenceNumber
