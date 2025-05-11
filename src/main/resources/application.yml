@@ -31,6 +31,9 @@ springdoc:
     enabled: true
     path: /swagger-ui.html
 
+server:
+  forward-headers-strategy: framework
+
 logging:
   level:
     org:
@@ -57,3 +60,10 @@ cookie:
 
 ai-server:
   base-url: ${ai_server_base_url}
+
+gcp:
+  project-id: your-gcp-project-id
+  credentials:
+    location: classpath:your-service-account-key.json
+  storage:
+    bucket: your-bucket-name
