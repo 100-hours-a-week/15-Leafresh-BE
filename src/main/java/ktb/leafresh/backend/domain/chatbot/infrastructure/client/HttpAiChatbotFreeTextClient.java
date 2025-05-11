@@ -1,6 +1,8 @@
 package ktb.leafresh.backend.domain.chatbot.infrastructure.client;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import ktb.leafresh.backend.domain.chatbot.infrastructure.dto.request.AiChatbotFreeTextRequestDto;
+import ktb.leafresh.backend.domain.chatbot.infrastructure.dto.response.AiChatbotFreeTextApiResponseDto;
 import ktb.leafresh.backend.domain.chatbot.infrastructure.dto.response.AiChatbotFreeTextResponseDto;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Profile;
@@ -21,11 +23,22 @@ public class HttpAiChatbotFreeTextClient implements AiChatbotFreeTextClient {
 
     @Override
     public AiChatbotFreeTextResponseDto getRecommendation(AiChatbotFreeTextRequestDto requestDto) {
-        return aiServerWebClient.post()
+        String rawJson = aiServerWebClient.post()
                 .uri("/ai/chatbot/recommendation/free-text")
                 .bodyValue(requestDto)
                 .retrieve()
-                .bodyToMono(AiChatbotFreeTextResponseDto.class)
+                .bodyToMono(String.class)
                 .block();
+
+        System.out.println("[AI 서버 응답 원문 - FreeText] \n" + rawJson);
+
+        try {
+            // 전용 Wrapper DTO로 파싱
+            AiChatbotFreeTextApiResponseDto parsed =
+                    new ObjectMapper().readValue(rawJson, AiChatbotFreeTextApiResponseDto.class);
+            return parsed.data();
+        } catch (Exception e) {
+            throw new RuntimeException("AI 응답 파싱 실패: " + e.getMessage(), e);
+        }
     }
 }
