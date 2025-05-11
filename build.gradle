@@ -84,6 +84,10 @@ dependencies {
 
 	// WebFlux
 	implementation 'org.springframework.boot:spring-boot-starter-webflux'
+
+	// Google Cloud Storage
+	implementation 'com.google.protobuf:protobuf-java:3.25.1'
+	implementation group: 'com.google.cloud', name: 'google-cloud-storage', version: '2.40.1'
 }
 
 dependencyManagement {
