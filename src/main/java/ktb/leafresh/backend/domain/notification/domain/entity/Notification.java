@@ -22,13 +22,24 @@ public class Notification extends BaseEntity {
     @JoinColumn(name = "member_id", nullable = false)
     private Member member;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 30)
+    private NotificationType type;
+
+    @Column(name = "challenge_id", nullable = false)
+    private Long challengeId;
+
     @Column(nullable = false, length = 100)
     private String title;
 
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "TEXT")
     private String content;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 20)
-    private NotificationType type;
+    @Column(name = "status", nullable = false)
+    @Builder.Default
+    private boolean status = false;
+
+    public void markAsRead() {
+        this.status = true;
+    }
 }
