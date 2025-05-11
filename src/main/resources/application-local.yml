@@ -12,3 +12,4 @@ spring:
 
 cookie:
   secure: false
+  samesite: Lax
