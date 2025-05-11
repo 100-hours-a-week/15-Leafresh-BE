@@ -10,6 +10,7 @@ public enum ChallengeErrorCode implements BaseErrorCode {
     CHALLENGE_ACCESS_DENIED(HttpStatus.FORBIDDEN, "챌린지 삭제 권한이 없습니다."),
 
     // 단체
+    EVENT_CHALLENGE_READ_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "서버 내부 오류로 인해 이벤트 챌린지 목록 조회에 실패했습니다."),
     CHALLENGE_CATEGORY_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 챌린지 카테고리입니다."),
     GROUP_CHALLENGE_NOT_FOUND(HttpStatus.NOT_FOUND, "단체 챌린지를 찾을 수 없습니다."),
     GROUP_CHALLENGE_RECORD_NOT_FOUND(HttpStatus.NOT_FOUND, "참여 기록이 존재하지 않습니다."),
@@ -24,9 +25,15 @@ public enum ChallengeErrorCode implements BaseErrorCode {
     CHALLENGE_ALREADY_DROPPED(HttpStatus.BAD_REQUEST, "이미 취소된 참여 이력입니다."),
 
     // 개인
+    PERSONAL_CHALLENGE_READ_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "서버 내부 오류로 인해 개인 챌린지 목록 조회에 실패했습니다."),
     EXCEEDS_DAILY_PERSONAL_CHALLENGE_LIMIT(HttpStatus.BAD_REQUEST, "요일별 챌린지는 최대 3개까지만 등록할 수 있습니다."),
-    PERSONAL_CHALLENGE_NOT_FOUND(HttpStatus.NOT_FOUND, "개인 챌린지를 찾을 수 없습니다."),
-    PERSONAL_CHALLENGE_EMPTY(HttpStatus.NOT_FOUND, "현재 등록된 개인 챌린지가 없습니다.");
+    PERSONAL_CHALLENGE_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 개인 챌린지를 찾을 수 없습니다."),
+    PERSONAL_CHALLENGE_EMPTY(HttpStatus.NOT_FOUND, "현재 등록된 개인 챌린지가 없습니다."),
+    PERSONAL_CHALLENGE_DETAIL_READ_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "서버 내부 오류로 인해 개인 챌린지 상세 조회에 실패했습니다."),
+    PERSONAL_CHALLENGE_DETAIL_SERVICE_UNAVAILABLE(HttpStatus.SERVICE_UNAVAILABLE, "현재 개인 챌린지 상세 정보를 불러올 수 없습니다. 잠시 후 다시 시도해주세요."),
+    PERSONAL_CHALLENGE_RULE_READ_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "서버 내부 오류로 인해 인증 규약을 조회하지 못했습니다."),
+    PERSONAL_CHALLENGE_RULE_ACCESS_DENIED(HttpStatus.FORBIDDEN, "해당 챌린지에 참여 중인 사용자가 아닙니다."),
+    PERSONAL_CHALLENGE_RULE_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 챌린지입니다.");
 
     private final HttpStatus status;
     private final String message;

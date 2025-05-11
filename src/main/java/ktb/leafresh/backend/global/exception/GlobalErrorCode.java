@@ -4,6 +4,7 @@ import org.springframework.http.HttpStatus;
 
 public enum GlobalErrorCode implements BaseErrorCode {
 
+    INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "서버 내부 오류로 인해 요청을 처리할 수 없습니다."),
     INVALID_JSON_FORMAT(HttpStatus.BAD_REQUEST, "잘못된 JSON 형식입니다."),
     INVALID_REQUEST(HttpStatus.BAD_REQUEST, "잘못된 요청입니다."),
     ACCESS_DENIED(HttpStatus.FORBIDDEN, "접근 권한이 없습니다."),
@@ -12,7 +13,9 @@ public enum GlobalErrorCode implements BaseErrorCode {
     INVALID_TOKEN(HttpStatus.UNAUTHORIZED, "유효하지 않은 토큰입니다."),
     NOT_FOUND(HttpStatus.NOT_FOUND, "찾을 수 없습니다."),
     REFRESH_TOKEN_NOT_FOUND(HttpStatus.NOT_FOUND, "저장된 리프레시 토큰이 없습니다."),
-    INVALID_CURSOR(HttpStatus.BAD_REQUEST, "cursorId와 cursorTimestamp는 반드시 함께 전달되어야 합니다.");
+    INVALID_CURSOR(HttpStatus.BAD_REQUEST, "cursorId와 cursorTimestamp는 반드시 함께 전달되어야 합니다."),
+    UNSUPPORTED_CONTENT_TYPE(HttpStatus.BAD_REQUEST, "지원하지 않는 Content-Type입니다."),
+    INVALID_IMAGE_URL(HttpStatus.BAD_REQUEST, "유효하지 않은 이미지 URL입니다.");
 
     private final HttpStatus status;
     private final String message;

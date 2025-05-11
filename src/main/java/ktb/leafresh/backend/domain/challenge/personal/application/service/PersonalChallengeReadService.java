@@ -28,26 +28,34 @@ public class PersonalChallengeReadService {
     private final PersonalChallengeVerificationRepository verificationRepository;
 
     public PersonalChallengeListResponseDto getByDayOfWeek(DayOfWeek dayOfWeek) {
-        List<PersonalChallenge> challenges = repository.findAllByDayOfWeek(dayOfWeek);
+        try {
+            List<PersonalChallenge> challenges = repository.findAllByDayOfWeek(dayOfWeek);
 
-        if (challenges.isEmpty()) {
-            throw new CustomException(ChallengeErrorCode.PERSONAL_CHALLENGE_EMPTY);
+            if (challenges.isEmpty()) {
+                throw new CustomException(ChallengeErrorCode.PERSONAL_CHALLENGE_EMPTY);
+            }
+
+            return new PersonalChallengeListResponseDto(PersonalChallengeSummaryDto.fromEntities(challenges));
+        } catch (Exception e) {
+            throw new CustomException(ChallengeErrorCode.PERSONAL_CHALLENGE_READ_FAILED);
         }
-
-        return new PersonalChallengeListResponseDto(PersonalChallengeSummaryDto.fromEntities(challenges));
     }
 
     public PersonalChallengeDetailResponseDto getChallengeDetail(Long memberIdOrNull, Long challengeId) {
-        PersonalChallenge challenge = repository.findById(challengeId)
-                .orElseThrow(() -> new CustomException(ChallengeErrorCode.PERSONAL_CHALLENGE_NOT_FOUND));
+        try {
+            PersonalChallenge challenge = repository.findById(challengeId)
+                    .orElseThrow(() -> new CustomException(ChallengeErrorCode.PERSONAL_CHALLENGE_NOT_FOUND));
 
-        List<PersonalChallengeExampleImageDto> exampleImages = challenge.getExampleImages().stream()
-                .map(PersonalChallengeExampleImageDto::from)
-                .toList();
+            List<PersonalChallengeExampleImageDto> exampleImages = challenge.getExampleImages().stream()
+                    .map(PersonalChallengeExampleImageDto::from)
+                    .toList();
 
-        ChallengeStatus status = resolveChallengeStatus(memberIdOrNull, challengeId);
+            ChallengeStatus status = resolveChallengeStatus(memberIdOrNull, challengeId);
 
-        return PersonalChallengeDetailResponseDto.of(challenge, exampleImages, status);
+            return PersonalChallengeDetailResponseDto.of(challenge, exampleImages, status);
+        } catch (Exception e) {
+            throw new CustomException(ChallengeErrorCode.PERSONAL_CHALLENGE_DETAIL_READ_FAILED);
+        }
     }
 
     private ChallengeStatus resolveChallengeStatus(Long memberIdOrNull, Long challengeId) {

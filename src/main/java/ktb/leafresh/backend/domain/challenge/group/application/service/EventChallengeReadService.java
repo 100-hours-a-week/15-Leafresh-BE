@@ -3,6 +3,8 @@ package ktb.leafresh.backend.domain.challenge.group.application.service;
 import ktb.leafresh.backend.domain.challenge.group.domain.entity.GroupChallenge;
 import ktb.leafresh.backend.domain.challenge.group.infrastructure.repository.GroupChallengeRepository;
 import ktb.leafresh.backend.domain.challenge.group.presentation.dto.response.EventChallengeResponseDto;
+import ktb.leafresh.backend.global.exception.CustomException;
+import ktb.leafresh.backend.global.exception.ChallengeErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,10 +22,14 @@ public class EventChallengeReadService {
     private final GroupChallengeRepository groupChallengeRepository;
 
     public List<EventChallengeResponseDto> getEventChallenges() {
-        LocalDateTime now = LocalDateTime.now();
-        List<GroupChallenge> challenges = groupChallengeRepository.findOngoingEventChallenges(now);
-        return challenges.stream()
-                .map(EventChallengeResponseDto::from)
-                .collect(toList());
+        try {
+            LocalDateTime now = LocalDateTime.now();
+            List<GroupChallenge> challenges = groupChallengeRepository.findOngoingEventChallenges(now);
+            return challenges.stream()
+                    .map(EventChallengeResponseDto::from)
+                    .collect(toList());
+        } catch (Exception e) {
+            throw new CustomException(ChallengeErrorCode.EVENT_CHALLENGE_READ_FAILED);
+        }
     }
 }
