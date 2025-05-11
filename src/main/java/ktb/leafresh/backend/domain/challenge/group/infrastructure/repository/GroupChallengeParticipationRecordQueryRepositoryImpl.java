@@ -3,6 +3,7 @@ package ktb.leafresh.backend.domain.challenge.group.infrastructure.repository;
 import com.querydsl.core.types.ExpressionUtils;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import ktb.leafresh.backend.domain.challenge.group.domain.entity.GroupChallenge;
@@ -91,9 +92,13 @@ public class GroupChallengeParticipationRecordQueryRepositoryImpl implements Gro
                                 "success"
                         ),
                         ExpressionUtils.as(
-                                JPAExpressions.select(verification.count())
-                                        .from(verification)
-                                        .where(verification.participantRecord.eq(record)),
+                                JPAExpressions.select(
+                                        Expressions.numberTemplate(Long.class,
+                                                "DATEDIFF({0}, {1}) + 1",
+                                                challenge.endDate,
+                                                record.createdAt
+                                        )
+                                ),
                                 "total"
                         ),
                         challenge.createdAt
@@ -116,7 +121,7 @@ public class GroupChallengeParticipationRecordQueryRepositoryImpl implements Gro
         return switch (status.toLowerCase()) {
             case "not_started" -> challenge.startDate.gt(now);
             case "ongoing" -> challenge.startDate.loe(now).and(challenge.endDate.goe(now));
-            case "ended" -> challenge.endDate.lt(now).or(record.status.eq(FINISHED));
+            case "completed" -> challenge.endDate.lt(now).or(record.status.eq(FINISHED));
             default -> throw new CustomException(GlobalErrorCode.INVALID_REQUEST);
         };
     }
