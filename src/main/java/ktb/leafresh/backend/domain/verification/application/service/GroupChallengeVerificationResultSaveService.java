@@ -1,5 +1,8 @@
 package ktb.leafresh.backend.domain.verification.application.service;
 
+import ktb.leafresh.backend.domain.member.domain.entity.Member;
+import ktb.leafresh.backend.domain.notification.application.service.NotificationCreateService;
+import ktb.leafresh.backend.domain.notification.domain.entity.enums.NotificationType;
 import ktb.leafresh.backend.domain.verification.domain.entity.GroupChallengeVerification;
 import ktb.leafresh.backend.domain.verification.infrastructure.repository.GroupChallengeVerificationRepository;
 import ktb.leafresh.backend.domain.verification.presentation.dto.request.VerificationResultRequestDto;
@@ -17,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class GroupChallengeVerificationResultSaveService {
 
     private final GroupChallengeVerificationRepository groupVerificationRepository;
+    private final NotificationCreateService notificationCreateService;
 
     @Transactional
     public void saveResult(Long verificationId, VerificationResultRequestDto dto) {
@@ -32,5 +36,21 @@ public class GroupChallengeVerificationResultSaveService {
         verification.markVerified(newStatus);
 
         log.info("[단체 인증 결과 저장 완료] verificationId={}, status={}", verificationId, newStatus);
+        log.info("[단체 인증 상태 업데이트 완료] verificationId={}, newStatus={}", verificationId, newStatus);
+
+        Member member = verification.getParticipantRecord().getMember();
+        String challengeTitle = verification.getParticipantRecord().getGroupChallenge().getTitle();
+
+        log.info("[알림 생성 시작] memberId={}, challengeTitle={}", member.getId(), challengeTitle);
+
+        notificationCreateService.createChallengeVerificationResultNotification(
+                member,
+                challengeTitle,
+                dto.result(),
+                NotificationType.GROUP,
+                verification.getParticipantRecord().getGroupChallenge().getId()
+        );
+
+        log.info("[알림 생성 완료]");
     }
 }
