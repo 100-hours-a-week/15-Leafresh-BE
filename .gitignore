@@ -43,3 +43,6 @@ out/
 .env.docker-prod
 .env.eks-local
 .env.eks-prod
+
+### Google Cloud Storage ###
+leafresh-gcs.json
