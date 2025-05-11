@@ -12,3 +12,11 @@ spring:
 
 cookie:
   secure: true
+  samesite: ${cookie_samesite:none}
+
+gcp:
+  project-id: ${gcp_project_id}
+  credentials:
+    location: classpath:${gcp_credentials_location}
+  storage:
+    bucket: ${gcp_storage_bucket}
