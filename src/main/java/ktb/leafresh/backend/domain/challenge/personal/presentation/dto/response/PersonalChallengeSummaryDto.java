@@ -10,7 +10,7 @@ public record PersonalChallengeSummaryDto(
         Long id,
         String title,
         String description,
-        String imageUrl,
+        String thumbnailUrl,
         int leafReward
 ) {
     public static PersonalChallengeSummaryDto from(PersonalChallenge challenge) {
@@ -18,7 +18,7 @@ public record PersonalChallengeSummaryDto(
                 .id(challenge.getId())
                 .title(challenge.getTitle())
                 .description(challenge.getDescription())
-                .imageUrl(challenge.getImageUrl())
+                .thumbnailUrl(challenge.getImageUrl())
                 .leafReward(challenge.getLeafReward())
                 .build();
     }

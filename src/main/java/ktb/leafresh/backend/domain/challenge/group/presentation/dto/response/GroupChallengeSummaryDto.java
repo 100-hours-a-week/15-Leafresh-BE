@@ -10,7 +10,7 @@ import java.util.List;
 public record GroupChallengeSummaryDto(
         Long id,
         String title,
-        String imageUrl,
+        String thumbnailUrl,
         int leafReward,
         String startDate,
         String endDate,
@@ -21,7 +21,7 @@ public record GroupChallengeSummaryDto(
         return GroupChallengeSummaryDto.builder()
                 .id(entity.getId())
                 .title(entity.getTitle())
-                .imageUrl(entity.getImageUrl())
+                .thumbnailUrl(entity.getImageUrl())
                 .leafReward(entity.getLeafReward())
                 .startDate(entity.getStartDate().toLocalDate().toString())
                 .endDate(entity.getEndDate().toLocalDate().toString())
