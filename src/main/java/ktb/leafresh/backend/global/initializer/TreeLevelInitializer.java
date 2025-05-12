@@ -1,4 +1,4 @@
-package ktb.leafresh.backend.global.init;
+package ktb.leafresh.backend.global.initializer;
 
 import ktb.leafresh.backend.domain.member.domain.entity.TreeLevel;
 import ktb.leafresh.backend.domain.member.domain.entity.enums.TreeLevelName;

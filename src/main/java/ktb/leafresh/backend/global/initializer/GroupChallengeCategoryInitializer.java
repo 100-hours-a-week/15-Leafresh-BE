@@ -1,4 +1,4 @@
-package ktb.leafresh.backend.global.init;
+package ktb.leafresh.backend.global.initializer;
 
 import ktb.leafresh.backend.domain.challenge.group.domain.entity.GroupChallengeCategory;
 import ktb.leafresh.backend.domain.challenge.group.domain.entity.enums.GroupChallengeCategoryName;
@@ -7,8 +7,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 /**
  * Leafresh 서비스의 기본 GroupChallengeCategory 목록을 DB에 등록하는 초기화 클래스입니다.
