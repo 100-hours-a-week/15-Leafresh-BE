@@ -14,6 +14,7 @@ public record GroupChallengeDetailResponseDto(
         boolean isEvent,
         String title,
         String description,
+        String category,
         LocalDate startDate,
         LocalDate endDate,
         LocalTime verificationStartTime,
@@ -35,6 +36,7 @@ public record GroupChallengeDetailResponseDto(
                 .isEvent(Boolean.TRUE.equals(challenge.getEventFlag()))
                 .title(challenge.getTitle())
                 .description(challenge.getDescription())
+                .category(challenge.getCategory().getName())
                 .startDate(challenge.getStartDate().toLocalDate())
                 .endDate(challenge.getEndDate().toLocalDate())
                 .verificationStartTime(challenge.getVerificationStartTime())
