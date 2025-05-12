@@ -47,6 +47,7 @@ public class PersonalChallengeVerificationResultSaveService {
                 challengeTitle,
                 dto.result(),
                 NotificationType.PERSONAL,
+                verification.getImageUrl(),
                 verification.getPersonalChallenge().getId()
         );
 

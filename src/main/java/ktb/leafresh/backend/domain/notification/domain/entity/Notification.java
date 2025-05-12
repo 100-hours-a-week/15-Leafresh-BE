@@ -39,6 +39,9 @@ public class Notification extends BaseEntity {
     @Builder.Default
     private boolean status = false;
 
+    @Column(nullable = false, length = 512)
+    private String imageUrl;
+
     public void markAsRead() {
         this.status = true;
     }
