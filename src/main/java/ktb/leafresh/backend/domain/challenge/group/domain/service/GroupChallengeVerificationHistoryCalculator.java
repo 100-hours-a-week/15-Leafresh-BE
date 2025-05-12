@@ -7,10 +7,11 @@ import ktb.leafresh.backend.domain.verification.domain.entity.GroupChallengeVeri
 import ktb.leafresh.backend.global.common.entity.enums.ChallengeStatus;
 import org.springframework.stereotype.Component;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Component
 public class GroupChallengeVerificationHistoryCalculator {
@@ -20,27 +21,34 @@ public class GroupChallengeVerificationHistoryCalculator {
             GroupChallengeParticipantRecord record,
             List<GroupChallengeVerification> verifications
     ) {
-        LocalDateTime joinedAt = record.getCreatedAt();
-        LocalDateTime now = LocalDateTime.now();
+        LocalDate startDate = challenge.getStartDate().toLocalDate();
+        LocalDate today = LocalDate.now();
 
+        // 최신 인증이 먼저 보이도록 정렬 + 시작일 기준 day 계산
         List<GroupChallengeVerificationHistoryResponseDto.VerificationDto> verificationDtos = verifications.stream()
-                .map(v -> GroupChallengeVerificationHistoryResponseDto.VerificationDto.builder()
-                        .day((int) ChronoUnit.DAYS.between(joinedAt.toLocalDate(), v.getCreatedAt().toLocalDate()) + 1)
-                        .imageUrl(v.getImageUrl())
-                        .status(v.getStatus())
-                        .build())
-                .sorted(Comparator.comparingInt(GroupChallengeVerificationHistoryResponseDto.VerificationDto::day).reversed())
-                .toList();
+                .sorted(Comparator.comparing(GroupChallengeVerification::getCreatedAt).reversed()) // 최신순
+                .map(v -> {
+                    int day = (int) ChronoUnit.DAYS.between(startDate, v.getCreatedAt().toLocalDate()) + 1;
+                    return GroupChallengeVerificationHistoryResponseDto.VerificationDto.builder()
+                            .day(day)
+                            .imageUrl(v.getImageUrl())
+                            .status(v.getStatus())
+                            .build();
+                })
+                .collect(Collectors.toList());
 
         long success = verifications.stream().filter(v -> v.getStatus() == ChallengeStatus.SUCCESS).count();
         long failure = verifications.stream().filter(v -> v.getStatus() == ChallengeStatus.FAILURE).count();
-        long remaining = ChronoUnit.DAYS.between(
-                verifications.stream().map(GroupChallengeVerification::getCreatedAt).max(LocalDateTime::compareTo).orElse(joinedAt),
-                challenge.getEndDate()
-        );
+
+        LocalDate lastVerificationDate = verifications.stream()
+                .map(v -> v.getCreatedAt().toLocalDate())
+                .max(LocalDate::compareTo)
+                .orElse(startDate);
+
+        long remaining = ChronoUnit.DAYS.between(lastVerificationDate, challenge.getEndDate().toLocalDate());
 
         String todayStatus = verifications.stream()
-                .filter(v -> v.getCreatedAt().toLocalDate().isEqual(now.toLocalDate()))
+                .filter(v -> v.getCreatedAt().toLocalDate().isEqual(today))
                 .findFirst()
                 .map(v -> switch (v.getStatus()) {
                     case SUCCESS, FAILURE -> "DONE";
