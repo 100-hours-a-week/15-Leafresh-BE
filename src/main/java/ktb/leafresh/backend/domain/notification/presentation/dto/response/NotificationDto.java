@@ -14,6 +14,7 @@ public record NotificationDto(
         LocalDateTime createdAt,
         boolean isRead,
         NotificationType type,
+        String imageUrl,
         Long challengeId
 ) {
     public static NotificationDto from(Notification entity) {
@@ -24,6 +25,7 @@ public record NotificationDto(
                 .createdAt(entity.getCreatedAt())
                 .isRead(entity.isStatus())
                 .type(entity.getType())
+                .imageUrl(entity.getImageUrl())
                 .challengeId(entity.getChallengeId())
                 .build();
     }

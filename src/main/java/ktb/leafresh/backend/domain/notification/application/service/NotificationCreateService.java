@@ -20,6 +20,7 @@ public class NotificationCreateService {
             String challengeName,
             boolean isSuccess,
             NotificationType type,
+            String imageUrl,
             Long challengeId
     ) {
         String titlePrefix = (type == NotificationType.PERSONAL) ? "[개인]" : "[단체]";
@@ -31,6 +32,7 @@ public class NotificationCreateService {
                 .title(title)
                 .content(content)
                 .type(type)
+                .imageUrl(imageUrl)
                 .challengeId(challengeId)
                 .build();
 

@@ -48,6 +48,7 @@ public class GroupChallengeVerificationResultSaveService {
                 challengeTitle,
                 dto.result(),
                 NotificationType.GROUP,
+                verification.getImageUrl(),
                 verification.getParticipantRecord().getGroupChallenge().getId()
         );
 
