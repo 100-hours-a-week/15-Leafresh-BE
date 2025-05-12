@@ -14,5 +14,10 @@ public record AiChallengeValidationRequestDto(
             String name,
             String startDate,
             String endDate
-    ) {}
+    ) {
+        @Override
+        public String toString() {
+            return String.format("{id=%d, name='%s', startDate=%s, endDate=%s}", id, name, startDate, endDate);
+        }
+    }
 }
