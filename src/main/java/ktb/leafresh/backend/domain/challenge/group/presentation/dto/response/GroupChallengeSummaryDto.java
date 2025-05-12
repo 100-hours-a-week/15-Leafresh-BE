@@ -1,6 +1,7 @@
 package ktb.leafresh.backend.domain.challenge.group.presentation.dto.response;
 
 import ktb.leafresh.backend.domain.challenge.group.domain.entity.GroupChallenge;
+import ktb.leafresh.backend.domain.challenge.group.domain.service.GroupChallengeRemainingDayCalculator;
 import lombok.Builder;
 
 import java.time.LocalDateTime;
@@ -14,10 +15,13 @@ public record GroupChallengeSummaryDto(
         int leafReward,
         String startDate,
         String endDate,
+        int remainingDay,
         int currentParticipantCount,
         LocalDateTime createdAt
 ) {
     public static GroupChallengeSummaryDto from(GroupChallenge entity) {
+        int remainingDay = GroupChallengeRemainingDayCalculator.calculate(entity.getStartDate().toLocalDate());
+
         return GroupChallengeSummaryDto.builder()
                 .id(entity.getId())
                 .title(entity.getTitle())
@@ -27,6 +31,7 @@ public record GroupChallengeSummaryDto(
                 .endDate(entity.getEndDate().toLocalDate().toString())
                 .currentParticipantCount(entity.getCurrentParticipantCount())
                 .createdAt(entity.getCreatedAt())
+                .remainingDay(remainingDay)
                 .build();
     }
 
