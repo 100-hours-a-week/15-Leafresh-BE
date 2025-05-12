@@ -46,6 +46,7 @@ logging:
             sql:
               BasicBinder: TRACE
     org.springframework.web.servlet.DispatcherServlet: DEBUG
+    ktb.leafresh.backend: DEBUG
 
 jwt:
   secret: ${jwt_secret}
