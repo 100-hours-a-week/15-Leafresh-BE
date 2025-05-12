@@ -5,16 +5,18 @@ import ktb.leafresh.backend.domain.challenge.personal.infrastructure.repository.
 import ktb.leafresh.backend.domain.member.domain.entity.Member;
 import ktb.leafresh.backend.domain.member.infrastructure.repository.MemberRepository;
 import ktb.leafresh.backend.domain.verification.domain.entity.PersonalChallengeVerification;
-import ktb.leafresh.backend.domain.verification.infrastructure.client.AiPersonalChallengeVerificationClient;
-import ktb.leafresh.backend.domain.verification.infrastructure.dto.request.AiPersonalChallengeVerificationRequestDto;
+import ktb.leafresh.backend.domain.verification.domain.event.VerificationCreatedEvent;
+import ktb.leafresh.backend.domain.verification.infrastructure.dto.request.AiVerificationRequestDto;
 import ktb.leafresh.backend.domain.verification.infrastructure.repository.PersonalChallengeVerificationRepository;
 import ktb.leafresh.backend.domain.verification.presentation.dto.request.PersonalChallengeVerificationRequestDto;
 import ktb.leafresh.backend.global.common.entity.enums.ChallengeStatus;
+import ktb.leafresh.backend.global.common.entity.enums.ChallengeType;
 import ktb.leafresh.backend.global.exception.ChallengeErrorCode;
 import ktb.leafresh.backend.global.exception.CustomException;
 import ktb.leafresh.backend.global.exception.MemberErrorCode;
 import ktb.leafresh.backend.global.exception.VerificationErrorCode;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,7 +30,7 @@ public class PersonalChallengeVerificationSubmitService {
     private final MemberRepository memberRepository;
     private final PersonalChallengeRepository personalChallengeRepository;
     private final PersonalChallengeVerificationRepository verificationRepository;
-    private final AiPersonalChallengeVerificationClient aiClient;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
     public void submit(Long memberId, Long challengeId, PersonalChallengeVerificationRequestDto dto) {
@@ -38,7 +40,6 @@ public class PersonalChallengeVerificationSubmitService {
         PersonalChallenge challenge = personalChallengeRepository.findById(challengeId)
                 .orElseThrow(() -> new CustomException(ChallengeErrorCode.PERSONAL_CHALLENGE_NOT_FOUND));
 
-        // 오늘 이미 인증했는지 확인
         LocalDateTime now = LocalDateTime.now();
         boolean alreadySubmitted = verificationRepository
                 .findTopByMemberIdAndPersonalChallengeIdAndCreatedAtBetween(
@@ -50,7 +51,6 @@ public class PersonalChallengeVerificationSubmitService {
             throw new CustomException(VerificationErrorCode.ALREADY_SUBMITTED);
         }
 
-        // 인증 생성 및 저장
         PersonalChallengeVerification verification = PersonalChallengeVerification.builder()
                 .member(member)
                 .personalChallenge(challenge)
@@ -62,8 +62,10 @@ public class PersonalChallengeVerificationSubmitService {
 
         verificationRepository.save(verification);
 
-        // AI 서버 요청
-        AiPersonalChallengeVerificationRequestDto aiRequest = AiPersonalChallengeVerificationRequestDto.builder()
+        // 이벤트 발행 (커밋 후 실행됨)
+        AiVerificationRequestDto aiRequest = AiVerificationRequestDto.builder()
+                .verificationId(verification.getId())
+                .type(ChallengeType.PERSONAL)
                 .imageUrl(dto.imageUrl())
                 .memberId(memberId)
                 .challengeId(challengeId)
@@ -71,6 +73,6 @@ public class PersonalChallengeVerificationSubmitService {
                 .challengeName(challenge.getTitle())
                 .build();
 
-        aiClient.verifyImage(aiRequest);
+        eventPublisher.publishEvent(new VerificationCreatedEvent(aiRequest));
     }
 }
