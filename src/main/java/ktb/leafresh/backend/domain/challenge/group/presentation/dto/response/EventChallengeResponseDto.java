@@ -6,7 +6,7 @@ public record EventChallengeResponseDto(
         Long id,
         String title,
         String description,
-        String imageUrl
+        String thumbnailUrl
 ) {
     public static EventChallengeResponseDto from(GroupChallenge challenge) {
         return new EventChallengeResponseDto(

@@ -13,7 +13,7 @@ public record PersonalChallengeDetailResponseDto(
         Long id,
         String title,
         String description,
-        String imageUrl,
+        String thumbnailUrl,
         DayOfWeek dayOfWeek,
         LocalTime verificationStartTime,
         LocalTime verificationEndTime,
@@ -28,7 +28,7 @@ public record PersonalChallengeDetailResponseDto(
                 .id(challenge.getId())
                 .title(challenge.getTitle())
                 .description(challenge.getDescription())
-                .imageUrl(challenge.getImageUrl())
+                .thumbnailUrl(challenge.getImageUrl())
                 .dayOfWeek(challenge.getDayOfWeek())
                 .verificationStartTime(challenge.getVerificationStartTime())
                 .verificationEndTime(challenge.getVerificationEndTime())
