@@ -38,7 +38,8 @@ out/
 
 ### .env ###
 .env.local
-.env.bigbang
+.env.bigbang-local
+.env.bigbang-prod
 .env.docker-local
 .env.docker-prod
 .env.eks-local
