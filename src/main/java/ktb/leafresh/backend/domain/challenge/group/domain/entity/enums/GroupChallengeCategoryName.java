@@ -1,7 +1,5 @@
 package ktb.leafresh.backend.domain.challenge.group.domain.entity.enums;
 
-import java.util.Arrays;
-
 public enum GroupChallengeCategoryName {
 
     ZERO_WASTE("제로웨이스트"),
@@ -22,14 +20,6 @@ public enum GroupChallengeCategoryName {
 
     public String getLabel() {
         return label;
-    }
-
-    public static String toEnglish(String koreanInput) {
-        return Arrays.stream(values())
-                .filter(v -> v.label.equals(koreanInput))
-                .map(Enum::name)
-                .findFirst()
-                .orElse(null);
     }
 
     public static String getImageUrl(String name) {

@@ -4,9 +4,6 @@ import ktb.leafresh.backend.domain.challenge.group.domain.entity.GroupChallenge;
 import ktb.leafresh.backend.domain.challenge.group.domain.entity.enums.GroupChallengeCategoryName;
 import ktb.leafresh.backend.domain.challenge.group.infrastructure.repository.*;
 import ktb.leafresh.backend.domain.challenge.group.presentation.dto.response.*;
-import ktb.leafresh.backend.global.exception.ChallengeErrorCode;
-import ktb.leafresh.backend.global.exception.CustomException;
-import ktb.leafresh.backend.global.exception.GlobalErrorCode;
 import ktb.leafresh.backend.global.util.pagination.CursorPaginationHelper;
 import ktb.leafresh.backend.global.util.pagination.CursorPaginationResult;
 import lombok.RequiredArgsConstructor;
@@ -25,13 +22,9 @@ public class GroupChallengeSearchReadService {
     private final GroupChallengeSearchQueryRepository searchRepository;
 
     public CursorPaginationResult<GroupChallengeSummaryDto> getGroupChallenges(
-            String input, String category, Long cursorId, String cursorTimestamp, int size) {
+            String input, GroupChallengeCategoryName category, Long cursorId, String cursorTimestamp, int size) {
 
-        if (category == null || category.trim().isEmpty()) {
-            throw new CustomException(GlobalErrorCode.INVALID_REQUEST);
-        }
-
-        String internalCategoryName = resolveCategoryNameOrThrow(category);
+        String internalCategoryName = (category != null) ? category.name() : null;
 
         List<GroupChallenge> challenges = searchRepository
                 .findByFilter(input, internalCategoryName, cursorId, cursorTimestamp, size + 1);
@@ -43,13 +36,5 @@ public class GroupChallengeSearchReadService {
                 GroupChallengeSummaryDto::id,
                 GroupChallengeSummaryDto::createdAt
         );
-    }
-
-    private String resolveCategoryNameOrThrow(String label) {
-        String name = GroupChallengeCategoryName.toEnglish(label);
-        if (name == null) {
-            throw new CustomException(ChallengeErrorCode.CHALLENGE_CATEGORY_NOT_FOUND);
-        }
-        return name;
     }
 }

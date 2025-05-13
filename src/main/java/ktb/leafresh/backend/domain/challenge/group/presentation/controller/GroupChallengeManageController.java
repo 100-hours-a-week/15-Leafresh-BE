@@ -2,6 +2,7 @@ package ktb.leafresh.backend.domain.challenge.group.presentation.controller;
 
 import jakarta.validation.Valid;
 import ktb.leafresh.backend.domain.challenge.group.application.service.*;
+import ktb.leafresh.backend.domain.challenge.group.domain.entity.enums.GroupChallengeCategoryName;
 import ktb.leafresh.backend.domain.challenge.group.presentation.dto.request.GroupChallengeCreateRequestDto;
 import ktb.leafresh.backend.domain.challenge.group.presentation.dto.request.GroupChallengeUpdateRequestDto;
 import ktb.leafresh.backend.domain.challenge.group.presentation.dto.response.*;
@@ -32,7 +33,7 @@ public class GroupChallengeManageController {
     @GetMapping
     public ResponseEntity<ApiResponse<CursorPaginationResult<GroupChallengeSummaryDto>>> getGroupChallenges(
             @RequestParam(required = false) String input,
-            @RequestParam(required = false) String category,
+            @RequestParam(required = false) GroupChallengeCategoryName category,
             @RequestParam(required = false) Long cursorId,
             @RequestParam(required = false) String cursorTimestamp,
             @RequestParam(defaultValue = "12") int size
