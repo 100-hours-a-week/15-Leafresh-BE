@@ -7,7 +7,7 @@ import lombok.Builder;
 import java.time.LocalDateTime;
 
 @Builder
-public record NotificationDto(
+public record NotificationSummaryResponse(
         Long id,
         String title,
         String content,
@@ -17,8 +17,8 @@ public record NotificationDto(
         String imageUrl,
         Long challengeId
 ) {
-    public static NotificationDto from(Notification entity) {
-        return NotificationDto.builder()
+    public static NotificationSummaryResponse from(Notification entity) {
+        return NotificationSummaryResponse.builder()
                 .id(entity.getId())
                 .title(entity.getTitle())
                 .content(entity.getContent())

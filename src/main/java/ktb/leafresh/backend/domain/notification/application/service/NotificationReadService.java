@@ -3,7 +3,7 @@ package ktb.leafresh.backend.domain.notification.application.service;
 import ktb.leafresh.backend.domain.notification.domain.entity.Notification;
 import ktb.leafresh.backend.domain.notification.infrastructure.repository.NotificationReadQueryRepository;
 import ktb.leafresh.backend.domain.notification.infrastructure.repository.NotificationRepository;
-import ktb.leafresh.backend.domain.notification.presentation.dto.response.NotificationDto;
+import ktb.leafresh.backend.domain.notification.presentation.dto.response.NotificationSummaryResponse;
 import ktb.leafresh.backend.global.util.pagination.CursorConditionUtils;
 import ktb.leafresh.backend.global.util.pagination.CursorPaginationHelper;
 import ktb.leafresh.backend.global.util.pagination.CursorPaginationResult;
@@ -24,7 +24,7 @@ public class NotificationReadService {
     private final NotificationRepository notificationRepository;
 
     @Transactional(readOnly = true)
-    public CursorPaginationResult<NotificationDto> getNotifications(Long memberId, Long cursorId, String cursorTimestamp, int size) {
+    public CursorPaginationResult<NotificationSummaryResponse> getNotifications(Long memberId, Long cursorId, String cursorTimestamp, int size) {
         LocalDateTime parsedTimestamp = CursorConditionUtils.parseTimestamp(cursorTimestamp);
 
         List<Notification> notifications = notificationReadQueryRepository
@@ -33,9 +33,9 @@ public class NotificationReadService {
         return CursorPaginationHelper.paginateWithTimestamp(
                 notifications,
                 size,
-                NotificationDto::from,
-                NotificationDto::id,
-                NotificationDto::createdAt
+                NotificationSummaryResponse::from,
+                NotificationSummaryResponse::id,
+                NotificationSummaryResponse::createdAt
         );
     }
 

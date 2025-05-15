@@ -20,7 +20,7 @@ public class GroupChallengeCreatedReadService {
 
     private final GroupChallengeCreatedQueryRepository createdRepository;
 
-    public CursorPaginationResult<GroupChallengeSummaryDto> getCreatedChallengesByMember(
+    public CursorPaginationResult<CreatedGroupChallengeSummaryResponseDto> getCreatedChallengesByMember(
             Long memberId, Long cursorId, String cursorTimestamp, int size
     ) {
         List<GroupChallenge> entities =
@@ -29,9 +29,9 @@ public class GroupChallengeCreatedReadService {
         return CursorPaginationHelper.paginateWithTimestamp(
                 entities,
                 size,
-                GroupChallengeSummaryDto::from,
-                GroupChallengeSummaryDto::id,
-                GroupChallengeSummaryDto::createdAt
+                CreatedGroupChallengeSummaryResponseDto::from,
+                CreatedGroupChallengeSummaryResponseDto::id,
+                CreatedGroupChallengeSummaryResponseDto::createdAt
         );
     }
 }

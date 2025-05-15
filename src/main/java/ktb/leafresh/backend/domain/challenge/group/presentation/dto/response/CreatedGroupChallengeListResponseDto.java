@@ -7,13 +7,13 @@ import lombok.Builder;
 import java.util.List;
 
 @Builder
-public record GroupChallengeListResponseDto(
-        List<GroupChallengeSummaryResponseDto> groupChallenges,
+public record CreatedGroupChallengeListResponseDto(
+        List<CreatedGroupChallengeSummaryResponseDto> groupChallenges,
         boolean hasNext,
         CursorInfo cursorInfo
 ) {
-    public static GroupChallengeListResponseDto from(CursorPaginationResult<GroupChallengeSummaryResponseDto> result) {
-        return new GroupChallengeListResponseDto(
+    public static CreatedGroupChallengeListResponseDto from(CursorPaginationResult<CreatedGroupChallengeSummaryResponseDto> result) {
+        return new CreatedGroupChallengeListResponseDto(
                 result.items(),
                 result.hasNext(),
                 result.cursorInfo()
