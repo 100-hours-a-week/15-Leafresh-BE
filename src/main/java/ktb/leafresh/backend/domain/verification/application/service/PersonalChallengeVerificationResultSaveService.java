@@ -1,5 +1,6 @@
 package ktb.leafresh.backend.domain.verification.application.service;
 
+import ktb.leafresh.backend.domain.member.application.service.RewardGrantService;
 import ktb.leafresh.backend.domain.member.domain.entity.Member;
 import ktb.leafresh.backend.domain.notification.application.service.NotificationCreateService;
 import ktb.leafresh.backend.domain.notification.domain.entity.enums.NotificationType;
@@ -21,10 +22,11 @@ public class PersonalChallengeVerificationResultSaveService {
 
     private final PersonalChallengeVerificationRepository verificationRepository;
     private final NotificationCreateService notificationCreateService;
+    private final RewardGrantService rewardGrantService;
 
     @Transactional
     public void saveResult(Long verificationId, VerificationResultRequestDto dto) {
-        log.info("[AI 인증 결과 수신] verificationId={}, type={}, result={}", verificationId, dto.type(), dto.result());
+        log.info("[개인 인증 결과 수신] verificationId={}, type={}, result={}", verificationId, dto.type(), dto.result());
 
         PersonalChallengeVerification verification = verificationRepository.findById(verificationId)
                 .orElseThrow(() -> {
@@ -34,14 +36,12 @@ public class PersonalChallengeVerificationResultSaveService {
 
         ChallengeStatus newStatus = dto.result() ? ChallengeStatus.SUCCESS : ChallengeStatus.FAILURE;
         verification.markVerified(newStatus);
-
-        log.info("[인증 결과 저장 완료] verificationId={}, status={}", verificationId, newStatus);
+        log.info("[인증 상태 업데이트 완료] verificationId={}, newStatus={}", verificationId, newStatus);
 
         Member member = verification.getMember();
         String challengeTitle = verification.getPersonalChallenge().getTitle();
 
         log.info("[알림 생성 시작] memberId={}, challengeTitle={}", member.getId(), challengeTitle);
-
         notificationCreateService.createChallengeVerificationResultNotification(
                 member,
                 challengeTitle,
@@ -50,7 +50,22 @@ public class PersonalChallengeVerificationResultSaveService {
                 verification.getImageUrl(),
                 verification.getPersonalChallenge().getId()
         );
-
         log.info("[알림 생성 완료]");
+
+        // 1차 보상: 성공 + 미보상 상태에서만 지급
+        if (dto.result()) {
+            if (verification.isRewarded()) {
+                log.warn("[보상 스킵] 이미 보상된 인증입니다. verificationId={}, memberId={}", verificationId, member.getId());
+            } else {
+                int reward = verification.getPersonalChallenge().getLeafReward();
+                log.info("[보상 지급 시작] reward={}, memberId={}", reward, member.getId());
+
+                rewardGrantService.grantLeafPoints(member, reward);
+                verification.markRewarded();  // 보상 완료 처리
+                log.info("[보상 지급 완료 및 상태 플래그 업데이트] verificationId={}, memberId={}", verificationId, member.getId());
+            }
+        }
+
+        log.info("[개인 인증 결과 저장 및 보상 로직 완료]");
     }
 }
