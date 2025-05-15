@@ -24,16 +24,16 @@ public enum GroupChallengeCategoryName {
 
     public static String getImageUrl(String name) {
         return switch (name) {
-            case "ZERO_WASTE" -> "imageUrl1";
-            case "PLOGGING" -> "imageUrl2";
-            case "CARBON_FOOTPRINT" -> "imageUrl3";
-            case "ENERGY_SAVING" -> "imageUrl4";
-            case "UPCYCLING" -> "imageUrl5";
-            case "MEDIA" -> "imageUrl6";
-            case "DIGITAL_CARBON" -> "imageUrl7";
-            case "VEGAN" -> "imageUrl8";
-            case "ETC" -> "imageUrl9";
-            default -> "defaultImageUrl";
+            case "ZERO_WASTE" -> "https://storage.googleapis.com/leafresh-images/init/zero_waste.png";
+            case "PLOGGING" -> "https://storage.googleapis.com/leafresh-images/init/plogging.png";
+            case "CARBON_FOOTPRINT" -> "https://storage.googleapis.com/leafresh-images/init/carbon_footprint.png";
+            case "ENERGY_SAVING" -> "https://storage.googleapis.com/leafresh-images/init/energy_saving.png";
+            case "UPCYCLING" -> "https://storage.googleapis.com/leafresh-images/init/upcycling.png";
+            case "MEDIA" -> "https://storage.googleapis.com/leafresh-images/init/media.png";
+            case "DIGITAL_CARBON" -> "https://storage.googleapis.com/leafresh-images/init/digital_carbon.png";
+            case "VEGAN" -> "https://storage.googleapis.com/leafresh-images/init/vegan.png";
+            case "ETC" -> "https://storage.googleapis.com/leafresh-images/init/etc.png";
+            default -> "default_image_url";
         };
     }
 
