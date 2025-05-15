@@ -5,9 +5,11 @@ import ktb.leafresh.backend.domain.challenge.group.presentation.dto.response.*;
 import ktb.leafresh.backend.global.exception.CustomException;
 import ktb.leafresh.backend.global.exception.GlobalErrorCode;
 import ktb.leafresh.backend.global.response.ApiResponse;
+import ktb.leafresh.backend.global.security.CustomUserDetails;
 import ktb.leafresh.backend.global.util.pagination.CursorPaginationResult;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -36,8 +38,13 @@ public class GroupChallengeVerificationReadController {
 
     @GetMapping("/rules")
     public ResponseEntity<ApiResponse<GroupChallengeRuleResponseDto>> getGroupChallengeRules(
-            @PathVariable Long challengeId
+            @PathVariable Long challengeId,
+            @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
+        if (userDetails == null) {
+            throw new CustomException(GlobalErrorCode.UNAUTHORIZED);
+        }
+
         GroupChallengeRuleResponseDto response = groupChallengeVerificationReadService.getChallengeRules(challengeId);
         return ResponseEntity.ok(ApiResponse.success("단체 챌린지 인증 규약 정보를 성공적으로 조회했습니다.", response));
     }

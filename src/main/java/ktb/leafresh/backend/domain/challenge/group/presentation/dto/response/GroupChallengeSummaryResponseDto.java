@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Builder
-public record GroupChallengeSummaryDto(
+public record GroupChallengeSummaryResponseDto(
         Long id,
         String title,
         String thumbnailUrl,
@@ -19,10 +19,10 @@ public record GroupChallengeSummaryDto(
         int currentParticipantCount,
         LocalDateTime createdAt
 ) {
-    public static GroupChallengeSummaryDto from(GroupChallenge entity) {
+    public static GroupChallengeSummaryResponseDto from(GroupChallenge entity) {
         int remainingDay = GroupChallengeRemainingDayCalculator.calculate(entity.getStartDate().toLocalDate());
 
-        return GroupChallengeSummaryDto.builder()
+        return GroupChallengeSummaryResponseDto.builder()
                 .id(entity.getId())
                 .title(entity.getTitle())
                 .thumbnailUrl(entity.getImageUrl())
@@ -35,8 +35,8 @@ public record GroupChallengeSummaryDto(
                 .build();
     }
 
-    public static List<GroupChallengeSummaryDto> fromEntities(List<GroupChallenge> entities) {
-        return entities.stream().map(GroupChallengeSummaryDto::from).toList();
+    public static List<GroupChallengeSummaryResponseDto> fromEntities(List<GroupChallenge> entities) {
+        return entities.stream().map(GroupChallengeSummaryResponseDto::from).toList();
     }
 
     public LocalDateTime createdAt() {

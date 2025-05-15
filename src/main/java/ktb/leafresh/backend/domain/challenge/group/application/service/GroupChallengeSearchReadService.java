@@ -21,7 +21,7 @@ public class GroupChallengeSearchReadService {
 
     private final GroupChallengeSearchQueryRepository searchRepository;
 
-    public CursorPaginationResult<GroupChallengeSummaryDto> getGroupChallenges(
+    public CursorPaginationResult<GroupChallengeSummaryResponseDto> getGroupChallenges(
             String input, GroupChallengeCategoryName category, Long cursorId, String cursorTimestamp, int size) {
 
         String internalCategoryName = (category != null) ? category.name() : null;
@@ -32,9 +32,9 @@ public class GroupChallengeSearchReadService {
         return CursorPaginationHelper.paginateWithTimestamp(
                 challenges,
                 size,
-                GroupChallengeSummaryDto::from,
-                GroupChallengeSummaryDto::id,
-                GroupChallengeSummaryDto::createdAt
+                GroupChallengeSummaryResponseDto::from,
+                GroupChallengeSummaryResponseDto::id,
+                GroupChallengeSummaryResponseDto::createdAt
         );
     }
 }
