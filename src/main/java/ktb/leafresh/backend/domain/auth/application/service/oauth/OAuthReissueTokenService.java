@@ -37,14 +37,14 @@ public class OAuthReissueTokenService {
 
     private RefreshToken validateRefreshToken(String refreshToken, String memberId) {
         if (!tokenProvider.validateToken(refreshToken)) {
-            throw new CustomException(GlobalErrorCode.INVALID_TOKEN, "유효하지 않은 Refresh Token입니다.");
+            throw new CustomException(GlobalErrorCode.INVALID_TOKEN);
         }
 
         RefreshToken saved = refreshTokenRepository.findById(memberId)
-                .orElseThrow(() -> new CustomException(GlobalErrorCode.REFRESH_TOKEN_NOT_FOUND, "Refresh Token을 찾을 수 없습니다."));
+                .orElseThrow(() -> new CustomException(GlobalErrorCode.REFRESH_TOKEN_NOT_FOUND));
 
         if (!saved.getRtValue().equals(refreshToken)) {
-            throw new CustomException(GlobalErrorCode.INVALID_TOKEN, "Refresh Token이 일치하지 않습니다.");
+            throw new CustomException(GlobalErrorCode.FORBIDDEN);
         }
 
         return saved;

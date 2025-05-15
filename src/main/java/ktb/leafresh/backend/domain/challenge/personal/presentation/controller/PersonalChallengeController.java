@@ -5,6 +5,8 @@ import ktb.leafresh.backend.domain.challenge.personal.presentation.dto.response.
 import ktb.leafresh.backend.domain.challenge.personal.presentation.dto.response.PersonalChallengeListResponseDto;
 import ktb.leafresh.backend.domain.challenge.personal.presentation.dto.response.PersonalChallengeRuleResponseDto;
 import ktb.leafresh.backend.global.common.entity.enums.DayOfWeek;
+import ktb.leafresh.backend.global.exception.CustomException;
+import ktb.leafresh.backend.global.exception.GlobalErrorCode;
 import ktb.leafresh.backend.global.response.ApiResponse;
 import ktb.leafresh.backend.global.security.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
@@ -39,8 +41,13 @@ public class PersonalChallengeController {
 
     @GetMapping("/{challengeId}/rules")
     public ResponseEntity<ApiResponse<PersonalChallengeRuleResponseDto>> getPersonalChallengeRules(
-            @PathVariable Long challengeId
+            @PathVariable Long challengeId,
+            @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
+        if (userDetails == null) {
+            throw new CustomException(GlobalErrorCode.UNAUTHORIZED);
+        }
+
         PersonalChallengeRuleResponseDto response = readService.getChallengeRules(challengeId);
         return ResponseEntity.ok(ApiResponse.success("개인 챌린지 인증 규약 정보를 성공적으로 조회했습니다.", response));
     }

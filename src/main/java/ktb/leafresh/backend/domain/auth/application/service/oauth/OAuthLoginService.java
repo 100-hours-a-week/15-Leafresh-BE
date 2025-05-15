@@ -6,6 +6,7 @@ import ktb.leafresh.backend.domain.auth.application.service.jwt.JwtLogoutService
 import ktb.leafresh.backend.domain.auth.domain.entity.RefreshToken;
 import ktb.leafresh.backend.domain.auth.infrastructure.client.OAuthKakaoService;
 import ktb.leafresh.backend.domain.auth.presentation.dto.response.OAuthTokenResponseDto;
+import ktb.leafresh.backend.domain.member.application.service.RewardGrantService;
 import ktb.leafresh.backend.domain.member.domain.entity.Member;
 import ktb.leafresh.backend.domain.member.infrastructure.repository.MemberRepository;
 import ktb.leafresh.backend.domain.member.infrastructure.repository.RefreshTokenRepository;
@@ -43,6 +44,7 @@ public class OAuthLoginService {
     private String redirectUri;
 
     private final OAuthKakaoService oAuthKakaoService;
+    private final RewardGrantService rewardGrantService;
     private final JwtLogoutService jwtLogoutService;
     private final JwtProvider jwtProvider;
     private final TokenProvider tokenProvider;
@@ -60,14 +62,20 @@ public class OAuthLoginService {
 
     @Transactional
     public OAuthTokenResponseDto loginWithKakao(String authorizationCode) {
-        OAuthUserInfoDto userInfo = oAuthKakaoService.getUserInfo(authorizationCode);
-        Optional<Member> optionalMember = memberRepository.findByEmail(userInfo.getEmail());
+        try {
+            OAuthUserInfoDto userInfo = oAuthKakaoService.getUserInfo(authorizationCode);
+            Optional<Member> optionalMember = memberRepository.findByEmail(userInfo.getEmail());
 
-        if (optionalMember.isPresent()) {
-            return createTokenResponseForExistingMember(optionalMember.get(), userInfo);
+            if (optionalMember.isPresent()) {
+                return createTokenResponseForExistingMember(optionalMember.get(), userInfo);
+            }
+
+            return createResponseForNewUser(userInfo);
+        } catch (CustomException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new CustomException(MemberErrorCode.KAKAO_LOGIN_FAILED, e.getMessage());
         }
-
-        return createResponseForNewUser(userInfo);
     }
 
     @Transactional
@@ -93,6 +101,8 @@ public class OAuthLoginService {
         TokenDto tokenDto = jwtProvider.generateTokenDto(member.getId(), authentication.getAuthorities());
 
         saveRefreshToken(member.getId(), tokenDto.getRefreshToken());
+
+        rewardGrantService.grantDailyLoginReward(member);
 
         return tokenFactory.create(member, tokenDto);
     }

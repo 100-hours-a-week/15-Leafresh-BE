@@ -6,6 +6,7 @@ import ktb.leafresh.backend.domain.member.domain.entity.Member;
 import ktb.leafresh.backend.domain.member.infrastructure.repository.MemberRepository;
 import ktb.leafresh.backend.domain.verification.domain.entity.PersonalChallengeVerification;
 import ktb.leafresh.backend.domain.verification.domain.event.VerificationCreatedEvent;
+import ktb.leafresh.backend.domain.verification.domain.support.validator.VerificationSubmitValidator;
 import ktb.leafresh.backend.domain.verification.infrastructure.dto.request.AiVerificationRequestDto;
 import ktb.leafresh.backend.domain.verification.infrastructure.repository.PersonalChallengeVerificationRepository;
 import ktb.leafresh.backend.domain.verification.presentation.dto.request.PersonalChallengeVerificationRequestDto;
@@ -23,17 +24,20 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
-@Service
 @RequiredArgsConstructor
+@Service
 public class PersonalChallengeVerificationSubmitService {
 
     private final MemberRepository memberRepository;
     private final PersonalChallengeRepository personalChallengeRepository;
     private final PersonalChallengeVerificationRepository verificationRepository;
+    private final VerificationSubmitValidator validator;
     private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
     public void submit(Long memberId, Long challengeId, PersonalChallengeVerificationRequestDto dto) {
+        validator.validate(dto.content());
+
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new CustomException(MemberErrorCode.MEMBER_NOT_FOUND));
 
@@ -62,17 +66,21 @@ public class PersonalChallengeVerificationSubmitService {
 
         verificationRepository.save(verification);
 
-        // 이벤트 발행 (커밋 후 실행됨)
-        AiVerificationRequestDto aiRequest = AiVerificationRequestDto.builder()
-                .verificationId(verification.getId())
-                .type(ChallengeType.PERSONAL)
-                .imageUrl(dto.imageUrl())
-                .memberId(memberId)
-                .challengeId(challengeId)
-                .date(now.format(DateTimeFormatter.ISO_LOCAL_DATE))
-                .challengeName(challenge.getTitle())
-                .build();
+        try {
+            AiVerificationRequestDto aiRequest = AiVerificationRequestDto.builder()
+                    .verificationId(verification.getId())
+                    .type(ChallengeType.PERSONAL)
+                    .imageUrl(dto.imageUrl())
+                    .memberId(memberId)
+                    .challengeId(challengeId)
+                    .date(now.format(DateTimeFormatter.ISO_LOCAL_DATE))
+                    .challengeName(challenge.getTitle())
+                    .build();
 
-        eventPublisher.publishEvent(new VerificationCreatedEvent(aiRequest));
+            eventPublisher.publishEvent(new VerificationCreatedEvent(aiRequest));
+
+        } catch (Exception e) {
+            throw new CustomException(VerificationErrorCode.AI_SERVER_ERROR);
+        }
     }
 }

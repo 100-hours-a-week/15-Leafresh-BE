@@ -43,13 +43,18 @@ public class GroupChallengeParticipantManager {
     }
 
     public void drop(Long memberId, Long challengeId) {
+        GroupChallenge challenge = groupChallengeRepository.findById(challengeId)
+                .orElseThrow(() -> new CustomException(ChallengeErrorCode.GROUP_CHALLENGE_NOT_FOUND));
+
+        if (challenge.isDeleted()) {
+            throw new CustomException(ChallengeErrorCode.GROUP_CHALLENGE_ALREADY_DELETED);
+        }
+
         GroupChallengeParticipantRecord record = participantRepository
                 .findByGroupChallengeIdAndMemberIdAndDeletedAtIsNull(challengeId, memberId)
-                .orElseThrow(() -> new CustomException(ChallengeErrorCode.CHALLENGE_ALREADY_DELETED));
+                .orElseThrow(() -> new CustomException(ChallengeErrorCode.GROUP_CHALLENGE_PARTICIPATION_NOT_FOUND));
 
         validator.validateDroppable(record);
-
-        GroupChallenge challenge = record.getGroupChallenge();
 
         if (record.isActive()) {
             challenge.decreaseParticipantCount();

@@ -4,6 +4,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import ktb.leafresh.backend.domain.verification.infrastructure.dto.request.AiVerificationRequestDto;
 import ktb.leafresh.backend.domain.verification.infrastructure.dto.response.AiVerificationApiResponseDto;
 import ktb.leafresh.backend.domain.verification.infrastructure.dto.response.AiVerificationResponseDto;
+import ktb.leafresh.backend.global.exception.CustomException;
+import ktb.leafresh.backend.global.exception.VerificationErrorCode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Profile;
@@ -46,15 +48,17 @@ public class HttpAiVerificationClient implements AiVerificationClient {
             log.debug("[AI 응답 파싱 완료] result={}", result.result());
 
             if (!result.result()) {
-                log.warn("[검열 실패] AI 응답 result=false (이미지 부적절)");
-                throw new RuntimeException("AI 이미지 검열 실패: result=false");
+                log.warn("[검열 실패] AI 응답 result=false");
+                throw new CustomException(VerificationErrorCode.AI_VERIFICATION_FAILED);
             }
 
             log.info("[검열 통과] AI 응답 result=true (이미지 적합)");
 
+        } catch (CustomException e) {
+            throw e;
         } catch (Exception e) {
             log.error("[AI 이미지 검열 중 예외 발생] {}", e.getMessage(), e);
-            throw new RuntimeException("AI 이미지 검열 중 오류 발생", e);
+            throw new CustomException(VerificationErrorCode.AI_SERVER_ERROR);
         }
     }
 }
