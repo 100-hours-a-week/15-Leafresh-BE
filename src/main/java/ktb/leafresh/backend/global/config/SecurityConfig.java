@@ -1,9 +1,6 @@
 package ktb.leafresh.backend.global.config;
 
-import ktb.leafresh.backend.global.security.JwtAccessDeniedHandler;
-import ktb.leafresh.backend.global.security.JwtAuthenticationEntryPoint;
-import ktb.leafresh.backend.global.security.TokenBlacklistService;
-import ktb.leafresh.backend.global.security.TokenProvider;
+import ktb.leafresh.backend.global.security.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -29,6 +26,7 @@ public class SecurityConfig {
     private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
     private final JwtAccessDeniedHandler jwtAccessDeniedHandler;
     private final TokenBlacklistService tokenBlacklistService;
+    private final AuthCookieProvider authCookieProvider;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -77,6 +75,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/challenges/group").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/challenges/group/{challengeId:\\d+}").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/challenges/events").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/challenges/group/{challengeId:\\d+}/verifications").permitAll()
 
                         // 그 외 단체 챌린지 API는 인증 필요
                         .requestMatchers("/api/challenges/group/**").authenticated()
@@ -116,7 +115,7 @@ public class SecurityConfig {
                 .httpBasic(httpBasic -> httpBasic.disable())
 
                 // JWT 필터 적용
-                .apply(new JwtSecurityConfig(tokenProvider, tokenBlacklistService));
+                .apply(new JwtSecurityConfig(tokenProvider, tokenBlacklistService, authCookieProvider));
 
         return http.build();
     }
