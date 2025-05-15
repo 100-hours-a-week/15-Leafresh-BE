@@ -6,6 +6,7 @@ import ktb.leafresh.backend.domain.auth.presentation.dto.request.OAuthSignupRequ
 import ktb.leafresh.backend.domain.auth.presentation.dto.response.OAuthSignupResponseDto;
 import ktb.leafresh.backend.domain.auth.presentation.dto.result.OAuthSignupResult;
 import ktb.leafresh.backend.domain.member.application.service.MemberNicknameCheckService;
+import ktb.leafresh.backend.domain.member.application.service.RewardGrantService;
 import ktb.leafresh.backend.domain.member.domain.entity.Member;
 import ktb.leafresh.backend.domain.member.domain.entity.TreeLevel;
 import ktb.leafresh.backend.domain.member.domain.entity.enums.LoginType;
@@ -28,6 +29,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class OAuthSignupService {
 
     private final MemberNicknameCheckService nicknameCheckService;
+    private final RewardGrantService rewardGrantService;
     private final MemberRepository memberRepository;
     private final TreeLevelRepository treeLevelRepository;
     private final RefreshTokenRepository refreshTokenRepository;
@@ -45,6 +47,8 @@ public class OAuthSignupService {
         Member member = createMember(request, treeLevel);
         memberRepository.save(member);
         log.info("회원 정보 저장 완료 - memberId={}", member.getId());
+
+        rewardGrantService.grantSignupReward(member);
 
         OAuth oauth = OAuth.builder()
                 .member(member)
@@ -68,8 +72,13 @@ public class OAuthSignupService {
     }
 
     private void validateNickname(String nickname) {
+        if (nickname == null || nickname.trim().isEmpty()) {
+            throw new CustomException(MemberErrorCode.NICKNAME_REQUIRED);
+        }
+        if (!nickname.matches("^[a-zA-Z0-9가-힣]{1,20}$")) {
+            throw new CustomException(MemberErrorCode.NICKNAME_INVALID_FORMAT);
+        }
         if (nicknameCheckService.isDuplicated(nickname)) {
-            log.warn("닉네임 중복 - nickname={}", nickname);
             throw new CustomException(MemberErrorCode.ALREADY_EXISTS);
         }
     }

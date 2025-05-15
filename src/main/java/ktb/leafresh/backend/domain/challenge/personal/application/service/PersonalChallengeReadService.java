@@ -84,13 +84,19 @@ public class PersonalChallengeReadService {
     }
 
     public PersonalChallengeRuleResponseDto getChallengeRules(Long challengeId) {
-        PersonalChallenge challenge = repository.findById(challengeId)
-                .orElseThrow(() -> new CustomException(ChallengeErrorCode.PERSONAL_CHALLENGE_NOT_FOUND));
+        try {
+            PersonalChallenge challenge = repository.findById(challengeId)
+                    .orElseThrow(() -> new CustomException(ChallengeErrorCode.PERSONAL_CHALLENGE_RULE_NOT_FOUND));
 
-        List<PersonalChallengeExampleImageDto> exampleImages = challenge.getExampleImages().stream()
-                .map(PersonalChallengeExampleImageDto::from)
-                .toList();
+            List<PersonalChallengeExampleImageDto> exampleImages = challenge.getExampleImages().stream()
+                    .map(PersonalChallengeExampleImageDto::from)
+                    .toList();
 
-        return PersonalChallengeRuleResponseDto.of(challenge, exampleImages);
+            return PersonalChallengeRuleResponseDto.of(challenge, exampleImages);
+        } catch (CustomException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new CustomException(ChallengeErrorCode.PERSONAL_CHALLENGE_RULE_READ_FAILED);
+        }
     }
 }

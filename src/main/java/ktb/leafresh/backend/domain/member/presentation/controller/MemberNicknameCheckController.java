@@ -35,6 +35,19 @@ public class MemberNicknameCheckController {
     public ResponseEntity<ApiResponse<NicknameCheckResponseDto>> checkNickname(
             @RequestParam(value = "input", required = false) String input) {
 
+        validateNickname(input);
+
+        try {
+            boolean isDuplicated = memberNicknameCheckService.isDuplicated(input);
+            String message = isDuplicated ? "이미 사용 중인 닉네임입니다." : "사용 가능한 닉네임입니다.";
+
+            return ResponseEntity.ok(ApiResponse.success(message, new NicknameCheckResponseDto(isDuplicated)));
+        } catch (Exception e) {
+            throw new CustomException(MemberErrorCode.NICKNAME_CHECK_FAILED);
+        }
+    }
+
+    private void validateNickname(String input) {
         if (input == null || input.trim().isEmpty()) {
             throw new CustomException(MemberErrorCode.NICKNAME_REQUIRED);
         }
@@ -42,10 +55,5 @@ public class MemberNicknameCheckController {
         if (!input.matches("^[a-zA-Z0-9가-힣]{1,20}$")) {
             throw new CustomException(MemberErrorCode.NICKNAME_INVALID_FORMAT);
         }
-
-        boolean isDuplicated = memberNicknameCheckService.isDuplicated(input);
-        String message = isDuplicated ? "이미 사용 중인 닉네임입니다." : "사용 가능한 닉네임입니다.";
-
-        return ResponseEntity.ok(ApiResponse.success(message, new NicknameCheckResponseDto(isDuplicated)));
     }
 }

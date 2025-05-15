@@ -6,6 +6,7 @@ import ktb.leafresh.backend.domain.challenge.group.domain.entity.enums.GroupChal
 import ktb.leafresh.backend.domain.challenge.group.presentation.dto.request.GroupChallengeCreateRequestDto;
 import ktb.leafresh.backend.domain.challenge.group.presentation.dto.request.GroupChallengeUpdateRequestDto;
 import ktb.leafresh.backend.domain.challenge.group.presentation.dto.response.*;
+import ktb.leafresh.backend.global.exception.ChallengeErrorCode;
 import ktb.leafresh.backend.global.exception.CustomException;
 import ktb.leafresh.backend.global.exception.GlobalErrorCode;
 import ktb.leafresh.backend.global.response.ApiResponse;
@@ -31,7 +32,7 @@ public class GroupChallengeManageController {
     private final GroupChallengeDetailReadService detailReadService;
 
     @GetMapping
-    public ResponseEntity<ApiResponse<CursorPaginationResult<GroupChallengeSummaryDto>>> getGroupChallenges(
+    public ResponseEntity<ApiResponse<GroupChallengeListResponseDto>> getGroupChallenges(
             @RequestParam(required = false) String input,
             @RequestParam(required = false) GroupChallengeCategoryName category,
             @RequestParam(required = false) Long cursorId,
@@ -42,10 +43,18 @@ public class GroupChallengeManageController {
             throw new CustomException(GlobalErrorCode.INVALID_CURSOR);
         }
 
-        CursorPaginationResult<GroupChallengeSummaryDto> response =
-                searchReadService.getGroupChallenges(input, category, cursorId, cursorTimestamp, size);
+        try {
+            CursorPaginationResult<GroupChallengeSummaryResponseDto> result =
+                    searchReadService.getGroupChallenges(input, category, cursorId, cursorTimestamp, size);
 
-        return ResponseEntity.ok(ApiResponse.success("단체 챌린지 목록 조회에 성공하였습니다.", response));
+            return ResponseEntity.ok(ApiResponse.success("단체 챌린지 목록 조회에 성공하였습니다.", GroupChallengeListResponseDto.from(result)));
+
+        } catch (IllegalArgumentException e) {
+            // category enum 파싱 실패 or 기타 query 형식 오류 등
+            throw new CustomException(ChallengeErrorCode.INVALID_GROUP_CHALLENGE_QUERY);
+        } catch (Exception e) {
+            throw new CustomException(ChallengeErrorCode.GROUP_CHALLENGE_LIST_READ_FAILED);
+        }
     }
 
     @PostMapping

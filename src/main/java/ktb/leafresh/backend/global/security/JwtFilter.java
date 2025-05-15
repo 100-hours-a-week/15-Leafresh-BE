@@ -5,6 +5,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import ktb.leafresh.backend.global.exception.CustomException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
@@ -18,32 +19,39 @@ import java.io.IOException;
 @RequiredArgsConstructor
 public class JwtFilter extends OncePerRequestFilter {
 
-    public static final String AUTHORIZATION_HEADER = "Authorization";
-    public static final String BEARER_PREFIX = "Bearer ";
-
     private final TokenProvider tokenProvider;
     private final TokenBlacklistService tokenBlacklistService;
+    private final AuthCookieProvider authCookieProvider;
 
     // 실제 필터링 로직은 doFilterInternal 에 들어감
     // JWT 토큰의 인증 정보를 현재 쓰레드의 SecurityContext 에 저장하는 역할 수행
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws IOException, ServletException {
 
-        // 1. Request Header 에서 토큰을 꺼냄
+        // 1. cookie 에서 토큰을 꺼냄
         String jwt = resolveToken(request);
         log.debug("JWT from cookie: {}", jwt);
 
-        // 블랙리스트 검사
-        if (StringUtils.hasText(jwt) && tokenBlacklistService.isBlacklisted(jwt)) {
-            filterChain.doFilter(request, response); // 인증 없이 넘김
-            return;
-        }
+        try {
+            // 1. accessToken이 있고 블랙리스트에 포함되어 있으면 → 인증 없이 필터만 통과 (로그아웃된 토큰)
+            if (StringUtils.hasText(jwt) && tokenBlacklistService.isBlacklisted(jwt)) {
+                log.warn("블랙리스트 토큰입니다. 필터 통과만 시킴");
+                filterChain.doFilter(request, response);
+                return;
+            }
 
-        // 2. validateToken 으로 토큰 유효성 검사
-        // 정상 토큰이면 해당 토큰으로 Authentication 을 가져와서 SecurityContext 에 저장
-        if (StringUtils.hasText(jwt) && tokenProvider.validateToken(jwt)) {
-            Authentication authentication = tokenProvider.getAuthentication(jwt);
-            SecurityContextHolder.getContext().setAuthentication(authentication);
+            // 2. accessToken이 있고 유효하면 → 사용자 인증 객체 생성하여 SecurityContext에 저장
+            if (StringUtils.hasText(jwt) && tokenProvider.validateToken(jwt)) {
+                Authentication authentication = tokenProvider.getAuthentication(jwt);
+                SecurityContextHolder.getContext().setAuthentication(authentication);
+            }
+
+        } catch (CustomException ex) {
+            // 3. 토큰 처리 도중 오류가 발생한 경우 (ex: DB에 사용자 없음) → 쿠키 제거
+            log.warn("토큰 인증 중 예외 발생: {} → accessToken 쿠키 삭제", ex.getMessage());
+
+            // accessToken 쿠키 제거 (브라우저에서 자동 삭제됨)
+            response.addHeader("Set-Cookie", authCookieProvider.clearAccessTokenCookie().toString());
         }
 
         filterChain.doFilter(request, response);

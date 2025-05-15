@@ -27,17 +27,22 @@ public class GroupChallengeVerificationHistoryService {
     private final GroupChallengeVerificationHistoryCalculator groupChallengeVerificationHistoryCalculator;
 
     public GroupChallengeVerificationHistoryResponseDto getVerificationHistory(Long memberId, Long challengeId) {
-        // 1. 챌린지 & 참여 레코드 조회
-        GroupChallenge challenge = groupChallengeRepository.findById(challengeId)
-                .orElseThrow(() -> new CustomException(ChallengeErrorCode.GROUP_CHALLENGE_NOT_FOUND));
+        try {
+            GroupChallenge challenge = groupChallengeRepository.findById(challengeId)
+                    .orElseThrow(() -> new CustomException(ChallengeErrorCode.GROUP_CHALLENGE_VERIFICATION_CHALLENGE_NOT_FOUND));
 
-        GroupChallengeParticipantRecord record = groupChallengeParticipantRecordRepository
-                .findByMemberIdAndGroupChallengeIdAndDeletedAtIsNull(memberId, challengeId)
-                .orElseThrow(() -> new CustomException(ChallengeErrorCode.GROUP_CHALLENGE_PARTICIPATION_NOT_FOUND));
+            GroupChallengeParticipantRecord record = groupChallengeParticipantRecordRepository
+                    .findByMemberIdAndGroupChallengeIdAndDeletedAtIsNull(memberId, challengeId)
+                    .orElseThrow(() -> new CustomException(ChallengeErrorCode.GROUP_CHALLENGE_VERIFICATION_ACCESS_DENIED));
 
-        List<GroupChallengeVerification> verifications =
-                groupChallengeVerificationQueryRepository.findByParticipantRecordId(record.getId());
+            List<GroupChallengeVerification> verifications =
+                    groupChallengeVerificationQueryRepository.findByParticipantRecordId(record.getId());
 
-        return groupChallengeVerificationHistoryCalculator.calculate(challenge, record, verifications);
+            return groupChallengeVerificationHistoryCalculator.calculate(challenge, record, verifications);
+        } catch (CustomException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new CustomException(ChallengeErrorCode.GROUP_CHALLENGE_VERIFICATION_READ_FAILED);
+        }
     }
 }

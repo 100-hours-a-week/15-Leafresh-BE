@@ -10,6 +10,7 @@ import ktb.leafresh.backend.domain.auth.presentation.dto.response.OAuthRedirectU
 import ktb.leafresh.backend.domain.auth.presentation.dto.response.OAuthTokenResponseDto;
 import ktb.leafresh.backend.global.exception.CustomException;
 import ktb.leafresh.backend.global.exception.GlobalErrorCode;
+import ktb.leafresh.backend.global.exception.MemberErrorCode;
 import ktb.leafresh.backend.global.response.ApiResponse;
 import ktb.leafresh.backend.global.response.ApiResponseConstants;
 import ktb.leafresh.backend.global.security.AuthCookieProvider;
@@ -75,6 +76,9 @@ public class OAuthController {
 
         // 신규 회원은 쿠키 발급 생략
         if (tokenDto.accessToken() == null || tokenDto.accessTokenExpiresIn() == null) {
+            response.addHeader(HttpHeaders.SET_COOKIE, authCookieProvider.clearAccessTokenCookie().toString());
+            response.addHeader(HttpHeaders.SET_COOKIE, authCookieProvider.clearRefreshTokenCookie().toString());
+
             return ResponseEntity.ok(ApiResponse.success("첫 회원가입 사용자 카카오 로그인 성공 (추가 정보 필요)", loginData));
         }
 
@@ -95,13 +99,19 @@ public class OAuthController {
             throw new CustomException(GlobalErrorCode.UNAUTHORIZED);
         }
 
-        OAuthTokenResponseDto newTokenDto = oAuthReissueTokenService.reissue(refreshToken);
+        try {
+            OAuthTokenResponseDto newTokenDto = oAuthReissueTokenService.reissue(refreshToken);
 
-        response.addHeader(HttpHeaders.SET_COOKIE,
-                authCookieProvider.createAccessTokenCookie(newTokenDto.accessToken(), newTokenDto.accessTokenExpiresIn()).toString());
+            response.addHeader(HttpHeaders.SET_COOKIE,
+                    authCookieProvider.createAccessTokenCookie(newTokenDto.accessToken(), newTokenDto.accessTokenExpiresIn()).toString());
 
-        return ResponseEntity.status(HttpStatus.NO_CONTENT)
-                .build();  // 204: 응답 본문 없음, 쿠키만 발급
+            return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+
+        } catch (CustomException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new CustomException(GlobalErrorCode.TOKEN_REISSUE_FAILED);
+        }
     }
 
     @Operation(summary = "로그아웃", description = "AccessToken을 블랙리스트에 등록하고 쿠키를 제거합니다.")
@@ -110,16 +120,29 @@ public class OAuthController {
     @DeleteMapping("/{provider}/token")
     public ResponseEntity<ApiResponse<Void>> logout(
             @PathVariable String provider,
-            @CookieValue("accessToken") String accessToken,
-            @CookieValue("refreshToken") String refreshToken,
+            @CookieValue(value = "accessToken", required = false) String accessToken,
+            @CookieValue(value = "refreshToken", required = false) String refreshToken,
             HttpServletResponse response
     ) {
-        oAuthLoginService.logout(accessToken, refreshToken);
+        if (accessToken == null || accessToken.isBlank()) {
+            throw new CustomException(MemberErrorCode.INVALID_LOGOUT_REQUEST, "accessToken 쿠키가 존재하지 않습니다.");
+        }
+        if (refreshToken == null || refreshToken.isBlank()) {
+            throw new CustomException(GlobalErrorCode.UNAUTHORIZED, "refreshToken 쿠키가 존재하지 않습니다.");
+        }
 
-        response.addHeader(HttpHeaders.SET_COOKIE, authCookieProvider.clearAccessTokenCookie().toString());
-        response.addHeader(HttpHeaders.SET_COOKIE, authCookieProvider.clearRefreshTokenCookie().toString());
+        try {
+            oAuthLoginService.logout(accessToken, refreshToken);
 
-        return ResponseEntity.ok(ApiResponse.success("로그아웃이 성공적으로 처리되었습니다."));
+            response.addHeader(HttpHeaders.SET_COOKIE, authCookieProvider.clearAccessTokenCookie().toString());
+            response.addHeader(HttpHeaders.SET_COOKIE, authCookieProvider.clearRefreshTokenCookie().toString());
+
+            return ResponseEntity.ok(ApiResponse.success("로그아웃이 성공적으로 처리되었습니다."));
+        } catch (CustomException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new CustomException(MemberErrorCode.LOGOUT_FAILED, "예상치 못한 오류로 로그아웃에 실패했습니다.");
+        }
     }
 
     private void addLoginCookies(HttpServletResponse response, OAuthTokenResponseDto tokenDto) {
