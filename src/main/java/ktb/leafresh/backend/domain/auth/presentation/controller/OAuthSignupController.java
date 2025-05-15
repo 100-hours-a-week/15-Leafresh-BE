@@ -19,8 +19,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.Duration;
-
 @Slf4j
 @Tag(name = "OAuth 회원가입", description = "OAuth 인증 이후 회원가입 API")
 @RestController
@@ -49,7 +47,6 @@ public class OAuthSignupController {
             @RequestBody OAuthSignupRequestDto request,
             HttpServletResponse response
     ) {
-        log.info("회원가입 컨트롤러 진입");
         log.info("회원가입 요청 수신 - email={}, provider={}, providerId={}, nickname={}",
                 request.email(), request.provider(), request.provider().id(), request.nickname());
 

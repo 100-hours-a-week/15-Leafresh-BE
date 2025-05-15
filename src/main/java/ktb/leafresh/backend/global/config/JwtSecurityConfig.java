@@ -1,5 +1,6 @@
 package ktb.leafresh.backend.global.config;
 
+import ktb.leafresh.backend.global.security.AuthCookieProvider;
 import ktb.leafresh.backend.global.security.JwtFilter;
 import ktb.leafresh.backend.global.security.TokenBlacklistService;
 import ktb.leafresh.backend.global.security.TokenProvider;
@@ -15,11 +16,12 @@ public class JwtSecurityConfig extends SecurityConfigurerAdapter<DefaultSecurity
 
     private final TokenProvider tokenProvider;
     private final TokenBlacklistService tokenBlacklistService;
+    private final AuthCookieProvider authCookieProvider;
 
     // TokenProvider 를 주입받아서 JwtFilter 를 통해 Security 로직에 필터를 등록
     @Override
     public void configure(HttpSecurity http) {
-        JwtFilter customFilter = new JwtFilter(tokenProvider, tokenBlacklistService);
+        JwtFilter customFilter = new JwtFilter(tokenProvider, tokenBlacklistService, authCookieProvider);
         http.addFilterBefore(customFilter, UsernamePasswordAuthenticationFilter.class);
     }
 }
