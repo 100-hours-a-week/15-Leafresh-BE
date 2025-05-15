@@ -1,11 +1,14 @@
 package ktb.leafresh.backend.global.security;
 
+import jakarta.annotation.PostConstruct;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Component;
 
 import java.time.Duration;
 
+@Slf4j
 @Component
 public class AuthCookieProvider {
 
@@ -14,6 +17,11 @@ public class AuthCookieProvider {
 
     @Value("${cookie.samesite:Strict}") // 기본은 Strict
     private String sameSite;
+
+    @PostConstruct
+    public void init() {
+        log.info("[쿠키설정] secure={}, sameSite={}", secure, sameSite);
+    }
 
     public ResponseCookie createCookie(String name, String value, Duration maxAge) {
         ResponseCookie.ResponseCookieBuilder builder = ResponseCookie.from(name, value)
