@@ -25,12 +25,24 @@ public class GroupChallengeDetailReadService {
     private final GroupChallengeVerificationRepository verificationRepository;
 
     public GroupChallengeDetailResponseDto getChallengeDetail(Long memberIdOrNull, Long challengeId) {
-        GroupChallenge challenge = getChallengeOrThrow(challengeId);
-        List<String> verificationImages = getVerificationImages(challengeId);
-        List<GroupChallengeExampleImageDto> exampleImages = getExampleImages(challenge);
-        ChallengeStatus status = resolveChallengeStatus(memberIdOrNull, challengeId);
+        try {
+            GroupChallenge challenge = getChallengeOrThrow(challengeId);
 
-        return GroupChallengeDetailResponseDto.of(challenge, exampleImages, verificationImages, status);
+            if (challenge.isDeleted()) {
+                throw new CustomException(ChallengeErrorCode.GROUP_CHALLENGE_ALREADY_DELETED);
+            }
+
+            List<String> verificationImages = getVerificationImages(challengeId);
+            List<GroupChallengeExampleImageDto> exampleImages = getExampleImages(challenge);
+            ChallengeStatus status = resolveChallengeStatus(memberIdOrNull, challengeId);
+
+            return GroupChallengeDetailResponseDto.of(challenge, exampleImages, verificationImages, status);
+        } catch (CustomException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("단체 챌린지 상세 조회 실패", e);
+            throw new CustomException(ChallengeErrorCode.GROUP_CHALLENGE_DETAIL_READ_FAILED);
+        }
     }
 
     private GroupChallenge getChallengeOrThrow(Long challengeId) {
