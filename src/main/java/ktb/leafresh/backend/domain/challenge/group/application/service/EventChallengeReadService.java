@@ -11,8 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
-
-import static java.util.stream.Collectors.toList;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -24,10 +23,11 @@ public class EventChallengeReadService {
     public List<EventChallengeResponseDto> getEventChallenges() {
         try {
             LocalDateTime now = LocalDateTime.now();
-            List<GroupChallenge> challenges = groupChallengeRepository.findOngoingEventChallenges(now);
+            LocalDateTime twoWeeksLater = now.plusWeeks(2);
+            List<GroupChallenge> challenges = groupChallengeRepository.findEventChallengesWithinRange(now, twoWeeksLater);
             return challenges.stream()
                     .map(EventChallengeResponseDto::from)
-                    .collect(toList());
+                    .collect(Collectors.toList());
         } catch (Exception e) {
             throw new CustomException(ChallengeErrorCode.EVENT_CHALLENGE_READ_FAILED);
         }

@@ -19,6 +19,12 @@ public interface GroupChallengeRepository extends JpaRepository<GroupChallenge, 
     @Query("SELECT gc FROM GroupChallenge gc " +
             "WHERE gc.eventFlag = true " +
             "AND gc.deletedAt IS NULL " +
+            "AND gc.startDate <= :endInclusive " +
             "AND gc.endDate >= :now")
-    List<GroupChallenge> findOngoingEventChallenges(@Param("now") LocalDateTime now);
+    List<GroupChallenge> findEventChallengesWithinRange(
+            @Param("now") LocalDateTime now,
+            @Param("endInclusive") LocalDateTime endInclusive
+    );
+
+    boolean existsByTitleAndEventFlagTrue(String title);
 }
