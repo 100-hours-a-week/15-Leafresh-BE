@@ -2,6 +2,8 @@ package ktb.leafresh.backend.domain.challenge.group.application.service;
 
 import ktb.leafresh.backend.domain.challenge.group.infrastructure.repository.GroupChallengeCategoryRepository;
 import ktb.leafresh.backend.domain.challenge.group.presentation.dto.response.GroupChallengeCategoryResponseDto;
+import ktb.leafresh.backend.global.exception.ChallengeErrorCode;
+import ktb.leafresh.backend.global.exception.CustomException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -15,14 +17,27 @@ public class GroupChallengeCategoryService {
     private final GroupChallengeCategoryRepository categoryRepository;
 
     public List<GroupChallengeCategoryResponseDto> getCategories() {
-        return categoryRepository.findAllByActivatedIsTrueOrderBySequenceNumberAsc()
-                .stream()
-                .map(category -> GroupChallengeCategoryResponseDto.builder()
-                        .category(category.getName())
-                        .label(getLabelFromCategoryName(category.getName()))
-                        .imageUrl(category.getImageUrl())
-                        .build())
-                .collect(Collectors.toList());
+        try {
+            List<GroupChallengeCategoryResponseDto> categories = categoryRepository
+                    .findAllByActivatedIsTrueOrderBySequenceNumberAsc()
+                    .stream()
+                    .map(category -> GroupChallengeCategoryResponseDto.builder()
+                            .category(category.getName())
+                            .label(getLabelFromCategoryName(category.getName()))
+                            .imageUrl(category.getImageUrl())
+                            .build())
+                    .collect(Collectors.toList());
+
+            if (categories.isEmpty()) {
+                throw new CustomException(ChallengeErrorCode.CHALLENGE_CATEGORY_LIST_EMPTY);
+            }
+
+            return categories;
+        } catch (CustomException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new CustomException(ChallengeErrorCode.CHALLENGE_CATEGORY_READ_FAILED);
+        }
     }
 
     private String getLabelFromCategoryName(String name) {
