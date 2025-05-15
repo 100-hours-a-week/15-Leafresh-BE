@@ -21,6 +21,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Builder;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -105,10 +107,27 @@ public class Member extends BaseEntity {
     @Column(nullable = false)
     private Integer currentLeafPoints;
 
+    @Column(name = "last_login_rewarded_at")
+    private LocalDateTime lastLoginRewardedAt;
+
     @PrePersist
     public void prePersist() {
         if (activated == null) activated = true;
         if (totalLeafPoints == null) totalLeafPoints = 0;
         if (currentLeafPoints == null) currentLeafPoints = 0;
+    }
+
+    public void addLeafPoints(int amount) {
+        this.currentLeafPoints += amount;
+        this.totalLeafPoints += amount;
+    }
+
+    public boolean hasReceivedLoginRewardToday() {
+        return lastLoginRewardedAt != null &&
+                lastLoginRewardedAt.toLocalDate().isEqual(LocalDate.now());
+    }
+
+    public void updateLastLoginRewardedAt() {
+        this.lastLoginRewardedAt = LocalDateTime.now();
     }
 }

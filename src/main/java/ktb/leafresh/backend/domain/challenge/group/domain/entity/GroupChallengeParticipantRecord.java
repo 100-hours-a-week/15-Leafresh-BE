@@ -5,6 +5,7 @@ import ktb.leafresh.backend.domain.verification.domain.entity.GroupChallengeVeri
 import jakarta.persistence.*;
 import ktb.leafresh.backend.domain.member.domain.entity.Member;
 import ktb.leafresh.backend.global.common.entity.BaseEntity;
+import ktb.leafresh.backend.global.common.entity.enums.ChallengeStatus;
 import ktb.leafresh.backend.global.common.entity.enums.ParticipantStatus;
 import lombok.*;
 
@@ -40,6 +41,14 @@ public class GroupChallengeParticipantRecord extends BaseEntity {
     @Column(nullable = false, length = 20)
     private ParticipantStatus status;
 
+    @Column(name = "bonus_rewarded", nullable = false)
+    private boolean bonusRewarded;
+
+    @PrePersist
+    public void prePersist() {
+        this.bonusRewarded = false;
+    }
+
     public void changeStatus(ParticipantStatus newStatus) {
         this.status = newStatus;
     }
@@ -54,5 +63,18 @@ public class GroupChallengeParticipantRecord extends BaseEntity {
 
     public boolean isActive() {
         return this.status == ParticipantStatus.ACTIVE;
+    }
+
+    public boolean isAllSuccess() {
+        return this.getVerifications().stream()
+                .allMatch(v -> v.getStatus() == ChallengeStatus.SUCCESS);
+    }
+
+    public boolean hasReceivedParticipationBonus() {
+        return bonusRewarded;
+    }
+
+    public void markParticipationBonusRewarded() {
+        this.bonusRewarded = true;
     }
 }

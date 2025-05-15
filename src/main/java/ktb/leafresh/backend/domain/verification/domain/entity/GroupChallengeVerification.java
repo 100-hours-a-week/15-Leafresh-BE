@@ -37,12 +37,24 @@ public class GroupChallengeVerification extends BaseEntity {
     @Column(name = "verified_at")
     private LocalDateTime verifiedAt;
 
+    @Column(nullable = false)
+    private boolean rewarded;
+
+    @PrePersist
+    public void prePersist() {
+        this.rewarded = false;
+    }
+
     public void markVerified(ChallengeStatus status) {
         this.status = status;
         this.verifiedAt = LocalDateTime.now();
     }
 
-    public boolean isFinalized() {
-        return this.status != ChallengeStatus.PENDING_APPROVAL;
+    public boolean isRewarded() {
+        return this.rewarded;
+    }
+
+    public void markRewarded() {
+        this.rewarded = true;
     }
 }
