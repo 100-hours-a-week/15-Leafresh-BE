@@ -25,7 +25,7 @@ public class GcsService {
     @Value("${gcp.storage.bucket}")
     private String bucketName;
 
-    private static final List<String> ALLOWED_CONTENT_TYPES = List.of("image/png", "image/jpeg", "image/webp");
+    private static final List<String> ALLOWED_CONTENT_TYPES = List.of("image/png", "image/jpeg", "image/jpg", "image/webp");
 
     public PresignedUrlResponseDto generateV4UploadPresignedUrl(String fileName, String contentType) {
         log.info("[PresignedUrl 요청] fileName={}, contentType={}", fileName, contentType);
