@@ -57,7 +57,8 @@ public class MemberController {
 
             return ResponseEntity.status(HttpStatus.NO_CONTENT)
                     .body(ApiResponse.success("회원 정보가 성공적으로 수정되었습니다."));
-
+        } catch (CustomException e) {
+            throw e;
         } catch (Exception e) {
             log.error("[회원 정보 수정] 처리 중 서버 내부 오류 발생", e);
             throw new CustomException(MemberErrorCode.NICKNAME_UPDATE_FAILED);
