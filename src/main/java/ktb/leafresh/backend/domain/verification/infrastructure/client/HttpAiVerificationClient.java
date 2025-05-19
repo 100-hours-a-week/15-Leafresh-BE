@@ -44,7 +44,17 @@ public class HttpAiVerificationClient implements AiVerificationClient {
             AiVerificationApiResponseDto parsed =
                     new ObjectMapper().readValue(rawJson, AiVerificationApiResponseDto.class);
 
+            if (parsed.status() == 202) {
+                log.info("[AI 응답] 인증 요청 정상 접수됨. 콜백을 기다립니다.");
+                return;
+            }
+
             AiVerificationResponseDto result = parsed.data();
+            if (result == null) {
+                log.warn("[AI 응답] data 필드가 null입니다. 콜백 방식이므로 무시합니다. verificationId={}", requestDto.verificationId());
+                return;
+            }
+
             log.debug("[AI 응답 파싱 완료] result={}", result.result());
 
             if (!result.result()) {
@@ -52,7 +62,7 @@ public class HttpAiVerificationClient implements AiVerificationClient {
                 throw new CustomException(VerificationErrorCode.AI_VERIFICATION_FAILED);
             }
 
-            log.info("[검열 통과] AI 응답 result=true (이미지 적합)");
+            log.info("[검열 통과] AI 응답 result=true");
 
         } catch (CustomException e) {
             throw e;
