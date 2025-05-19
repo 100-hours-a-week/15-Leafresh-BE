@@ -27,7 +27,7 @@ public class MemberUpdateService {
             if (newNickname != null && !newNickname.equals(member.getNickname())) {
                 validateNicknameFormat(newNickname);
 
-                if (memberRepository.existsByNickname(newNickname)) {
+                if (memberRepository.existsByNicknameAndIdNot(newNickname, member.getId())) {
                     throw new CustomException(MemberErrorCode.ALREADY_EXISTS);
                 }
 
@@ -43,7 +43,7 @@ public class MemberUpdateService {
             }
 
             if (!updated) {
-                throw new CustomException(GlobalErrorCode.NO_CONTENT);
+                throw new CustomException(MemberErrorCode.NO_CHANGES);
             }
 
         } catch (CustomException e) {
