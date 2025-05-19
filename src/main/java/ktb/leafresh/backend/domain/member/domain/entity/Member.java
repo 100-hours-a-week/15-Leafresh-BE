@@ -130,4 +130,12 @@ public class Member extends BaseEntity {
     public void updateLastLoginRewardedAt() {
         this.lastLoginRewardedAt = LocalDateTime.now();
     }
+
+    public void updateNickname(String nickname) {
+        this.nickname = nickname;
+    }
+
+    public void updateImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
+    }
 }
