@@ -19,7 +19,9 @@ public enum MemberErrorCode implements BaseErrorCode {
     SIGNUP_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "서버 내부 오류로 인해 회원가입에 실패했습니다."),
     INVALID_LOGOUT_REQUEST(HttpStatus.BAD_REQUEST, "유효하지 않은 요청입니다. accessToken이 존재하지 않습니다."),
     LOGOUT_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "서버 내부 오류로 인해 로그아웃에 실패했습니다."),
-    KAKAO_LOGOUT_FAILED(HttpStatus.BAD_GATEWAY, "카카오 로그아웃 처리 중 오류가 발생했습니다.");
+    KAKAO_LOGOUT_FAILED(HttpStatus.BAD_GATEWAY, "카카오 로그아웃 처리 중 오류가 발생했습니다."),
+    NICKNAME_UPDATE_FORBIDDEN(HttpStatus.FORBIDDEN, "닉네임 수정 권한이 없습니다."),
+    NICKNAME_UPDATE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "서버 내부 오류로 인해 닉네임 변경에 실패했습니다.");
 
     private final HttpStatus status;
     private final String message;
