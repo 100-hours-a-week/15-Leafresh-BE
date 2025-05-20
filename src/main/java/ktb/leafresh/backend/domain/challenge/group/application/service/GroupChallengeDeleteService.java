@@ -42,7 +42,7 @@ public class GroupChallengeDeleteService {
         boolean hasParticipants = participantRecordRepository.existsByGroupChallengeIdAndDeletedAtIsNull(challengeId);
         if (hasParticipants) {
             log.warn("단체 챌린지 삭제 실패 - 참여자 존재: challengeId: {}", challengeId);
-            throw new CustomException(ChallengeErrorCode.CHALLENGE_HAS_PARTICIPANTS);
+            throw new CustomException(ChallengeErrorCode.CHALLENGE_HAS_PARTICIPANTS_DELETE_NOT_ALLOWED);
         }
 
         // soft delete: 챌린지
