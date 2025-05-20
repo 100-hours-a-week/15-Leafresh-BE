@@ -1,6 +1,7 @@
 package ktb.leafresh.backend.domain.member.domain.entity;
 
 import jakarta.persistence.*;
+import ktb.leafresh.backend.domain.member.domain.entity.enums.BadgeType;
 import lombok.*;
 
 import java.util.ArrayList;
@@ -21,11 +22,15 @@ public class Badge {
     @OneToMany(mappedBy = "badge", cascade = CascadeType.ALL)
     private List<MemberBadge> memberBadges = new ArrayList<>();
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private BadgeType type;
+
     @Column(nullable = false, length = 30)
     private String name;
 
-    @Column(nullable = false, length = 100)
-    private String description;
+    @Column(name = "acquisition_condition", nullable = false, columnDefinition = "TEXT")
+    private String condition;
 
     @Column(nullable = false, length = 512)
     private String imageUrl;
