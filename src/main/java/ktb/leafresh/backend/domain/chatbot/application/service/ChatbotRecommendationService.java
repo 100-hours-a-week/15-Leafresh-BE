@@ -12,11 +12,13 @@ import ktb.leafresh.backend.domain.chatbot.presentation.dto.response.ChatbotBase
 import ktb.leafresh.backend.domain.chatbot.presentation.dto.response.ChatbotBaseInfoResponseDto.ChallengeDto;
 import ktb.leafresh.backend.domain.chatbot.presentation.dto.response.ChatbotFreeTextResponseDto;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ChatbotRecommendationService {
@@ -26,14 +28,22 @@ public class ChatbotRecommendationService {
     ObjectMapper objectMapper = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);
 
     public ChatbotBaseInfoResponseDto recommendByBaseInfo(ChatbotBaseInfoRequestDto dto) {
-        var aiRequest = new AiChatbotBaseInfoRequestDto(dto.location(), dto.workType(), dto.category());
+        log.info("[챗봇 추천 요청 - BaseInfo] conversationId={}, location={}, workType={}, category={}",
+                dto.conversationId(), dto.location(), dto.workType(), dto.category());
+
+        var aiRequest = new AiChatbotBaseInfoRequestDto(
+                dto.conversationId(),
+                dto.location(),
+                dto.workType(),
+                dto.category()
+        );
         var aiResponse = aiChatbotBaseInfoClientClient.getRecommendation(aiRequest);
 
         try {
             String prettyJson = objectMapper.writeValueAsString(aiResponse);
-            System.out.println("[AI 응답 - BaseInfo]\n" + prettyJson);
+            log.info("[AI 응답 - BaseInfo] \n{}", prettyJson);
         } catch (Exception e) {
-            System.out.println("[AI 응답 파싱 오류] " + e.getMessage());
+            log.warn("[AI 응답 파싱 오류 - BaseInfo] {}", e.getMessage());
         }
 
         List<ChallengeDto> challenges = Optional.ofNullable(aiResponse.challenges())
@@ -52,14 +62,22 @@ public class ChatbotRecommendationService {
     }
 
     public ChatbotFreeTextResponseDto recommendByFreeText(ChatbotFreeTextRequestDto dto) {
-        var aiRequest = new AiChatbotFreeTextRequestDto(dto.location(), dto.workType(), dto.message());
+        log.info("[챗봇 추천 요청 - FreeText] conversationId={}, location={}, workType={}, message={}",
+                dto.conversationId(), dto.location(), dto.workType(), dto.message());
+
+        var aiRequest = new AiChatbotFreeTextRequestDto(
+                dto.conversationId(),
+                dto.location(),
+                dto.workType(),
+                dto.message()
+        );
         var aiResponse = aiChatbotFreeTextClient.getRecommendation(aiRequest);
 
         try {
             String prettyJson = objectMapper.writeValueAsString(aiResponse);
-            System.out.println("[AI 응답 - FreeText]\n" + prettyJson);
+            log.info("[AI 응답 - FreeText] \n{}", prettyJson);
         } catch (Exception e) {
-            System.out.println("[AI 응답 파싱 오류] " + e.getMessage());
+            log.warn("[AI 응답 파싱 오류 - FreeText] {}", e.getMessage());
         }
 
         List<ChatbotFreeTextResponseDto.ChallengeDto> challenges = Optional.ofNullable(aiResponse.challenges())
