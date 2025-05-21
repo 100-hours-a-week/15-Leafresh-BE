@@ -41,6 +41,7 @@ public record GroupChallengeCreateRequestDto(
         @Schema(description = "인증 종료 시간") LocalTime verificationEndTime,
 
         @Valid
+        @NotNull(message = "챌린지에는 최소 한 개 이상의 성공 예시 이미지가 필요합니다.")
         @Size(max = 5)
         @Schema(description = "인증 예시 이미지 목록") List<ExampleImageRequestDto> exampleImages
 ) {
