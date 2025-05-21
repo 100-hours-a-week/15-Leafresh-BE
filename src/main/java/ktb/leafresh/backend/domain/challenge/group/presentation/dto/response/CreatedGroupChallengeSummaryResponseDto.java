@@ -16,6 +16,7 @@ public record CreatedGroupChallengeSummaryResponseDto(
         String endDate,
         String imageUrl,
         int currentParticipantCount,
+        String category,
         @JsonIgnore
         LocalDateTime createdAt
 ) {
@@ -29,6 +30,7 @@ public record CreatedGroupChallengeSummaryResponseDto(
                 .imageUrl(entity.getImageUrl())
                 .currentParticipantCount(entity.getCurrentParticipantCount())
                 .createdAt(entity.getCreatedAt())
+                .category(entity.getCategory().getName())
                 .build();
     }
 
