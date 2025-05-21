@@ -1,5 +1,7 @@
 package ktb.leafresh.backend.domain.challenge.group.presentation.dto.request;
 
+import com.fasterxml.jackson.annotation.JsonSetter;
+import com.fasterxml.jackson.annotation.Nulls;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
@@ -46,10 +48,13 @@ public record GroupChallengeUpdateRequestDto(
 ) {
     public record ExampleImages(
             @Size(max = 5)
+            @JsonSetter(nulls = Nulls.AS_EMPTY)
             @Schema(description = "기존 유지할 이미지 ID와 순서 목록") List<KeepImage> keep,
 
+            @JsonSetter(nulls = Nulls.AS_EMPTY)
             @Schema(description = "신규 추가할 이미지 목록") List<NewImage> newImages,
 
+            @JsonSetter(nulls = Nulls.AS_EMPTY)
             @Schema(description = "삭제할 이미지 ID 목록") List<Long> deleted
     ) {
         public record KeepImage(
