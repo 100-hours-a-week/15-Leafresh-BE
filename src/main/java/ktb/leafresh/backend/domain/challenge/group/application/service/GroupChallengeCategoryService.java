@@ -21,6 +21,7 @@ public class GroupChallengeCategoryService {
             List<GroupChallengeCategoryResponseDto> categories = categoryRepository
                     .findAllByActivatedIsTrueOrderBySequenceNumberAsc()
                     .stream()
+                    .filter(category -> !category.getName().equalsIgnoreCase("ETC"))
                     .map(category -> GroupChallengeCategoryResponseDto.builder()
                             .category(category.getName())
                             .label(getLabelFromCategoryName(category.getName()))
@@ -46,8 +47,8 @@ public class GroupChallengeCategoryService {
             case "PLOGGING" -> "플로깅";
             case "CARBON_FOOTPRINT" -> "탄소 발자국";
             case "ENERGY_SAVING" -> "에너지 절약";
-            case "UPCYCLING" -> "중고거래/업사이클";
-            case "MEDIA" -> "서적, 영화";
+            case "UPCYCLING" -> "업사이클";
+            case "MEDIA" -> "문화 공유";
             case "DIGITAL_CARBON" -> "디지털 탄소";
             case "VEGAN" -> "비건";
             case "ETC" -> "기타";
