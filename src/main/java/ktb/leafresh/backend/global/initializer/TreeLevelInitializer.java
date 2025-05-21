@@ -8,14 +8,6 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-/**
- * Leafresh 서비스의 기본 TreeLevel 5단계를 DB에 등록하는 초기화 클래스입니다.
- * - SPROUT, YOUNG, SMALL_TREE, TREE, BIG_TREE
- * - 애플리케이션 시작 시 존재하지 않을 경우 자동 생성됩니다.
- *
- * 위치: global.init (전역 초기화 책임)
- */
-
 @Component
 @RequiredArgsConstructor
 public class TreeLevelInitializer implements CommandLineRunner {
@@ -30,7 +22,7 @@ public class TreeLevelInitializer implements CommandLineRunner {
                         TreeLevel.builder()
                                 .name(levelName)
                                 .minLeafPoint(getMinLeafPoint(levelName))
-                                .imageUrl("default_" + levelName.name().toLowerCase() + ".png")
+                                .imageUrl(getImageUrl(levelName))
                                 .description(getDescription(levelName))
                                 .build()
                 );
@@ -40,21 +32,25 @@ public class TreeLevelInitializer implements CommandLineRunner {
 
     private int getMinLeafPoint(TreeLevelName name) {
         return switch (name) {
-            case SPROUT -> 0;
-            case YOUNG -> 2000;
-            case SMALL_TREE -> 4000;
-            case TREE -> 6000;
-            case BIG_TREE -> 8000;
+            case SPROUT -> 0;           // 새싹
+            case YOUNG -> 2501;         // 묘목
+            case SMALL_TREE -> 5001;    // 작은 나무
+            case TREE -> 7501;          // 중간 나무
+            case BIG_TREE -> 10001;     // 큰 나무
         };
+    }
+
+    private String getImageUrl(TreeLevelName name) {
+        return "https://storage.googleapis.com/leafresh-images/init/treelevel/" + name.name() + ".png";
     }
 
     private String getDescription(TreeLevelName name) {
         return switch (name) {
-            case SPROUT -> "씨앗 단계입니다.";
+            case SPROUT -> "새싹 단계입니다.";
             case YOUNG -> "묘목 단계입니다.";
             case SMALL_TREE -> "작은 나무 단계입니다.";
-            case TREE -> "성장한 나무 단계입니다.";
-            case BIG_TREE -> "울창한 나무 단계입니다.";
+            case TREE -> "중간 나무 단계입니다.";
+            case BIG_TREE -> "큰 나무 단계입니다.";
         };
     }
 }
