@@ -26,7 +26,10 @@ public enum MemberErrorCode implements BaseErrorCode {
     MEMBER_INFO_QUERY_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "서버 내부 오류로 인해 회원 정보를 조회하지 못했습니다."),
     BADGE_ACCESS_DENIED(HttpStatus.FORBIDDEN, "뱃지 조회 권한이 없습니다."),
     BADGE_NOT_FOUND(HttpStatus.NOT_FOUND, "사용자의 획득 뱃지를 찾을 수 없습니다."),
-    BADGE_QUERY_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "서버 오류로 인해 획득 뱃지 목록을 불러오지 못했습니다.");
+    BADGE_QUERY_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "서버 오류로 인해 획득 뱃지 목록을 불러오지 못했습니다."),
+    PROFILE_CARD_ACCESS_DENIED(HttpStatus.FORBIDDEN, "프로필 카드 조회 권한이 없습니다."),
+    PROFILE_CARD_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 사용자의 프로필 정보를 찾을 수 없습니다."),
+    PROFILE_CARD_QUERY_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "서버 오류로 인해 프로필 카드를 조회하지 못했습니다.");
 
     private final HttpStatus status;
     private final String message;
