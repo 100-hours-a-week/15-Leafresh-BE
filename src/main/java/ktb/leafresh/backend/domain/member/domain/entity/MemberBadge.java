@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import ktb.leafresh.backend.global.common.entity.BaseEntity;
 import lombok.*;
 
+import java.time.LocalDateTime;
+
 @Entity
 @Table(name = "member_badges")
 @Getter
@@ -23,4 +25,7 @@ public class MemberBadge extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "badge_id", nullable = false)
     private Badge badge;
+
+    @Column(name = "acquired_at", nullable = false)
+    private LocalDateTime acquiredAt;
 }
