@@ -28,11 +28,11 @@ public class ChatbotRecommendationService {
     ObjectMapper objectMapper = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);
 
     public ChatbotBaseInfoResponseDto recommendByBaseInfo(ChatbotBaseInfoRequestDto dto) {
-        log.info("[챗봇 추천 요청 - BaseInfo] sessionId={}, location={}, workType={}, category={}",
-                dto.sessionId(), dto.location(), dto.workType(), dto.category());
+//        log.info("[챗봇 추천 요청 - BaseInfo] sessionId={}, location={}, workType={}, category={}",
+//                dto.sessionId(), dto.location(), dto.workType(), dto.category());
 
         var aiRequest = new AiChatbotBaseInfoRequestDto(
-                dto.sessionId(),
+//                dto.sessionId(),
                 dto.location(),
                 dto.workType(),
                 dto.category()
@@ -62,11 +62,11 @@ public class ChatbotRecommendationService {
     }
 
     public ChatbotFreeTextResponseDto recommendByFreeText(ChatbotFreeTextRequestDto dto) {
-        log.info("[챗봇 추천 요청 - FreeText] sessionId={}, location={}, workType={}, message={}",
-                dto.sessionId(), dto.location(), dto.workType(), dto.message());
+//        log.info("[챗봇 추천 요청 - FreeText] sessionId={}, location={}, workType={}, message={}",
+//                dto.sessionId(), dto.location(), dto.workType(), dto.message());
 
         var aiRequest = new AiChatbotFreeTextRequestDto(
-                dto.sessionId(),
+//                dto.sessionId(),
                 dto.location(),
                 dto.workType(),
                 dto.message()

@@ -26,8 +26,8 @@ public class ChatbotRecommendationController {
     public ResponseEntity<ApiResponse<ChatbotBaseInfoResponseDto>> recommendByBaseInfo(
             @RequestBody @Valid ChatbotBaseInfoRequestDto requestDto
     ) {
-        log.info("[챗봇 추천 요청 - 기본 정보] sessionId={}, location={}, workType={}, category={}",
-                requestDto.sessionId(), requestDto.location(), requestDto.workType(), requestDto.category());
+//        log.info("[챗봇 추천 요청 - 기본 정보] sessionId={}, location={}, workType={}, category={}",
+//                requestDto.sessionId(), requestDto.location(), requestDto.workType(), requestDto.category());
 
         ChatbotBaseInfoResponseDto response = recommendationService.recommendByBaseInfo(requestDto);
         log.info("[챗봇 추천 완료 - 기본 정보] 추천 결과: {}", response.recommend());
@@ -39,8 +39,8 @@ public class ChatbotRecommendationController {
     public ResponseEntity<ApiResponse<ChatbotFreeTextResponseDto>> recommendByFreeText(
             @RequestBody @Valid ChatbotFreeTextRequestDto requestDto
     ) {
-        log.info("[챗봇 추천 요청 - 자유 텍스트] sessionId={},  location={}, workType={}, message={}",
-                requestDto.sessionId(), requestDto.location(), requestDto.workType(), requestDto.message());
+//        log.info("[챗봇 추천 요청 - 자유 텍스트] sessionId={},  location={}, workType={}, message={}",
+//                requestDto.sessionId(), requestDto.location(), requestDto.workType(), requestDto.message());
 
         ChatbotFreeTextResponseDto response = recommendationService.recommendByFreeText(requestDto);
         log.info("[챗봇 추천 완료 - 자유 텍스트] 추천 결과: {}", response.recommend());
