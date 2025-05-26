@@ -60,7 +60,7 @@ public class PersonalChallengeVerificationSubmitService {
                 .personalChallenge(challenge)
                 .imageUrl(dto.imageUrl())
                 .content(dto.content())
-                .submittedAt(now)
+//                .submittedAt(now)
                 .status(ChallengeStatus.PENDING_APPROVAL)
                 .build();
 

@@ -38,9 +38,6 @@ public class PersonalChallengeVerification extends BaseEntity {
     @Column(nullable = false)
     private String content;
 
-    @Column(name = "submitted_at")
-    private LocalDateTime submittedAt;
-
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private ChallengeStatus status;

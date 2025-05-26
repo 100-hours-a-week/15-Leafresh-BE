@@ -1,7 +1,11 @@
 package ktb.leafresh.backend.domain.verification.infrastructure.repository;
 
+import ktb.leafresh.backend.domain.challenge.group.domain.entity.GroupChallengeCategory;
 import ktb.leafresh.backend.domain.verification.domain.entity.GroupChallengeVerification;
+import ktb.leafresh.backend.global.common.entity.enums.ChallengeStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -29,5 +33,97 @@ public interface GroupChallengeVerificationRepository extends JpaRepository<Grou
             LocalDateTime end
     );
 
-    List<GroupChallengeVerification> findAllByParticipantRecordId(Long participantRecordId);
+    /**
+     * 카테고리별 서로 다른 챌린지 인증 개수 (3개 이상일 때 사용)
+     */
+    @Query("""
+    SELECT COUNT(DISTINCT gcv.participantRecord.groupChallenge.id)
+    FROM GroupChallengeVerification gcv
+    WHERE gcv.participantRecord.member.id = :memberId
+      AND gcv.participantRecord.groupChallenge.category = :category
+      AND gcv.status = :status
+    """)
+    long countDistinctChallengesByMemberIdAndCategoryAndStatus(
+            @Param("memberId") Long memberId,
+            @Param("category") GroupChallengeCategory category,
+            @Param("status") ChallengeStatus status
+    );
+
+    /**
+     * 카테고리별 인증 횟수 (10회 이상 마스터 조건)
+     */
+    @Query("""
+    SELECT COUNT(gcv)
+    FROM GroupChallengeVerification gcv
+    WHERE gcv.participantRecord.member.id = :memberId
+      AND gcv.participantRecord.groupChallenge.category = :category
+      AND gcv.status = :status
+    """)
+    long countByMemberIdAndCategoryAndStatus(
+            @Param("memberId") Long memberId,
+            @Param("category") GroupChallengeCategory category,
+            @Param("status") ChallengeStatus status
+    );
+
+
+    /**
+     * 카테고리별 인증 1회 이상 여부 (지속가능 전도사 조건)
+     */
+    @Query("""
+    SELECT CASE WHEN COUNT(gcv) > 0 THEN true ELSE false END
+    FROM GroupChallengeVerification gcv
+    WHERE gcv.participantRecord.member.id = :memberId
+      AND gcv.participantRecord.groupChallenge.category = :category
+      AND gcv.status = :status
+    """)
+    boolean existsByMemberIdAndCategoryAndStatus(
+            @Param("memberId") Long memberId,
+            @Param("category") GroupChallengeCategory category,
+            @Param("status") ChallengeStatus status
+    );
+
+    /**
+     * 이벤트 챌린지 제목 목록 조회
+     */
+    @Query("""
+    SELECT DISTINCT gcv.participantRecord.groupChallenge.title
+    FROM GroupChallengeVerification gcv
+    WHERE gcv.participantRecord.groupChallenge.eventFlag = true
+    """)
+    List<String> findDistinctEventTitlesWithEventFlagTrue();
+
+    /**
+     * 특정 이벤트명에 대한 인증 횟수
+     */
+    @Query("""
+    SELECT COUNT(gcv)
+    FROM GroupChallengeVerification gcv
+    WHERE gcv.participantRecord.member.id = :memberId
+      AND gcv.participantRecord.groupChallenge.title = :eventTitle
+      AND gcv.participantRecord.groupChallenge.eventFlag = true
+      AND gcv.status = :status
+    """)
+    long countByMemberIdAndEventTitleAndStatus(
+            @Param("memberId") Long memberId,
+            @Param("eventTitle") String eventTitle,
+            @Param("status") ChallengeStatus status
+    );
+
+    @Query("""
+    SELECT COUNT(gcv)
+    FROM GroupChallengeVerification gcv
+    WHERE gcv.participantRecord.member.id = :memberId
+      AND gcv.status = :status
+    """)
+    long countByMemberIdAndStatus(
+            @Param("memberId") Long memberId,
+            @Param("status") ChallengeStatus status
+    );
+
+    @Query("""
+    SELECT gcv
+    FROM GroupChallengeVerification gcv
+    WHERE gcv.participantRecord.id IN :recordIds
+    """)
+    List<GroupChallengeVerification> findAllByParticipantRecordIds(@Param("recordIds") List<Long> recordIds);
 }

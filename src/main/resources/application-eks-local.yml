@@ -1,0 +1,22 @@
+spring:
+  datasource:
+    url: jdbc:mysql://${eks_local_db_host}:${db_port}/${eks_local_db_name}
+    username: ${eks_local_db_user}
+    password: ${eks_local_db_password}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  data:
+    redis:
+      host: ${eks_local_cache_host}
+      port: ${eks_local_cache_port}
+
+cookie:
+  secure: true
+  samesite: ${cookie_samesite:none}
+
+gcp:
+  project-id: ${gcp_project_id}
+  credentials:
+    location: classpath:${gcp_credentials_location}
+  storage:
+    bucket: ${gcp_storage_bucket}

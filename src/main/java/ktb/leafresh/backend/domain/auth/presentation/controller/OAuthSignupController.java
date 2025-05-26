@@ -54,7 +54,7 @@ public class OAuthSignupController {
         TokenDto tokenDto = result.tokenDto();
 
         response.addHeader(HttpHeaders.SET_COOKIE,
-                authCookieProvider.createAccessTokenCookie(tokenDto.getAccessToken(), tokenDto.getAccessTokenExpiresIn()).toString());
+                authCookieProvider.createAccessTokenCookie(tokenDto.getAccessToken()).toString());
         response.addHeader(HttpHeaders.SET_COOKIE,
                 authCookieProvider.createRefreshTokenCookie(tokenDto.getRefreshToken()).toString());
 

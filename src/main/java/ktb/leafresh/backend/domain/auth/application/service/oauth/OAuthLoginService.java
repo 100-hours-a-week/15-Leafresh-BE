@@ -93,7 +93,7 @@ public class OAuthLoginService {
     }
 
     public ResponseCookie createAccessTokenCookie(String accessToken, Long expiresIn) {
-        return authCookieProvider.createAccessTokenCookie(accessToken, expiresIn);
+        return authCookieProvider.createAccessTokenCookie(accessToken);
     }
 
     private OAuthTokenResponseDto createTokenResponseForExistingMember(Member member, OAuthUserInfoDto userInfo) {

@@ -33,10 +33,10 @@ public class TreeLevelInitializer implements CommandLineRunner {
     private int getMinLeafPoint(TreeLevelName name) {
         return switch (name) {
             case SPROUT -> 0;           // 새싹
-            case YOUNG -> 2501;         // 묘목
-            case SMALL_TREE -> 5001;    // 작은 나무
-            case TREE -> 7501;          // 중간 나무
-            case BIG_TREE -> 10001;     // 큰 나무
+            case YOUNG -> 2500;         // 묘목
+            case SMALL_TREE -> 5000;    // 작은 나무
+            case TREE -> 7500;          // 중간 나무
+            case BIG_TREE -> 10000;     // 큰 나무
         };
     }
 

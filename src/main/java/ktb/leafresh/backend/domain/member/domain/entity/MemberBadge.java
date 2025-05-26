@@ -28,4 +28,12 @@ public class MemberBadge extends BaseEntity {
 
     @Column(name = "acquired_at", nullable = false)
     private LocalDateTime acquiredAt;
+
+    public static MemberBadge of(Member member, Badge badge) {
+        return MemberBadge.builder()
+                .member(member)
+                .badge(badge)
+                .acquiredAt(LocalDateTime.now())
+                .build();
+    }
 }

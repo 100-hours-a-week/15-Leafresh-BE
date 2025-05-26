@@ -44,8 +44,8 @@ public class AuthCookieProvider {
                 .build();
     }
 
-    public ResponseCookie createAccessTokenCookie(String token, long expiresInMillis) {
-        return createCookie("accessToken", token, Duration.ofMillis(expiresInMillis));
+    public ResponseCookie createAccessTokenCookie(String token) {
+        return createCookie("accessToken", token, Duration.ofMinutes(30));
     }
 
     public ResponseCookie createRefreshTokenCookie(String token) {

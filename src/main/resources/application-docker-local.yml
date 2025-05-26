@@ -1,0 +1,23 @@
+spring:
+  datasource:
+    url: jdbc:mysql://${docker_local_db_host}:${db_port}/${docker_local_db_name}
+    username: ${docker_local_db_user}
+    password: ${docker_local_db_password}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  data:
+    redis:
+      host: ${docker_local_cache_host}
+      port: ${docker_local_cache_port}
+
+cookie:
+  secure: true
+  samesite: ${docker_local_cookie_samesite:none}
+  domain: ${docker_local_cookie_domain:.dev-leafresh.app}
+
+gcp:
+  project-id: ${gcp_project_id}
+  credentials:
+    location: classpath:${gcp_credentials_location}
+  storage:
+    bucket: ${gcp_storage_bucket}

@@ -33,11 +33,6 @@ public class RecentBadgeReadService {
         try {
             List<MemberBadge> recentBadges = memberBadgeRepository.findRecentBadgesByMemberId(memberId, count);
 
-            if (recentBadges == null || recentBadges.isEmpty()) {
-                log.warn("[최근 뱃지 조회] 획득한 뱃지가 없습니다 - memberId: {}", memberId);
-                throw new CustomException(MemberErrorCode.BADGE_NOT_FOUND);
-            }
-
             log.info("[최근 뱃지 조회] 조회 성공 - memberId: {}, count: {}", memberId, recentBadges.size());
 
             List<BadgeSummaryDto> badgeDtos = recentBadges.stream()

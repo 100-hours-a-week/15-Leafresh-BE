@@ -18,7 +18,8 @@ public enum GlobalErrorCode implements BaseErrorCode {
     INVALID_CURSOR(HttpStatus.BAD_REQUEST, "cursorId와 cursorTimestamp는 반드시 함께 전달되어야 합니다."),
     UNSUPPORTED_CONTENT_TYPE(HttpStatus.BAD_REQUEST, "지원하지 않는 Content-Type입니다."),
     INVALID_IMAGE_URL(HttpStatus.BAD_REQUEST, "유효하지 않은 이미지 URL입니다."),
-    NO_CONTENT(HttpStatus.BAD_REQUEST, "변경된 정보가 없습니다.");
+    VERIFICATION_NOT_FOUND(HttpStatus.NOT_FOUND, "인증 기록이 존재하지 않습니다."),
+    SSE_STREAM_INTERRUPTED(HttpStatus.INTERNAL_SERVER_ERROR, "SSE 스트림이 중단되었습니다.");
 
 
     private final HttpStatus status;

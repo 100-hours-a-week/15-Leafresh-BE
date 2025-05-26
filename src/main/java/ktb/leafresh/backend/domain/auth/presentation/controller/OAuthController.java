@@ -103,7 +103,7 @@ public class OAuthController {
             OAuthTokenResponseDto newTokenDto = oAuthReissueTokenService.reissue(refreshToken);
 
             response.addHeader(HttpHeaders.SET_COOKIE,
-                    authCookieProvider.createAccessTokenCookie(newTokenDto.accessToken(), newTokenDto.accessTokenExpiresIn()).toString());
+                    authCookieProvider.createAccessTokenCookie(newTokenDto.accessToken()).toString());
 
             return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
 
@@ -147,7 +147,7 @@ public class OAuthController {
 
     private void addLoginCookies(HttpServletResponse response, OAuthTokenResponseDto tokenDto) {
         response.addHeader(HttpHeaders.SET_COOKIE,
-                authCookieProvider.createAccessTokenCookie(tokenDto.accessToken(), tokenDto.accessTokenExpiresIn()).toString());
+                authCookieProvider.createAccessTokenCookie(tokenDto.accessToken()).toString());
         response.addHeader(HttpHeaders.SET_COOKIE,
                 authCookieProvider.createRefreshTokenCookie(tokenDto.refreshToken()).toString());
     }
