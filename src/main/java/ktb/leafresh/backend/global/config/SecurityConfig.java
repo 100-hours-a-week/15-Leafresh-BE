@@ -98,6 +98,9 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/chatbot/recommendation/base-info").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/chatbot/recommendation/free-text").permitAll()
 
+                        // 피드백
+                        .requestMatchers(HttpMethod.POST, "/api/members/feedback/result").permitAll()
+
                         // Swagger/OpenAPI
                         .requestMatchers(
                                 "/swagger-ui/**",
