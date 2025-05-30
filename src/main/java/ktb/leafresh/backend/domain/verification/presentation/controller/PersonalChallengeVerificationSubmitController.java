@@ -5,6 +5,8 @@ import ktb.leafresh.backend.domain.verification.application.service.PersonalChal
 import ktb.leafresh.backend.domain.verification.presentation.dto.request.PersonalChallengeVerificationRequestDto;
 import ktb.leafresh.backend.domain.verification.presentation.util.ChallengeStatusMessageResolver;
 import ktb.leafresh.backend.global.common.entity.enums.ChallengeStatus;
+import ktb.leafresh.backend.global.exception.CustomException;
+import ktb.leafresh.backend.global.exception.GlobalErrorCode;
 import ktb.leafresh.backend.global.response.ApiResponse;
 import ktb.leafresh.backend.global.security.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
@@ -15,8 +17,6 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
-
-import static ktb.leafresh.backend.global.exception.GlobalErrorCode.UNAUTHORIZED;
 
 @Slf4j
 @RestController
@@ -37,8 +37,7 @@ public class PersonalChallengeVerificationSubmitController {
                 challengeId, requestDto.imageUrl(), requestDto.content());
 
         if (userDetails == null) {
-            log.warn("[인증 제출 실패] 인증 정보가 없습니다.");
-            throw new IllegalStateException("로그인 정보가 존재하지 않습니다.");
+            throw new CustomException(GlobalErrorCode.UNAUTHORIZED);
         }
 
         Long memberId = userDetails.getMemberId();
@@ -56,9 +55,7 @@ public class PersonalChallengeVerificationSubmitController {
             @PathVariable Long challengeId
     ) {
         if (userDetails == null) {
-            return ResponseEntity
-                    .status(UNAUTHORIZED.getStatus())
-                    .body(ApiResponse.error(UNAUTHORIZED.getStatus(), UNAUTHORIZED.getMessage()));
+            throw new CustomException(GlobalErrorCode.UNAUTHORIZED);
         }
 
         Long memberId = userDetails.getMemberId();
