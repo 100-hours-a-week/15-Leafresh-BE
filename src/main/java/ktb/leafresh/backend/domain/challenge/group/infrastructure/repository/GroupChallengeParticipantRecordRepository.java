@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 public interface GroupChallengeParticipantRecordRepository extends JpaRepository<GroupChallengeParticipantRecord, Long> {
@@ -29,4 +30,6 @@ public interface GroupChallengeParticipantRecordRepository extends JpaRepository
     AND pr.deletedAt IS NULL
     """)
     boolean existsSuccessInPastWeek(@Param("memberId") Long memberId, @Param("oneWeekAgo") LocalDateTime oneWeekAgo);
+
+    List<GroupChallengeParticipantRecord> findAllByMemberId(Long memberId);
 }

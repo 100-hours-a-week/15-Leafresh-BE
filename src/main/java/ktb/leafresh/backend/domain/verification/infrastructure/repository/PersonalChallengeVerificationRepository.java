@@ -60,4 +60,16 @@ public interface PersonalChallengeVerificationRepository extends JpaRepository<P
             @Param("memberId") Long memberId,
             @Param("status") ChallengeStatus status
     );
+
+    @Query("""
+    SELECT pcv
+    FROM PersonalChallengeVerification pcv
+    WHERE pcv.member.id = :memberId
+      AND pcv.verifiedAt BETWEEN :start AND :end
+    """)
+    List<PersonalChallengeVerification> findWeeklyVerifications(
+            @Param("memberId") Long memberId,
+            @Param("start") LocalDateTime start,
+            @Param("end") LocalDateTime end
+    );
 }
