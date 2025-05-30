@@ -26,10 +26,14 @@ public class Feedback extends BaseEntity {
     @Column(nullable = false)
     private String content;
 
-    public static Feedback of(Member member, String content) {
+    @Column(name = "week_monday", nullable = false)
+    private LocalDateTime weekMonday;
+
+    public static Feedback of(Member member, String content, LocalDateTime weekMonday) {
         return Feedback.builder()
                 .member(member)
                 .content(content)
+                .weekMonday(weekMonday)
                 .build();
     }
 }

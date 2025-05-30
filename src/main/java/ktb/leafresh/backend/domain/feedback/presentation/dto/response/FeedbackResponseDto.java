@@ -1,10 +1,10 @@
 package ktb.leafresh.backend.domain.feedback.presentation.dto.response;
 
-public record FeedbackResponseDto(
-        Long memberId,
-        String feedback
-) {
-    public static FeedbackResponseDto of(Long memberId, String feedback) {
-        return new FeedbackResponseDto(memberId, feedback);
-    }
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
+@Getter
+@AllArgsConstructor
+public class FeedbackResponseDto {
+    private final String content; // null 가능
 }
