@@ -119,4 +119,11 @@ public interface GroupChallengeVerificationRepository extends JpaRepository<Grou
             @Param("memberId") Long memberId,
             @Param("status") ChallengeStatus status
     );
+
+    @Query("""
+    SELECT gcv
+    FROM GroupChallengeVerification gcv
+    WHERE gcv.participantRecord.id IN :recordIds
+    """)
+    List<GroupChallengeVerification> findAllByParticipantRecordIds(@Param("recordIds") List<Long> recordIds);
 }
