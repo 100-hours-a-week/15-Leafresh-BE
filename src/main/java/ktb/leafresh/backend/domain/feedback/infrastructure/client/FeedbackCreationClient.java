@@ -1,7 +1,7 @@
 package ktb.leafresh.backend.domain.feedback.infrastructure.client;
 
-import ktb.leafresh.backend.domain.feedback.infrastructure.dto.request.FeedbackCreationRequestDto;
+import ktb.leafresh.backend.domain.feedback.infrastructure.dto.request.AiFeedbackCreationRequestDto;
 
 public interface FeedbackCreationClient {
-    void requestWeeklyFeedback(FeedbackCreationRequestDto requestDto);
+    void requestWeeklyFeedback(AiFeedbackCreationRequestDto requestDto);
 }

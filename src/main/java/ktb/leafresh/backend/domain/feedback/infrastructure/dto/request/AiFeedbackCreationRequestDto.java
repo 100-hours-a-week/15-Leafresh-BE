@@ -6,7 +6,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Builder
-public record FeedbackCreationRequestDto(
+public record AiFeedbackCreationRequestDto(
         Long memberId,
         List<PersonalChallengeDto> personalChallenges,
         List<GroupChallengeDto> groupChallenges
