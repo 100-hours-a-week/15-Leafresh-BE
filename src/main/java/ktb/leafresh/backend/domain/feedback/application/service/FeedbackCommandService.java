@@ -5,7 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import ktb.leafresh.backend.domain.feedback.application.assembler.FeedbackDtoAssembler;
 import ktb.leafresh.backend.domain.feedback.infrastructure.client.FeedbackCreationClient;
-import ktb.leafresh.backend.domain.feedback.infrastructure.dto.request.FeedbackCreationRequestDto;
+import ktb.leafresh.backend.domain.feedback.infrastructure.dto.request.AiFeedbackCreationRequestDto;
 import ktb.leafresh.backend.domain.member.domain.entity.Member;
 import ktb.leafresh.backend.domain.member.infrastructure.repository.MemberRepository;
 import ktb.leafresh.backend.global.exception.CustomException;
@@ -38,7 +38,7 @@ public class FeedbackCommandService {
         LocalDate sunday = monday.plusDays(6);
         log.debug("[주차 계산] monday={}, sunday={}", monday, sunday);
 
-        FeedbackCreationRequestDto requestDto = dtoAssembler.assemble(memberId, monday, sunday);
+        AiFeedbackCreationRequestDto requestDto = dtoAssembler.assemble(memberId, monday, sunday);
 
         int personalCount = requestDto.personalChallenges().size();
         int groupSubmissionCount = requestDto.groupChallenges().stream()

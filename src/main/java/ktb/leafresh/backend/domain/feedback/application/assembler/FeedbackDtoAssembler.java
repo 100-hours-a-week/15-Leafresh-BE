@@ -2,7 +2,7 @@ package ktb.leafresh.backend.domain.feedback.application.assembler;
 
 import ktb.leafresh.backend.domain.challenge.group.domain.entity.GroupChallengeParticipantRecord;
 import ktb.leafresh.backend.domain.challenge.group.infrastructure.repository.GroupChallengeParticipantRecordRepository;
-import ktb.leafresh.backend.domain.feedback.infrastructure.dto.request.FeedbackCreationRequestDto;
+import ktb.leafresh.backend.domain.feedback.infrastructure.dto.request.AiFeedbackCreationRequestDto;
 import ktb.leafresh.backend.domain.verification.domain.entity.GroupChallengeVerification;
 import ktb.leafresh.backend.domain.verification.domain.entity.PersonalChallengeVerification;
 import ktb.leafresh.backend.domain.verification.infrastructure.repository.GroupChallengeVerificationRepository;
@@ -26,20 +26,20 @@ public class FeedbackDtoAssembler {
     private final GroupChallengeParticipantRecordRepository groupRecordRepository;
     private final GroupChallengeVerificationRepository groupVerificationRepository;
 
-    public FeedbackCreationRequestDto assemble(Long memberId, LocalDate start, LocalDate end) {
-        List<FeedbackCreationRequestDto.PersonalChallengeDto> personalDtos =
+    public AiFeedbackCreationRequestDto assemble(Long memberId, LocalDate start, LocalDate end) {
+        List<AiFeedbackCreationRequestDto.PersonalChallengeDto> personalDtos =
                 getPersonalChallengeDtos(memberId, start, end);
-        List<FeedbackCreationRequestDto.GroupChallengeDto> groupDtos =
+        List<AiFeedbackCreationRequestDto.GroupChallengeDto> groupDtos =
                 getGroupChallengeDtos(memberId, start, end);
 
-        return FeedbackCreationRequestDto.builder()
+        return AiFeedbackCreationRequestDto.builder()
                 .memberId(memberId)
                 .personalChallenges(personalDtos)
                 .groupChallenges(groupDtos)
                 .build();
     }
 
-    private List<FeedbackCreationRequestDto.PersonalChallengeDto> getPersonalChallengeDtos(Long memberId, LocalDate start, LocalDate end) {
+    private List<AiFeedbackCreationRequestDto.PersonalChallengeDto> getPersonalChallengeDtos(Long memberId, LocalDate start, LocalDate end) {
         LocalDateTime startDt = start.atStartOfDay();
         LocalDateTime endDt = end.atTime(23, 59, 59);
 
@@ -55,7 +55,7 @@ public class FeedbackDtoAssembler {
                     PersonalChallengeVerification sample = entry.getValue().get(0);
                     boolean isSuccess = entry.getValue().stream()
                             .anyMatch(v -> v.getStatus() == ChallengeStatus.SUCCESS);
-                    return FeedbackCreationRequestDto.PersonalChallengeDto.builder()
+                    return AiFeedbackCreationRequestDto.PersonalChallengeDto.builder()
                             .id(sample.getPersonalChallenge().getId())
                             .title(sample.getPersonalChallenge().getTitle())
                             .isSuccess(isSuccess)
@@ -63,7 +63,7 @@ public class FeedbackDtoAssembler {
                 }).toList();
     }
 
-    private List<FeedbackCreationRequestDto.GroupChallengeDto> getGroupChallengeDtos(Long memberId, LocalDate start, LocalDate end) {
+    private List<AiFeedbackCreationRequestDto.GroupChallengeDto> getGroupChallengeDtos(Long memberId, LocalDate start, LocalDate end) {
         List<GroupChallengeParticipantRecord> records = groupRecordRepository.findAllByMemberId(memberId);
         log.debug("[단체 참여 기록 조회] count={}", records.size());
 
@@ -78,12 +78,12 @@ public class FeedbackDtoAssembler {
                 .filter(v -> v.getVerifiedAt() != null)
                 .collect(Collectors.groupingBy(v -> v.getParticipantRecord().getId()));
 
-        List<FeedbackCreationRequestDto.GroupChallengeDto> result = new ArrayList<>();
+        List<AiFeedbackCreationRequestDto.GroupChallengeDto> result = new ArrayList<>();
 
         for (GroupChallengeParticipantRecord record : records) {
             List<GroupChallengeVerification> verifications = groupedVerifications.getOrDefault(record.getId(), List.of());
 
-            List<FeedbackCreationRequestDto.GroupChallengeDto.SubmissionDto> submissions = verifications.stream()
+            List<AiFeedbackCreationRequestDto.GroupChallengeDto.SubmissionDto> submissions = verifications.stream()
                     .filter(v -> {
                         LocalDate d = v.getVerifiedAt().toLocalDate();
                         return !d.isBefore(start) && !d.isAfter(end);
@@ -92,7 +92,7 @@ public class FeedbackDtoAssembler {
                     .collect(Collectors.toList());
 
             // 인증이 없어도 챌린지 자체는 포함됨
-            result.add(FeedbackCreationRequestDto.GroupChallengeDto.builder()
+            result.add(AiFeedbackCreationRequestDto.GroupChallengeDto.builder()
                     .id(record.getGroupChallenge().getId())
                     .title(record.getGroupChallenge().getTitle())
                     .startDate(record.getGroupChallenge().getStartDate())
@@ -104,8 +104,8 @@ public class FeedbackDtoAssembler {
         return result;
     }
 
-    private FeedbackCreationRequestDto.GroupChallengeDto.SubmissionDto toSubmissionDto(GroupChallengeVerification v) {
-        return FeedbackCreationRequestDto.GroupChallengeDto.SubmissionDto.builder()
+    private AiFeedbackCreationRequestDto.GroupChallengeDto.SubmissionDto toSubmissionDto(GroupChallengeVerification v) {
+        return AiFeedbackCreationRequestDto.GroupChallengeDto.SubmissionDto.builder()
                 .isSuccess(v.getStatus() == ChallengeStatus.SUCCESS)
                 .submittedAt(v.getVerifiedAt())
                 .build();
