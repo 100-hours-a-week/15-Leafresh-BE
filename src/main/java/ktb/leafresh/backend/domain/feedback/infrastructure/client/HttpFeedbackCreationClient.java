@@ -1,6 +1,9 @@
 package ktb.leafresh.backend.domain.feedback.infrastructure.client;
 
-import ktb.leafresh.backend.domain.feedback.infrastructure.dto.request.FeedbackCreationRequestDto;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import ktb.leafresh.backend.domain.feedback.infrastructure.dto.request.AiFeedbackCreationRequestDto;
+import ktb.leafresh.backend.domain.feedback.infrastructure.dto.response.AiFeedbackApiResponseDto;
+import ktb.leafresh.backend.domain.feedback.infrastructure.dto.response.AiFeedbackResponseDto;
 import ktb.leafresh.backend.global.exception.CustomException;
 import ktb.leafresh.backend.global.exception.FeedbackErrorCode;
 import lombok.extern.slf4j.Slf4j;
@@ -19,25 +22,42 @@ import java.time.Duration;
 public class HttpFeedbackCreationClient implements FeedbackCreationClient {
 
     private final WebClient aiServerWebClient;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     public HttpFeedbackCreationClient(@Qualifier("aiServerWebClient") WebClient aiServerWebClient) {
         this.aiServerWebClient = aiServerWebClient;
     }
 
     @Override
-    public void requestWeeklyFeedback(FeedbackCreationRequestDto requestDto) {
+    public void requestWeeklyFeedback(AiFeedbackCreationRequestDto requestDto) {
         try {
             log.info("[AI 피드백 생성 요청 시작]");
             log.debug("[요청 DTO] {}", requestDto);
 
-            String response = aiServerWebClient.post()
+            String rawJson = aiServerWebClient.post()
                     .uri("/ai/feedback")
                     .bodyValue(requestDto)
                     .retrieve()
                     .bodyToMono(String.class)
                     .block(Duration.ofSeconds(5));
 
-            log.info("[AI 피드백 요청 응답 수신 완료] raw: {}", response);
+            log.info("[AI 응답 수신 완료]");
+            log.debug("[AI 응답 원문 JSON] {}", rawJson);
+
+            AiFeedbackApiResponseDto parsed = objectMapper.readValue(rawJson, AiFeedbackApiResponseDto.class);
+
+            if (parsed.status() != 200) {
+                log.error("[AI 응답 에러] status={}, message={}", parsed.status(), parsed.message());
+                throw new CustomException(FeedbackErrorCode.FEEDBACK_SERVER_ERROR);
+            }
+
+            AiFeedbackResponseDto result = parsed.data();
+            if (result == null || result.content() == null || result.content().isBlank()) {
+                log.warn("[AI 응답 오류] data.content 비어 있음");
+                throw new CustomException(FeedbackErrorCode.FEEDBACK_SERVER_ERROR);
+            }
+
+            log.info("[AI 피드백 응답 파싱 완료] content={}", result.content());
         } catch (WebClientRequestException ex) {
             Throwable cause = ex.getCause();
             if (cause instanceof SocketTimeoutException) {
