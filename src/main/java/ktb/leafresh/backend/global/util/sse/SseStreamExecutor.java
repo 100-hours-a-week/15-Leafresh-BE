@@ -1,4 +1,4 @@
-package ktb.leafresh.backend.global.util.stream;
+package ktb.leafresh.backend.global.util.sse;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -8,6 +8,9 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+/**
+ * 비동기 실행기
+ */
 @Slf4j
 @Component
 @RequiredArgsConstructor
