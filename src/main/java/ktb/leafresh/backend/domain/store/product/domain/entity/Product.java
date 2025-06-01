@@ -23,14 +23,17 @@ public class Product extends BaseEntity {
     @Column(nullable = false, length = 100)
     private String name;
 
+    @Column(nullable = false, length = 40)
+    private String description;
+
+    @Column(nullable = false, length = 512)
+    private String imageUrl;
+
     @Column(nullable = false)
     private Integer price;
 
     @Column(nullable = false)
     private Integer stock;
-
-    @Column(nullable = false, length = 512)
-    private String imageUrl;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
