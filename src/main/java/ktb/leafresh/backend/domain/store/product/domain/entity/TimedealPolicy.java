@@ -25,11 +25,14 @@ public class TimedealPolicy extends BaseEntity {
     private Integer discountedPrice;
 
     @Column(nullable = false)
-    private Integer quantity;
+    private Integer discountedPercentage;
 
     @Column(nullable = false)
-    private LocalDateTime startAt;
+    private Integer stock;
 
     @Column(nullable = false)
-    private LocalDateTime endAt;
+    private LocalDateTime startTime;
+
+    @Column(nullable = false)
+    private LocalDateTime endTime;
 }

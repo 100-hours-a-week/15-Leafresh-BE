@@ -4,8 +4,6 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
 public record ChatbotFreeTextRequestDto(
-//        @NotNull(message = "sessionId는 필수입니다.") String sessionId,
-        @NotBlank(message = "location은 필수입니다.") String location,
-        @NotBlank(message = "workType은 필수입니다.") String workType,
+        @NotNull(message = "sessionId는 필수입니다.") String sessionId,
         @NotBlank(message = "message는 필수입니다.") String message
 ) {}

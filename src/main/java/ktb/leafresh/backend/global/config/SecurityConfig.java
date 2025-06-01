@@ -97,6 +97,8 @@ public class SecurityConfig {
                         // 챗봇
                         .requestMatchers(HttpMethod.POST, "/api/chatbot/recommendation/base-info").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/chatbot/recommendation/free-text").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/chatbot/recommendation/base-info").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/chatbot/recommendation/free-text").permitAll()
 
                         // 피드백
                         .requestMatchers(HttpMethod.POST, "/api/members/feedback/result").permitAll()
