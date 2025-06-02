@@ -17,7 +17,7 @@ public class TimedealPolicy extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @OneToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_id", nullable = false)
     private Product product;
 
@@ -35,4 +35,14 @@ public class TimedealPolicy extends BaseEntity {
 
     @Column(nullable = false)
     private LocalDateTime endTime;
+
+    public void updateTime(LocalDateTime startTime, LocalDateTime endTime) {
+        this.startTime = startTime;
+        this.endTime = endTime;
+    }
+
+    public void updatePriceAndPercent(Integer discountedPrice, Integer discountedPercentage) {
+        if (discountedPrice != null) this.discountedPrice = discountedPrice;
+        if (discountedPercentage != null) this.discountedPercentage = discountedPercentage;
+    }
 }
