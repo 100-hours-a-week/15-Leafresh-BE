@@ -18,7 +18,7 @@ import java.time.Duration;
 
 @Slf4j
 @Component
-@Profile("docker-prod") // prod
+@Profile("!local") // prod
 public class HttpAiVerificationClient implements AiVerificationClient {
 
     private final WebClient aiServerWebClient;
