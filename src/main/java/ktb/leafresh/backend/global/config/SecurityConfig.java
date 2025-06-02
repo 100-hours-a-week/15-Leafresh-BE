@@ -103,6 +103,10 @@ public class SecurityConfig {
                         // 피드백
                         .requestMatchers(HttpMethod.POST, "/api/members/feedback/result").permitAll()
 
+                        // 상점
+                        .requestMatchers(HttpMethod.GET, "/api/store/products/timedeals").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/store/products").permitAll()
+
                         // Swagger/OpenAPI
                         .requestMatchers(
                                 "/swagger-ui/**",
