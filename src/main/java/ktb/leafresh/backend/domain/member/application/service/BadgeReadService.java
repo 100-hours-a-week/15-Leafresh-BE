@@ -25,7 +25,7 @@ public class BadgeReadService {
     private final BadgeRepository badgeRepository;
     private final MemberRepository memberRepository;
 
-    private static final String LOCK_IMAGE_URL = "https://storage.googleapis.com/leafresh-images/init/badge/common/%E1%84%8C%E1%85%A1%E1%84%86%E1%85%AE%E1%86%AF%E1%84%89%E1%85%B3%E1%84%8B%E1%85%B5.png";
+    private static final String LOCK_IMAGE_URL = "https://storage.googleapis.com/leafresh-images/init/badge/common/%E1%84%8C%E1%85%A1%E1%84%86%E1%85%AE%E1%86%AF%E1%84%89%E1%85%AC.png";
 
     public BadgeListResponseDto getAllBadges(Long memberId) {
         log.debug("[뱃지 목록 조회] 요청 시작 - memberId: {}", memberId);
