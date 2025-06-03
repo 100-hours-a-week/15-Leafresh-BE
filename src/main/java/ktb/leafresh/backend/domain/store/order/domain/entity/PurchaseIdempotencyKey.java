@@ -28,4 +28,9 @@ public class PurchaseIdempotencyKey extends BaseEntity {
     // 중복 방지 키 (e.g. 클라이언트가 생성한 UUID)
     @Column(name = "idempotency_key", nullable = false, length = 255)
     private String idempotencyKey;
+
+    public PurchaseIdempotencyKey(Member member, String idempotencyKey) {
+        this.member = member;
+        this.idempotencyKey = idempotencyKey;
+    }
 }
