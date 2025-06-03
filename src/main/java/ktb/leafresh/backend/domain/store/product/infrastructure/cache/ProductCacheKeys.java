@@ -16,6 +16,14 @@ public class ProductCacheKeys {
         return "store:products:single:" + productId;
     }
 
+    public static String productStock(Long productId) {
+        return "stock:product:" + productId;
+    }
+
+    public static String timedealStock(Long timedealPolicyId) {
+        return "stock:timedeal:" + timedealPolicyId;
+    }
+
     public static String timedealSingle(Long policyId) {
         return "store:products:timedeal:single:" + policyId;
     }

@@ -100,4 +100,30 @@ public class ProductCacheService {
         Duration ttl = Duration.between(LocalDateTime.now(), expireTime);
         return ttl.isNegative() || ttl.isZero() ? null : ttl;
     }
+
+    /**
+     * 일반 상품 재고 캐시 저장
+     */
+    public void cacheProductStock(Long productId, Integer stock) {
+        String key = ProductCacheKeys.productStock(productId);
+        redisTemplate.opsForValue().set(key, stock);
+        log.info("[ProductCacheService] 일반 상품 재고 캐시 저장 - key={}, stock={}", key, stock);
+    }
+
+    /**
+     * 타임딜 상품 재고 캐시 저장 (TTL 포함)
+     */
+    public void cacheTimedealStock(Long policyId, Integer stock, LocalDateTime endTime) {
+        String key = ProductCacheKeys.timedealStock(policyId);
+        Duration ttl = calculateTtl(endTime.plusMinutes(1));
+        log.info("[ProductCacheService] 타임딜 TTL = {}", ttl != null ? ttl.getSeconds() : "null");
+
+        if (ttl != null) {
+            redisTemplate.opsForValue().set(key, stock, ttl);
+            log.info("[ProductCacheService] 타임딜 재고 캐시 저장 - key={}, stock={}, TTL={}초", key, stock, ttl.getSeconds());
+        } else {
+            redisTemplate.opsForValue().set(key, stock);
+            log.warn("[ProductCacheService] TTL 없이 타임딜 재고 캐시 저장 - key={}, stock={}", key, stock);
+        }
+    }
 }
