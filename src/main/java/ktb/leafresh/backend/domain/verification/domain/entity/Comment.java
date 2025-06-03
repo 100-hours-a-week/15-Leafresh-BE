@@ -1,7 +1,6 @@
-package ktb.leafresh.backend.domain.community.comment.domain.entity;
+package ktb.leafresh.backend.domain.verification.domain.entity;
 
 import jakarta.persistence.*;
-import ktb.leafresh.backend.domain.community.post.domain.entity.Post;
 import ktb.leafresh.backend.domain.member.domain.entity.Member;
 import ktb.leafresh.backend.global.common.entity.BaseEntity;
 import lombok.*;
@@ -19,8 +18,8 @@ public class Comment extends BaseEntity {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "post_id", nullable = false)
-    private Post post;
+    @JoinColumn(name = "verification_id", nullable = false)
+    private GroupChallengeVerification verification;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id", nullable = false)
