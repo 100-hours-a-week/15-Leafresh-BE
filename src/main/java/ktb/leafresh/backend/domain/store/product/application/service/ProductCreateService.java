@@ -23,6 +23,7 @@ public class ProductCreateService {
     private final ProductRepository productRepository;
     private final ProductFactory productFactory;
     private final ApplicationEventPublisher eventPublisher;
+    private final ProductCacheService productCacheService;
 
     @Transactional
     public ProductCreateResponseDto createProduct(ProductCreateRequestDto dto) {
@@ -30,6 +31,8 @@ public class ProductCreateService {
             log.info("일반 상품 생성 요청: {}", dto.name());
             Product product = productFactory.create(dto);
             productRepository.save(product);
+
+            productCacheService.cacheProductStock(product.getId(), product.getStock());
 
             eventPublisher.publishEvent(new ProductUpdatedEvent(product.getId(), false));
 

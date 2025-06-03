@@ -54,7 +54,16 @@ public class TimedealCreateService {
                 .build();
 
         try {
+            TimedealPolicy savedPolicy = timedealPolicyRepository.save(policy);
+
+            log.info("[TimedealCreateService] 타임딜 재고 캐시 시도 - policyId={}, stock={}, endTime={}",
+                    savedPolicy.getId(), savedPolicy.getStock(), savedPolicy.getEndTime());
+
+            productCacheService.cacheTimedealStock(savedPolicy.getId(), savedPolicy.getStock(), savedPolicy.getEndTime());
+
             timedealPolicyRepository.save(policy);
+
+            log.info("[TimedealCreateService] 타임딜 재고 캐시 완료 - policyId={}", policy.getId());
 
             Product updatedProduct = productRepository.findById(dto.productId())
                     .orElseThrow(() -> new CustomException(TimedealErrorCode.PRODUCT_NOT_FOUND));

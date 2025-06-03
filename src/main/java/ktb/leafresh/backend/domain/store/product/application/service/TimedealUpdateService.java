@@ -38,6 +38,11 @@ public class TimedealUpdateService {
                     policy.getProduct().getId(), dto.startTime(), dto.endTime(), dealId);
             if (hasOverlap) throw new CustomException(TimedealErrorCode.OVERLAPPING_TIME);
             policy.updateTime(dto.startTime(), dto.endTime());
+
+            log.info("[TimedealUpdateService] 타임딜 재고 캐시 시도 - policyId={}, stock={}, endTime={}",
+                    policy.getId(), policy.getStock(), dto.endTime());
+            productCacheService.cacheTimedealStock(policy.getId(), policy.getStock(), dto.endTime());
+            log.info("[TimedealUpdateService] 타임딜 재고 캐시 완료 - policyId={}", policy.getId());
         }
 
         if (dto.discountedPrice() != null && dto.discountedPrice() < 1) {
