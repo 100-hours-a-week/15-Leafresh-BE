@@ -2,8 +2,8 @@ package ktb.leafresh.backend.domain.member.application.service;
 
 import ktb.leafresh.backend.domain.member.domain.entity.Member;
 import ktb.leafresh.backend.domain.member.infrastructure.repository.MemberRepository;
+import ktb.leafresh.backend.domain.member.presentation.dto.response.MemberUpdateResponseDto;
 import ktb.leafresh.backend.global.exception.CustomException;
-import ktb.leafresh.backend.global.exception.GlobalErrorCode;
 import ktb.leafresh.backend.global.exception.MemberErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,7 +18,7 @@ public class MemberUpdateService {
     private final MemberRepository memberRepository;
 
     @Transactional
-    public void updateMemberInfo(Member member, String newNickname, String newImageUrl) {
+    public MemberUpdateResponseDto updateMemberInfo(Member member, String newNickname, String newImageUrl) {
         boolean updated = false;
 
         log.debug("[회원 정보 수정] 시작 - memberId: {}", member.getId());
@@ -45,6 +45,11 @@ public class MemberUpdateService {
             if (!updated) {
                 throw new CustomException(MemberErrorCode.NO_CHANGES);
             }
+
+            return MemberUpdateResponseDto.builder()
+                    .nickname(member.getNickname())
+                    .imageUrl(member.getImageUrl())
+                    .build();
 
         } catch (CustomException e) {
             throw e;
