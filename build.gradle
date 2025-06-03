@@ -89,6 +89,14 @@ dependencies {
 	// Google Cloud Storage
 	implementation 'com.google.protobuf:protobuf-java:3.25.1'
 	implementation group: 'com.google.cloud', name: 'google-cloud-storage', version: '2.40.1'
+
+	// GCP Pub/Sub
+	implementation 'com.google.cloud:google-cloud-pubsub:1.124.0'
+	implementation 'io.grpc:grpc-netty-shaded:1.62.2'
+	implementation 'io.grpc:grpc-alts:1.62.2'
+	implementation 'io.grpc:grpc-auth:1.62.2'
+	implementation 'io.grpc:grpc-protobuf:1.62.2'
+	implementation 'io.grpc:grpc-stub:1.62.2'
 }
 
 dependencyManagement {
