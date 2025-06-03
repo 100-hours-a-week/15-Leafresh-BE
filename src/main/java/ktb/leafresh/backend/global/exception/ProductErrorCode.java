@@ -9,7 +9,8 @@ public enum ProductErrorCode implements BaseErrorCode {
     INVALID_STOCK(HttpStatus.BAD_REQUEST, "재고는 0 이상이어야 합니다."),
     INVALID_STATUS(HttpStatus.BAD_REQUEST, "유효하지 않은 상품 상태입니다."),
     PRODUCT_CREATE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "서버 내부 오류로 인해 상품을 등록하지 못했습니다."),
-    PRODUCT_UPDATE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "서버 내부 오류로 인해 상품을 수정하지 못했습니다.");
+    PRODUCT_UPDATE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "서버 내부 오류로 인해 상품을 수정하지 못했습니다."),
+    OUT_OF_STOCK(HttpStatus.BAD_REQUEST, "재고가 없습니다.");
 
     private final HttpStatus status;
     private final String message;
