@@ -2,9 +2,10 @@ package ktb.leafresh.backend.domain.member.domain.entity;
 
 import ktb.leafresh.backend.domain.challenge.group.domain.entity.GroupChallenge;
 import ktb.leafresh.backend.domain.challenge.group.domain.entity.GroupChallengeParticipantRecord;
-import ktb.leafresh.backend.domain.community.comment.domain.entity.Comment;
-import ktb.leafresh.backend.domain.community.like.domain.entity.Like;
-import ktb.leafresh.backend.domain.community.post.domain.entity.Post;
+import ktb.leafresh.backend.domain.store.order.domain.entity.PurchaseFailureLog;
+import ktb.leafresh.backend.domain.store.order.domain.entity.PurchaseIdempotencyKey;
+import ktb.leafresh.backend.domain.verification.domain.entity.Comment;
+import ktb.leafresh.backend.domain.verification.domain.entity.Like;
 import ktb.leafresh.backend.domain.feedback.domain.entity.Feedback;
 import ktb.leafresh.backend.domain.member.domain.entity.enums.LoginType;
 import ktb.leafresh.backend.domain.member.domain.entity.enums.Role;
@@ -61,9 +62,6 @@ public class Member extends BaseEntity {
     private List<PersonalChallengeVerification> personalChallengeVerifications = new ArrayList<>();
 
     @OneToMany(mappedBy = "member", cascade = CascadeType.ALL)
-    private List<Post> posts = new ArrayList<>();
-
-    @OneToMany(mappedBy = "member", cascade = CascadeType.ALL)
     private List<Comment> comments = new ArrayList<>();
 
     @OneToMany(mappedBy = "member", cascade = CascadeType.ALL)
@@ -74,6 +72,12 @@ public class Member extends BaseEntity {
 
     @OneToMany(mappedBy = "member", cascade = CascadeType.ALL)
     private List<ProductPurchase> productPurchases = new ArrayList<>();
+
+    @OneToMany(mappedBy = "member", cascade = CascadeType.ALL)
+    private List<PurchaseIdempotencyKey> purchaseIdempotencyKeys = new ArrayList<>();
+
+    @OneToMany(mappedBy = "member", cascade = CascadeType.ALL)
+    private List<PurchaseFailureLog> purchaseFailureLogs = new ArrayList<>();
 
     @OneToMany(mappedBy = "member", cascade = CascadeType.ALL)
     private List<Feedback> feedbacks = new ArrayList<>();

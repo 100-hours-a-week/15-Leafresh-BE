@@ -2,6 +2,8 @@ package ktb.leafresh.backend.domain.store.product.domain.entity;
 
 import jakarta.persistence.*;
 import ktb.leafresh.backend.domain.store.order.domain.entity.ProductPurchase;
+import ktb.leafresh.backend.domain.store.order.domain.entity.PurchaseFailureLog;
+import ktb.leafresh.backend.domain.store.order.domain.entity.PurchaseProcessingLog;
 import ktb.leafresh.backend.domain.store.product.domain.entity.enums.ProductStatus;
 import ktb.leafresh.backend.global.common.entity.BaseEntity;
 import lombok.*;
@@ -22,6 +24,9 @@ public class Product extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
+    private List<PurchaseFailureLog> failureLogs = new ArrayList<>();
 
     @Column(nullable = false, length = 100)
     private String name;
@@ -47,6 +52,9 @@ public class Product extends BaseEntity {
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<TimedealPolicy> timedealPolicies = new ArrayList<>();
+
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
+    private List<PurchaseProcessingLog> processingLogs = new ArrayList<>();
 
     @PrePersist
     public void prePersist() {
