@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 public interface TimedealPolicyRepository extends JpaRepository<TimedealPolicy, Long> {
 
@@ -26,4 +27,7 @@ public interface TimedealPolicyRepository extends JpaRepository<TimedealPolicy, 
                                                       @Param("startTime") LocalDateTime startTime,
                                                       @Param("endTime") LocalDateTime endTime,
                                                       @Param("dealId") Long dealId);
+
+    @Query("SELECT t FROM TimedealPolicy t JOIN FETCH t.product WHERE t.endTime > :now AND t.deletedAt IS NULL")
+    List<TimedealPolicy> findAllValidWithProduct(@Param("now") LocalDateTime now);
 }

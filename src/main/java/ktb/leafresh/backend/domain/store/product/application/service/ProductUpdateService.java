@@ -43,6 +43,7 @@ public class ProductUpdateService {
             if (dto.stock() != null) {
                 if (dto.stock() < 0) throw new CustomException(ProductErrorCode.INVALID_STOCK);
                 product.updateStock(dto.stock());
+                productCacheService.cacheProductStock(product.getId(), dto.stock());
             }
             if (dto.status() != null) {
                 try {
