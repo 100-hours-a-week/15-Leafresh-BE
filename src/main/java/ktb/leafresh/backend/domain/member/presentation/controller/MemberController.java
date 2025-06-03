@@ -8,6 +8,7 @@ import ktb.leafresh.backend.domain.member.domain.entity.Member;
 import ktb.leafresh.backend.domain.member.infrastructure.repository.MemberRepository;
 import ktb.leafresh.backend.domain.member.presentation.dto.request.MemberUpdateRequestDto;
 import ktb.leafresh.backend.domain.member.presentation.dto.response.MemberInfoResponseDto;
+import ktb.leafresh.backend.domain.member.presentation.dto.response.MemberUpdateResponseDto;
 import ktb.leafresh.backend.global.exception.CustomException;
 import ktb.leafresh.backend.global.exception.MemberErrorCode;
 import ktb.leafresh.backend.global.response.ApiResponse;
@@ -38,7 +39,7 @@ public class MemberController {
     @Operation(summary = "회원 정보 수정", description = "닉네임, 이미지 URL을 수정합니다.")
     @ApiResponseConstants.ClientErrorResponses
     @ApiResponseConstants.ServerErrorResponses
-    public ResponseEntity<ApiResponse<Void>> updateMemberInfo(
+    public ResponseEntity<ApiResponse<MemberUpdateResponseDto>> updateMemberInfo(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @Valid @RequestBody MemberUpdateRequestDto requestDto) {
 
@@ -51,12 +52,14 @@ public class MemberController {
                         return new CustomException(MemberErrorCode.MEMBER_NOT_FOUND);
                     });
 
-            memberUpdateService.updateMemberInfo(member, requestDto.getNickname(), requestDto.getImageUrl());
+            MemberUpdateResponseDto responseDto = memberUpdateService.updateMemberInfo(
+                    member, requestDto.getNickname(), requestDto.getImageUrl()
+            );
 
             log.info("[회원 정보 수정] 성공 - memberId: {}", userDetails.getMemberId());
 
-            return ResponseEntity.status(HttpStatus.NO_CONTENT)
-                    .body(ApiResponse.success("회원 정보가 성공적으로 수정되었습니다."));
+            return ResponseEntity.ok(ApiResponse.success("회원 정보 수정이 완료되었습니다.", responseDto));
+
         } catch (CustomException e) {
             throw e;
         } catch (Exception e) {
