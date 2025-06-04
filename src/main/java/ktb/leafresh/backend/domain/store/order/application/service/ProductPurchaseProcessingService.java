@@ -11,8 +11,7 @@ import ktb.leafresh.backend.domain.store.order.domain.entity.enums.PurchaseType;
 import ktb.leafresh.backend.domain.store.order.infrastructure.repository.*;
 import ktb.leafresh.backend.domain.store.product.domain.entity.Product;
 import ktb.leafresh.backend.domain.store.product.infrastructure.repository.ProductRepository;
-import ktb.leafresh.backend.global.exception.CustomException;
-import ktb.leafresh.backend.global.exception.GlobalErrorCode;
+import ktb.leafresh.backend.global.exception.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -40,30 +39,30 @@ public class ProductPurchaseProcessingService {
         try {
             log.debug("1. 사용자 조회 시작");
             Member member = memberRepository.findById(cmd.memberId())
-                    .orElseThrow(() -> new CustomException(GlobalErrorCode.NOT_FOUND, "사용자를 찾을 수 없습니다."));
+                    .orElseThrow(() -> new CustomException(MemberErrorCode.MEMBER_NOT_FOUND));
             log.debug("1. 사용자 조회 완료: {}", member.getNickname());
 
             log.debug("2. 상품 조회 시작");
             Product product = productRepository.findById(cmd.productId())
-                    .orElseThrow(() -> new CustomException(GlobalErrorCode.NOT_FOUND, "상품을 찾을 수 없습니다."));
+                    .orElseThrow(() -> new CustomException(ProductErrorCode.PRODUCT_NOT_FOUND));
             log.debug("2. 상품 조회 완료: {}", product.getName());
 
             log.debug("3. 재고 및 포인트 검증 시작");
             if (product.getStock() < cmd.quantity()) {
-                throw new CustomException(GlobalErrorCode.INVALID_REQUEST, "재고가 부족합니다.");
+                throw new CustomException(PurchaseErrorCode.INSUFFICIENT_STOCK);
             }
 
             int totalPrice = product.getPrice() * cmd.quantity();
 
             if (member.getCurrentLeafPoints() < totalPrice) {
-                throw new CustomException(GlobalErrorCode.INVALID_REQUEST, "보유한 나뭇잎 포인트가 부족합니다.");
+                throw new CustomException(PurchaseErrorCode.INSUFFICIENT_POINTS);
             }
             log.debug("3. 검증 통과 - 현재 재고: {}, 보유 포인트: {}", product.getStock(), member.getCurrentLeafPoints());
 
             log.debug("4. 포인트 차감 및 재고 차감 시작");
             member.updateCurrentLeafPoints(member.getCurrentLeafPoints() - totalPrice);
             product.updateStock(product.getStock() - cmd.quantity());
-            productRepository.save(product); // 🔥 명시적 저장 (dirty checking 이슈 예방)
+            productRepository.save(product); // 명시적 저장 (dirty checking 이슈 예방)
             log.debug("4. 차감 완료 - 남은 재고: {}, 남은 포인트: {}", product.getStock(), member.getCurrentLeafPoints());
 
             log.debug("5. 구매 정보 저장 시작");

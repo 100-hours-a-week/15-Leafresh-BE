@@ -8,10 +8,7 @@ import ktb.leafresh.backend.domain.store.order.infrastructure.repository.Purchas
 import ktb.leafresh.backend.domain.store.product.domain.entity.Product;
 import ktb.leafresh.backend.domain.store.product.infrastructure.repository.ProductRepository;
 import ktb.leafresh.backend.domain.store.product.infrastructure.cache.ProductCacheKeys;
-import ktb.leafresh.backend.global.exception.CustomException;
-import ktb.leafresh.backend.global.exception.GlobalErrorCode;
-import ktb.leafresh.backend.global.exception.ProductErrorCode;
-import ktb.leafresh.backend.global.exception.PurchaseErrorCode;
+import ktb.leafresh.backend.global.exception.*;
 import ktb.leafresh.backend.global.util.redis.RedisLuaService;
 import ktb.leafresh.backend.domain.store.order.infrastructure.publisher.GcpPurchaseMessagePublisher;
 import ktb.leafresh.backend.domain.store.order.application.dto.PurchaseCommand;
@@ -38,7 +35,7 @@ public class ProductOrderCreateService {
     public void create(Long memberId, Long productId, int quantity, String idempotencyKey) {
         // 1. 사용자 조회
         Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new CustomException(GlobalErrorCode.NOT_FOUND, "사용자를 찾을 수 없습니다."));
+                .orElseThrow(() -> new CustomException(MemberErrorCode.MEMBER_NOT_FOUND));
 
         // 2. Idempotency 키 저장
         try {
