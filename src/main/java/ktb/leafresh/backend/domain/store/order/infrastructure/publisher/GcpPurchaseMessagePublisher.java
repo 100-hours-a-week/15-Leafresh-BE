@@ -7,7 +7,7 @@ import com.google.protobuf.ByteString;
 import com.google.pubsub.v1.PubsubMessage;
 import ktb.leafresh.backend.domain.store.order.application.dto.PurchaseCommand;
 import ktb.leafresh.backend.global.exception.CustomException;
-import ktb.leafresh.backend.global.exception.GlobalErrorCode;
+import ktb.leafresh.backend.global.exception.PurchaseErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -37,10 +37,10 @@ public class GcpPurchaseMessagePublisher implements PurchaseMessagePublisher {
             log.info("[PubSub 메시지 발행 성공] {}", message);
         } catch (JsonProcessingException e) {
             log.error("[PubSub 직렬화 실패]", e);
-            throw new CustomException(GlobalErrorCode.INTERNAL_SERVER_ERROR, "구매 요청 직렬화에 실패했습니다.");
+            throw new CustomException(PurchaseErrorCode.PURCHASE_SERIALIZATION_FAILED);
         } catch (Exception e) {
             log.error("[PubSub 발행 실패]", e);
-            throw new CustomException(GlobalErrorCode.INTERNAL_SERVER_ERROR, "구매 요청 발행에 실패했습니다.");
+            throw new CustomException(PurchaseErrorCode.PURCHASE_PUBLISH_FAILED);
         }
     }
 }

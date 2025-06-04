@@ -23,7 +23,7 @@ public class ProductOrderController {
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @PathVariable Long productId,
             @RequestBody ProductOrderCreateRequestDto request,
-            @RequestHeader("X-Idempotency-Key") String idempotencyKey
+            @RequestHeader("Idempotency-Key") String idempotencyKey
     ) {
         Long memberId = userDetails.getMemberId();
         log.info("[주문 요청] memberId={}, productId={}, quantity={}, key={}", memberId, productId, request.quantity(), idempotencyKey);
