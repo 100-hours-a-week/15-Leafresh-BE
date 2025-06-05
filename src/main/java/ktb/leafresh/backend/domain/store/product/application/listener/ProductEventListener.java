@@ -21,6 +21,11 @@ public class ProductEventListener {
     public void handleProductUpdated(ProductUpdatedEvent event) {
         Long productId = event.productId();
 
+        if (event.isTimeDeal()) {
+            log.info("[ProductEventListener] 타임딜 상품이므로 일반 상품 캐시 갱신 생략 - productId={}", productId);
+            return;
+        }
+
         productRepository.findById(productId).ifPresent(product -> {
             productCacheService.updateSingleProductCache(product);
             log.info("[ProductEventListener] 개별 상품 캐시 갱신 완료 - productId={}, isTimeDeal={}", productId, event.isTimeDeal());
