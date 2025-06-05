@@ -55,7 +55,10 @@ public class ProductPurchaseProcessingService {
             int unitPrice = timedealOpt.map(TimedealPolicy::getDiscountedPrice).orElse(product.getPrice());
             PurchaseType purchaseType = timedealOpt.isPresent() ? PurchaseType.TIMEDEAL : PurchaseType.NORMAL;
 
-            PurchaseProcessContext context = new PurchaseProcessContext(member, product, cmd.quantity(), unitPrice, purchaseType);
+            PurchaseProcessContext context = new PurchaseProcessContext(
+                    member, product, cmd.quantity(), unitPrice, purchaseType
+            );
+
             purchaseProcessor.process(context);
 
         } catch (Exception e) {
