@@ -56,7 +56,7 @@ public class ProductOrderCreateService {
         if (result == -2) throw new CustomException(ProductErrorCode.OUT_OF_STOCK);
 
         // 5. 메시지 큐 발행
-        PurchaseCommand command = new PurchaseCommand(memberId, productId, quantity, idempotencyKey, LocalDateTime.now());
+        PurchaseCommand command = new PurchaseCommand(memberId, productId, null, quantity, idempotencyKey, LocalDateTime.now());
         purchaseMessagePublisher.publish(command);
 
         log.info("[주문 큐 발행 완료] memberId={}, productId={}, quantity={}", memberId, productId, quantity);
