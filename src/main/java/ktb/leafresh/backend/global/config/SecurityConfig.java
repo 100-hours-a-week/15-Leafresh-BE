@@ -80,6 +80,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/challenges/group/{challengeId:\\d+}").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/challenges/events").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/challenges/group/{challengeId:\\d+}/verifications").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/challenges/group/{challengeId:\\d+}/verifications/{verificationId:\\d+}").permitAll()
 
                         // 그 외 단체 챌린지 API는 인증 필요
                         .requestMatchers("/api/challenges/group/**").authenticated()

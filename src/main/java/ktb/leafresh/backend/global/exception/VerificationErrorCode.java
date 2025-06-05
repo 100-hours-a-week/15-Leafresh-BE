@@ -31,7 +31,10 @@ public enum VerificationErrorCode implements BaseErrorCode {
     AI_RESPONSE_FAILED(HttpStatus.BAD_REQUEST, "AI 응답 결과가 검열 실패로 판단되었습니다."),
     AI_RESPONSE_PARSING_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "AI 응답 파싱에 실패했습니다."),
     AI_REQUEST_TIMEOUT(HttpStatus.GATEWAY_TIMEOUT, "AI 서버 응답이 시간 초과되었습니다."),
-    AI_CONNECTION_FAILED(HttpStatus.BAD_GATEWAY, "AI 서버에 연결할 수 없습니다.");
+    AI_CONNECTION_FAILED(HttpStatus.BAD_GATEWAY, "AI 서버에 연결할 수 없습니다."),
+    VERIFICATION_LIST_QUERY_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "서버 내부 오류로 인해 인증 내역을 조회하지 못했습니다."),
+    VERIFICATION_DETAIL_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 인증입니다."),
+    VERIFICATION_DETAIL_QUERY_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "서버 내부 오류로 인해 인증 상세 정보를 조회하지 못했습니다.");
 
     private final HttpStatus status;
     private final String message;
