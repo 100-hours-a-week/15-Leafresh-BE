@@ -94,4 +94,13 @@ public class Product extends BaseEntity {
                 )
                 .findFirst();
     }
+
+    /**
+     * 현재 시점 기준으로 구매 가능한 타임딜 정책 반환
+     */
+    public Optional<TimedealPolicy> getPurchasableTimedealPolicy(LocalDateTime now) {
+        return timedealPolicies.stream()
+                .filter(policy -> !policy.getStartTime().isAfter(now) && !policy.getEndTime().isBefore(now))
+                .findFirst();
+    }
 }
