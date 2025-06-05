@@ -140,4 +140,6 @@ public interface GroupChallengeVerificationRepository extends JpaRepository<Grou
                       @Param("view") int view,
                       @Param("like") int like,
                       @Param("comment") int comment);
+
+    Optional<GroupChallengeVerification> findByIdAndDeletedAtIsNull(Long id);
 }
