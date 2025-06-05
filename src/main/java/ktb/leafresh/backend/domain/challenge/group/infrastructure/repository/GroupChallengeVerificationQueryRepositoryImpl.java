@@ -10,6 +10,7 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 @RequiredArgsConstructor
@@ -44,5 +45,22 @@ public class GroupChallengeVerificationQueryRepositoryImpl implements GroupChall
                 .where(gv.participantRecord.id.eq(participantRecordId), gv.deletedAt.isNull())
                 .orderBy(gv.createdAt.desc())
                 .fetch();
+    }
+
+    @Override
+    public Optional<GroupChallengeVerification> findByChallengeIdAndId(Long challengeId, Long verificationId) {
+        QGroupChallengeVerification v = QGroupChallengeVerification.groupChallengeVerification;
+
+        return Optional.ofNullable(queryFactory
+                .selectFrom(v)
+                .join(v.participantRecord).fetchJoin()
+                .join(v.participantRecord.groupChallenge).fetchJoin()
+                .join(v.participantRecord.member).fetchJoin()
+                .where(
+                        v.id.eq(verificationId),
+                        v.participantRecord.groupChallenge.id.eq(challengeId),
+                        v.deletedAt.isNull()
+                )
+                .fetchOne());
     }
 }
