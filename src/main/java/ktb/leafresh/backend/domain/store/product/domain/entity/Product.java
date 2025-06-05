@@ -6,6 +6,8 @@ import ktb.leafresh.backend.domain.store.order.domain.entity.PurchaseFailureLog;
 import ktb.leafresh.backend.domain.store.order.domain.entity.PurchaseProcessingLog;
 import ktb.leafresh.backend.domain.store.product.domain.entity.enums.ProductStatus;
 import ktb.leafresh.backend.global.common.entity.BaseEntity;
+import ktb.leafresh.backend.global.exception.CustomException;
+import ktb.leafresh.backend.global.exception.ProductErrorCode;
 import lombok.*;
 
 import java.time.LocalDateTime;
@@ -102,5 +104,12 @@ public class Product extends BaseEntity {
         return timedealPolicies.stream()
                 .filter(policy -> !policy.getStartTime().isAfter(now) && !policy.getEndTime().isBefore(now))
                 .findFirst();
+    }
+
+    public void decreaseStock(int quantity) {
+        if (this.stock < quantity) {
+            throw new CustomException(ProductErrorCode.OUT_OF_STOCK);
+        }
+        this.stock -= quantity;
     }
 }

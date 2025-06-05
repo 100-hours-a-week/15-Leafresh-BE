@@ -6,5 +6,6 @@ public record TimedealUpdateRequestDto(
         LocalDateTime startTime,
         LocalDateTime endTime,
         Integer discountedPrice,
-        Integer discountedPercentage
+        Integer discountedPercentage,
+        Integer stock
 ) {}
