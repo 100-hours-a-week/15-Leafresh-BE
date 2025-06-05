@@ -4,6 +4,7 @@ import ktb.leafresh.backend.domain.challenge.group.domain.entity.GroupChallengeC
 import ktb.leafresh.backend.domain.verification.domain.entity.GroupChallengeVerification;
 import ktb.leafresh.backend.global.common.entity.enums.ChallengeStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -126,4 +127,17 @@ public interface GroupChallengeVerificationRepository extends JpaRepository<Grou
     WHERE gcv.participantRecord.id IN :recordIds
     """)
     List<GroupChallengeVerification> findAllByParticipantRecordIds(@Param("recordIds") List<Long> recordIds);
+
+    @Modifying
+    @Query("""
+    UPDATE GroupChallengeVerification v
+    SET v.viewCount = v.viewCount + :view,
+        v.likeCount = v.likeCount + :like,
+        v.commentCount = v.commentCount + :comment
+    WHERE v.id = :id
+    """)
+    void updateCounts(@Param("id") Long id,
+                      @Param("view") int view,
+                      @Param("like") int like,
+                      @Param("comment") int comment);
 }

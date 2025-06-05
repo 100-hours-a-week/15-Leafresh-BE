@@ -20,20 +20,26 @@ public class GroupChallengeVerificationReadController {
     private final GroupChallengeVerificationReadService groupChallengeVerificationReadService;
 
     @GetMapping("/verifications")
-    public ResponseEntity<ApiResponse<CursorPaginationResult<GroupChallengeVerificationSummaryDto>>> getVerifications(
+    public ResponseEntity<ApiResponse<GroupChallengeVerificationListResponseDto>> getVerifications(
             @PathVariable Long challengeId,
             @RequestParam(required = false) Long cursorId,
             @RequestParam(required = false) String cursorTimestamp,
-            @RequestParam(defaultValue = "12") int size
+            @RequestParam(defaultValue = "12") int size,
+            @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
         if ((cursorId == null) != (cursorTimestamp == null)) {
             throw new CustomException(GlobalErrorCode.INVALID_CURSOR);
         }
 
-        CursorPaginationResult<GroupChallengeVerificationSummaryDto> response =
-                groupChallengeVerificationReadService.getVerifications(challengeId, cursorId, cursorTimestamp, size);
+        Long memberId = userDetails != null ? userDetails.getMemberId() : null;
 
-        return ResponseEntity.ok(ApiResponse.success("단체 챌린지 인증 내역 조회에 성공했습니다.", response));
+        CursorPaginationResult<GroupChallengeVerificationSummaryDto> result =
+                groupChallengeVerificationReadService.getVerifications(challengeId, cursorId, cursorTimestamp, size, memberId);
+
+        return ResponseEntity.ok(ApiResponse.success(
+                "단체 챌린지 인증 내역 조회에 성공했습니다.",
+                GroupChallengeVerificationListResponseDto.from(result)
+        ));
     }
 
     @GetMapping("/rules")
