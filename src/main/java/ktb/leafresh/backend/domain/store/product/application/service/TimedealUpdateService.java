@@ -13,6 +13,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -29,22 +31,32 @@ public class TimedealUpdateService {
         TimedealPolicy policy = timedealPolicyRepository.findById(dealId)
                 .orElseThrow(() -> new CustomException(TimedealErrorCode.PRODUCT_NOT_FOUND));
 
-        if (dto.startTime() != null && dto.endTime() != null && dto.startTime().isAfter(dto.endTime())) {
-            throw new CustomException(TimedealErrorCode.INVALID_TIME);
-        }
+        boolean shouldUpdateStockCache = false;
+        boolean isStockChanged = false;
+        boolean isTimeChanged = false;
 
+        int originalStock = policy.getStock();
+        LocalDateTime originalStart = policy.getStartTime();
+        LocalDateTime originalEnd = policy.getEndTime();
+
+        // 시간 유효성 검사
         if (dto.startTime() != null && dto.endTime() != null) {
+            if (dto.startTime().isAfter(dto.endTime())) {
+                throw new CustomException(TimedealErrorCode.INVALID_TIME);
+            }
+
             boolean hasOverlap = timedealPolicyRepository.existsByProductIdAndTimeOverlapExceptSelf(
                     policy.getProduct().getId(), dto.startTime(), dto.endTime(), dealId);
             if (hasOverlap) throw new CustomException(TimedealErrorCode.OVERLAPPING_TIME);
-            policy.updateTime(dto.startTime(), dto.endTime());
 
-            log.info("[TimedealUpdateService] 타임딜 재고 캐시 시도 - policyId={}, stock={}, endTime={}",
-                    policy.getId(), policy.getStock(), dto.endTime());
-            productCacheService.cacheTimedealStock(policy.getId(), policy.getStock(), dto.endTime());
-            log.info("[TimedealUpdateService] 타임딜 재고 캐시 완료 - policyId={}", policy.getId());
+            if (!dto.startTime().equals(originalStart) || !dto.endTime().equals(originalEnd)) {
+                policy.updateTime(dto.startTime(), dto.endTime());
+                shouldUpdateStockCache = true;
+                isTimeChanged = true;
+            }
         }
 
+        // 가격/퍼센트 유효성
         if (dto.discountedPrice() != null && dto.discountedPrice() < 1) {
             throw new CustomException(TimedealErrorCode.INVALID_PRICE);
         }
@@ -52,17 +64,36 @@ public class TimedealUpdateService {
             throw new CustomException(TimedealErrorCode.INVALID_PERCENT);
         }
 
-        policy.updatePriceAndPercent(dto.discountedPrice(), dto.discountedPercentage());
+        if (dto.discountedPrice() != null || dto.discountedPercentage() != null) {
+            policy.updatePriceAndPercent(dto.discountedPrice(), dto.discountedPercentage());
+        }
 
+        // 재고 유효성 및 업데이트
+        if (dto.stock() == null || dto.stock() < 0) {
+            throw new CustomException(TimedealErrorCode.INVALID_STOCK);
+        }
+        if (!dto.stock().equals(originalStock)) {
+            policy.updateStock(dto.stock());
+            shouldUpdateStockCache = true;
+            isStockChanged = true;
+        }
+
+        // 캐시 갱신
+        if (shouldUpdateStockCache) {
+            productCacheService.cacheTimedealStock(policy.getId(), policy.getStock(), policy.getEndTime());
+            String reason = isStockChanged ? "재고 변경"
+                    : isTimeChanged ? "시간 변경"
+                    : "기타";
+            log.info("[TimedealUpdateService] 타임딜 캐시 갱신 - policyId={}, 이유: {}", policy.getId(), reason);
+        }
+
+        // 단건 캐시 + ZSet + 목록 무효화
         productCacheService.evictTimedealCache(policy);
         productCacheService.updateSingleTimedealCache(policy);
+
+        // 상품 전체 갱신 이벤트
         eventPublisher.publishEvent(new ProductUpdatedEvent(policy.getProduct().getId(), true));
 
-        try {
-            log.info("타임딜 수정 완료 - id={}", policy.getId());
-        } catch (Exception e) {
-            log.error("타임딜 수정 실패", e);
-            throw new CustomException(TimedealErrorCode.TIMEDEAL_SAVE_FAIL);
-        }
+        log.info("타임딜 수정 완료 - id={}", policy.getId());
     }
 }
