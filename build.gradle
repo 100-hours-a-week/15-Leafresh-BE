@@ -97,6 +97,10 @@ dependencies {
 	implementation 'io.grpc:grpc-auth:1.62.2'
 	implementation 'io.grpc:grpc-protobuf:1.62.2'
 	implementation 'io.grpc:grpc-stub:1.62.2'
+
+	// ShedLock
+	implementation 'net.javacrumbs.shedlock:shedlock-spring:5.10.0'
+	implementation 'net.javacrumbs.shedlock:shedlock-provider-redis-spring:5.10.0'
 }
 
 dependencyManagement {
