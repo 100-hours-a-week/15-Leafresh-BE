@@ -16,13 +16,16 @@ import ktb.leafresh.backend.global.exception.ChallengeErrorCode;
 import ktb.leafresh.backend.global.exception.CustomException;
 import ktb.leafresh.backend.global.exception.VerificationErrorCode;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
+@Slf4j
 @RequiredArgsConstructor
 @Service
 public class GroupChallengeVerificationSubmitService {
@@ -32,6 +35,9 @@ public class GroupChallengeVerificationSubmitService {
     private final GroupChallengeVerificationRepository verificationRepository;
     private final VerificationSubmitValidator validator;
     private final ApplicationEventPublisher eventPublisher;
+    private final StringRedisTemplate redisTemplate;
+
+    private static final String TOTAL_VERIFICATION_COUNT_KEY = "leafresh:totalVerifications:count";
 
     @Transactional
     public void submit(Long memberId, Long challengeId, GroupChallengeVerificationRequestDto dto) {
@@ -79,6 +85,13 @@ public class GroupChallengeVerificationSubmitService {
 
         } catch (Exception e) {
             throw new CustomException(VerificationErrorCode.AI_SERVER_ERROR);
+        }
+
+        try {
+            redisTemplate.opsForValue().increment(TOTAL_VERIFICATION_COUNT_KEY);
+            log.debug("[GroupChallengeVerificationSubmitService] Redis 인증 수 캐시 1 증가 완료");
+        } catch (Exception e) {
+            log.warn("[GroupChallengeVerificationSubmitService] Redis 인증 수 캐시 증가 실패", e);
         }
     }
 }
