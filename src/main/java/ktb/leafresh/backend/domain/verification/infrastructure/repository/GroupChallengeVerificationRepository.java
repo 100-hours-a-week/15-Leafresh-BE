@@ -166,4 +166,7 @@ public interface GroupChallengeVerificationRepository extends JpaRepository<Grou
             "v.id, v.viewCount, v.likeCount, v.commentCount) " +
             "FROM GroupChallengeVerification v WHERE v.id = :id")
     Optional<VerificationStatSnapshot> findStatById(@Param("id") Long id);
+
+    @Query("SELECT COUNT(g) FROM GroupChallengeVerification g")
+    int countAll();
 }
