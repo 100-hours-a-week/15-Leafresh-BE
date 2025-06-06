@@ -34,7 +34,9 @@ public enum VerificationErrorCode implements BaseErrorCode {
     VERIFICATION_LIST_QUERY_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "서버 내부 오류로 인해 인증 내역을 조회하지 못했습니다."),
     VERIFICATION_DETAIL_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 인증입니다."),
     VERIFICATION_DETAIL_QUERY_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "서버 내부 오류로 인해 인증 상세 정보를 조회하지 못했습니다."),
-    COMMENT_CREATE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "서버 내부 오류로 인해 댓글 작성에 실패했습니다.");
+    COMMENT_CREATE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "서버 내부 오류로 인해 댓글 작성에 실패했습니다."),
+    COMMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "댓글을 찾을 수 없습니다."),
+    CANNOT_REPLY_TO_DELETED_COMMENT(HttpStatus.BAD_REQUEST, "삭제된 댓글에는 대댓글을 작성할 수 없습니다.");
 
     private final HttpStatus status;
     private final String message;
