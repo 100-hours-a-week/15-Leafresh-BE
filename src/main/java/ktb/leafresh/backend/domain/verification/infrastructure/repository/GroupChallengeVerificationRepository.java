@@ -1,6 +1,7 @@
 package ktb.leafresh.backend.domain.verification.infrastructure.repository;
 
 import ktb.leafresh.backend.domain.challenge.group.domain.entity.GroupChallengeCategory;
+import ktb.leafresh.backend.domain.verification.application.dto.VerificationStatSnapshot;
 import ktb.leafresh.backend.domain.verification.domain.entity.GroupChallengeVerification;
 import ktb.leafresh.backend.global.common.entity.enums.ChallengeStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -142,4 +143,27 @@ public interface GroupChallengeVerificationRepository extends JpaRepository<Grou
                       @Param("comment") int comment);
 
     Optional<GroupChallengeVerification> findByIdAndDeletedAtIsNull(Long id);
+
+    @Query("""
+    SELECT v.id, v.viewCount
+    FROM GroupChallengeVerification v
+    WHERE v.deletedAt IS NULL
+    """)
+    List<Object[]> findAllViewCountByVerificationId();
+
+    @Modifying
+    @Query("UPDATE GroupChallengeVerification g SET " +
+            "g.viewCount = g.viewCount + :viewCount, " +
+            "g.likeCount = g.likeCount + :likeCount, " +
+            "g.commentCount = g.commentCount + :commentCount " +
+            "WHERE g.id = :verificationId")
+    void increaseCounts(@Param("verificationId") Long verificationId,
+                        @Param("viewCount") int viewCount,
+                        @Param("likeCount") int likeCount,
+                        @Param("commentCount") int commentCount);
+
+    @Query("SELECT new ktb.leafresh.backend.domain.verification.application.dto.VerificationStatSnapshot(" +
+            "v.id, v.viewCount, v.likeCount, v.commentCount) " +
+            "FROM GroupChallengeVerification v WHERE v.id = :id")
+    Optional<VerificationStatSnapshot> findStatById(@Param("id") Long id);
 }
