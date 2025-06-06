@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/challenges/group/{challengeId}/verifications/{verificationId}/comments")
-public class GroupVerificationCommentCreateController {
+public class GroupVerificationCommentManageController {
 
     private final GroupVerificationCommentCreateService groupVerificationCommentCreateService;
 
@@ -46,6 +46,36 @@ public class GroupVerificationCommentCreateController {
         } catch (Exception e) {
             log.error("[댓글 생성 실패] challengeId={}, verificationId={}, memberId={}, error={}",
                     challengeId, verificationId, memberId, e.getMessage(), e);
+            throw new CustomException(VerificationErrorCode.COMMENT_CREATE_FAILED);
+        }
+    }
+
+    @PostMapping("/{commentId}/replies")
+    public ResponseEntity<ApiResponse<CommentResponseDto>> createReply(
+            @PathVariable Long challengeId,
+            @PathVariable Long verificationId,
+            @PathVariable Long commentId,
+            @Valid @RequestBody GroupVerificationCommentCreateRequestDto requestDto,
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        if (userDetails == null) {
+            throw new CustomException(GlobalErrorCode.UNAUTHORIZED);
+        }
+
+        Long memberId = userDetails.getMemberId();
+
+        try {
+            CommentResponseDto response = groupVerificationCommentCreateService.createReply(
+                    challengeId, verificationId, commentId, memberId, requestDto
+            );
+
+            return ResponseEntity.ok(ApiResponse.success("대댓글이 작성되었습니다.", response));
+
+        } catch (CustomException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("[대댓글 생성 실패] challengeId={}, verificationId={}, commentId={}, memberId={}, error={}",
+                    challengeId, verificationId, commentId, memberId, e.getMessage(), e);
             throw new CustomException(VerificationErrorCode.COMMENT_CREATE_FAILED);
         }
     }
