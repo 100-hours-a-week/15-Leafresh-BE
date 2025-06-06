@@ -5,6 +5,7 @@ import ktb.leafresh.backend.domain.challenge.group.domain.entity.GroupChallengeP
 import ktb.leafresh.backend.global.common.entity.BaseEntity;
 import ktb.leafresh.backend.global.common.entity.enums.ChallengeStatus;
 import lombok.*;
+import org.hibernate.annotations.ColumnDefault;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -49,12 +50,15 @@ public class GroupChallengeVerification extends BaseEntity {
     private boolean rewarded;
 
     @Column(name = "view_count", nullable = false)
+    @ColumnDefault("0")
     private int viewCount;
 
     @Column(name = "like_count", nullable = false)
+    @ColumnDefault("0")
     private int likeCount;
 
     @Column(name = "comment_count", nullable = false)
+    @ColumnDefault("0")
     private int commentCount;
 
     @PrePersist
