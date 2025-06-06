@@ -6,7 +6,13 @@ import ktb.leafresh.backend.global.common.entity.BaseEntity;
 import lombok.*;
 
 @Entity
-@Table(name = "likes", indexes = @Index(name = "idx_like_deleted", columnList = "deleted_at"))
+@Table(
+        name = "likes",
+        indexes = @Index(name = "idx_like_deleted", columnList = "deleted_at"),
+        uniqueConstraints = {
+                @UniqueConstraint(name = "uq_verification_member", columnNames = {"verification_id", "member_id"})
+        }
+)
 @Getter
 @Builder
 @AllArgsConstructor
@@ -24,4 +30,8 @@ public class Like extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id", nullable = false)
     private Member member;
+
+    public void restoreLike() {
+        super.restore();
+    }
 }
