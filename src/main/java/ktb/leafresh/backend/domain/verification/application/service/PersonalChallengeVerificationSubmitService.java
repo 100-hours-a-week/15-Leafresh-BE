@@ -82,6 +82,7 @@ public class PersonalChallengeVerificationSubmitService {
                     .challengeId(challengeId)
                     .date(now.format(DateTimeFormatter.ISO_LOCAL_DATE))
                     .challengeName(challenge.getTitle())
+                    .challengeInfo(challenge.getDescription())
                     .build();
 
             eventPublisher.publishEvent(new VerificationCreatedEvent(aiRequest));
