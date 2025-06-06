@@ -58,4 +58,44 @@ public class GroupVerificationCommentCreateService {
             throw new CustomException(VerificationErrorCode.COMMENT_CREATE_FAILED);
         }
     }
+
+    @Transactional
+    public CommentResponseDto createReply(Long challengeId, Long verificationId, Long parentCommentId, Long memberId, GroupVerificationCommentCreateRequestDto dto) {
+        try {
+            Member member = memberRepository.findById(memberId)
+                    .orElseThrow(() -> new CustomException(MemberErrorCode.MEMBER_NOT_FOUND));
+
+            GroupChallengeVerification verification = verificationRepository.findByIdAndDeletedAtIsNull(verificationId)
+                    .orElseThrow(() -> new CustomException(VerificationErrorCode.VERIFICATION_DETAIL_NOT_FOUND));
+
+            Comment parentComment = commentRepository.findById(parentCommentId)
+                    .orElseThrow(() -> new CustomException(VerificationErrorCode.COMMENT_NOT_FOUND));
+
+            if (parentComment.getDeletedAt() != null) {
+                throw new CustomException(VerificationErrorCode.CANNOT_REPLY_TO_DELETED_COMMENT);
+            }
+
+            Comment reply = Comment.builder()
+                    .verification(verification)
+                    .member(member)
+                    .content(dto.content())
+                    .parentComment(parentComment)
+                    .build();
+
+            commentRepository.save(reply);
+            verificationStatCacheService.increaseCommentCount(verificationId);
+
+            log.info("[대댓글 생성 완료] verificationId={}, parentCommentId={}, replyId={}, memberId={}",
+                    verificationId, parentCommentId, reply.getId(), memberId);
+
+            return CommentResponseDto.from(reply);
+
+        } catch (CustomException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("[대댓글 생성 실패] challengeId={}, verificationId={}, parentCommentId={}, memberId={}, error={}",
+                    challengeId, verificationId, parentCommentId, memberId, e.getMessage(), e);
+            throw new CustomException(VerificationErrorCode.COMMENT_CREATE_FAILED);
+        }
+    }
 }
