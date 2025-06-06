@@ -1,19 +1,24 @@
 package ktb.leafresh.backend.domain.member.application.service;
 
 import ktb.leafresh.backend.domain.challenge.group.domain.entity.GroupChallengeParticipantRecord;
+import ktb.leafresh.backend.domain.member.application.service.updater.LeafPointCacheUpdater;
 import ktb.leafresh.backend.domain.member.domain.entity.Member;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class RewardGrantService {
 
     private static final int SIGNUP_REWARD = 1500;
     private static final int DAILY_LOGIN_REWARD = 10;
+    private final LeafPointCacheUpdater rewardService;
 
     public void grantLeafPoints(Member member, int points) {
         member.addLeafPoints(points);
+        rewardService.rewardLeafPoints(member, points);
         log.info("[나뭇잎 지급] memberId={}, 지급량={}, 현재={}, 누적={}",
                 member.getId(), points, member.getCurrentLeafPoints(), member.getTotalLeafPoints());
     }
