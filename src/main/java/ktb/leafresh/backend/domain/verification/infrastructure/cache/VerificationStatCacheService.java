@@ -19,35 +19,12 @@ public class VerificationStatCacheService {
     private final StringRedisTemplate stringRedisTemplate;
     private final RedisTemplate<String, Object> redisTemplate;
 
-    public void increaseViewCount(Long verificationId) {
-        increaseStat(verificationId, "viewCount", 1);
-    }
-
-    public void increaseLikeCount(Long verificationId) {
-        increaseStat(verificationId, "likeCount", 1);
-    }
-
-    public void decreaseLikeCount(Long verificationId) {
-        increaseStat(verificationId, "likeCount", -1);
-    }
-
-    public void increaseCommentCount(Long verificationId) {
-        increaseStat(verificationId, "commentCount", 1);
-    }
-
-    public void decreaseCommentCount(Long verificationId) {
-        increaseStat(verificationId, "commentCount", -1);
-    }
-
-    private void increaseStat(Long verificationId, String field, int delta) {
-        String key = VerificationCacheKeys.stat(verificationId);
-        stringRedisTemplate.opsForHash().increment(key, field, delta);
-        stringRedisTemplate.opsForSet().add(VerificationCacheKeys.dirtySetKey(), verificationId.toString());
-
-        // TTL 설정: 매 이벤트마다 갱신 (캐시 자동 정리)
-        stringRedisTemplate.expire(key, TTL);
-
-        log.debug("[VerificationStatCache] {}:{} += {}", key, field, delta);
+    public void initializeVerificationStats(Long verificationId, int viewCount, int likeCount, int commentCount) {
+        String key = "verification:stat:" + verificationId;
+        stringRedisTemplate.opsForHash().put(key, "viewCount", Integer.toString(viewCount));
+        stringRedisTemplate.opsForHash().put(key, "likeCount", Integer.toString(likeCount));
+        stringRedisTemplate.opsForHash().put(key, "commentCount", Integer.toString(commentCount));
+        redisTemplate.expire(key, TTL);
     }
 
     public Map<Object, Object> getStats(Long verificationId) {
