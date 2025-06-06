@@ -31,4 +31,8 @@ public abstract class BaseEntity {
     public boolean isDeleted() {
         return deletedAt != null;
     }
+
+    protected void restore() {
+        this.deletedAt = null;
+    }
 }
