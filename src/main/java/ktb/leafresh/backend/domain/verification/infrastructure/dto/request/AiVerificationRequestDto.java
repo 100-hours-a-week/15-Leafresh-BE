@@ -11,5 +11,6 @@ public record AiVerificationRequestDto(
         Long memberId,
         Long challengeId,
         String date,
-        String challengeName
+        String challengeName,
+        String challengeInfo
 ) {}
