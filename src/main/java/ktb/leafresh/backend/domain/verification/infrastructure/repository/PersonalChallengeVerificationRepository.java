@@ -72,4 +72,7 @@ public interface PersonalChallengeVerificationRepository extends JpaRepository<P
             @Param("start") LocalDateTime start,
             @Param("end") LocalDateTime end
     );
+
+    @Query("SELECT COUNT(p) FROM PersonalChallengeVerification p")
+    int countAll();
 }
