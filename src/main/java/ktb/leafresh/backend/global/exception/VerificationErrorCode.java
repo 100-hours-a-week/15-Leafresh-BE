@@ -38,7 +38,8 @@ public enum VerificationErrorCode implements BaseErrorCode {
     COMMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "댓글을 찾을 수 없습니다."),
     CANNOT_REPLY_TO_DELETED_COMMENT(HttpStatus.BAD_REQUEST, "삭제된 댓글에는 대댓글을 작성할 수 없습니다."),
     COMMENT_UPDATE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "서버 내부 오류로 인해 댓글 수정에 실패했습니다."),
-    CANNOT_EDIT_DELETED_COMMENT(HttpStatus.BAD_REQUEST, "삭제된 댓글은 수정할 수 없습니다.");
+    CANNOT_EDIT_DELETED_COMMENT(HttpStatus.BAD_REQUEST, "삭제된 댓글은 수정할 수 없습니다."),
+    VERIFICATION_COUNT_QUERY_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "서버 내부 오류로 인해 누적 사용자 인증 수 조회에 실패했습니다.");
 
     private final HttpStatus status;
     private final String message;
