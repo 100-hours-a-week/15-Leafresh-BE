@@ -288,6 +288,8 @@ jobs:
     outputs:
       status: ${{ steps.set-status.outputs.status }}
     steps:
+      - uses: actions/checkout@v3              # 소스코드 체크아웃
+
       # - name: Setup SSH Key
       #   uses: webfactory/ssh-agent@v0.9.0
       #   with:
