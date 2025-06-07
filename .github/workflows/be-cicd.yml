@@ -7,7 +7,6 @@ on:
       - 'v*'
   pull_request:
     branches: ["develop", "main"]
-
     
 jobs:
   sync-env-to-GSM:
