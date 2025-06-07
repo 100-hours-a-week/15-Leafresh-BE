@@ -241,7 +241,6 @@ jobs:
 
   build-prod:                                   # main 브랜치에서 Docker 이미지 빌드 및 푸시
     name: Build and Push Docker (prod)
-    # if: startsWith(github.ref, 'refs/tags/v') && !endsWith(github.ref, '-dev')
     needs: [integration-test]
     runs-on: ubuntu-latest
     defaults:
@@ -249,13 +248,6 @@ jobs:
         working-directory: ./
     steps:
       - uses: actions/checkout@v3              # 코드 체크아웃
-
-      # - name: Set short commit SHA
-      #   run: echo "SHORT_SHA=${GITHUB_SHA::7}" >> $GITHUB_ENV
-      
-      # - name: Extract version from tag
-      #   id: extract_version
-      #   run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
 
       - name: Set up Docker Buildx             # Docker Buildx 설정
         uses: docker/setup-buildx-action@v3
@@ -282,7 +274,6 @@ jobs:
 
   deploy-dev:
     name: BE Docker 배포 (Develop)
-    # needs: [build-dev]
     if: startsWith(github.ref, 'refs/tags/v') && endsWith(github.ref, '-dev')
     runs-on: ubuntu-latest
     outputs:
@@ -311,7 +302,6 @@ jobs:
             gcloud auth configure-docker
 
             echo "Secret Manager에서 .env 기져오기"
-            mkdir -p /home/ubuntu/app
             if ! gcloud secrets versions access latest \
               --secret="env-be-dev" \
               --project="leafresh-dev2" > /home/ubuntu/backend/app/.env; then
@@ -320,7 +310,8 @@ jobs:
             fi
             
             echo "[DEV] 환경 배포 중"
-            cd /opt/backend
+            cd /home/ubuntu/backend
+            sudo chown ubuntu:ubuntu /home/ubuntu/backend/app/leafresh-gcs.json
             sudo docker-compose pull app
             sudo docker-compose up -d app
             sudo docker-compose ps
