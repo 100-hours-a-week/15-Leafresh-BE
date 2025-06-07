@@ -290,22 +290,6 @@ jobs:
     steps:
       - uses: actions/checkout@v3              # 소스코드 체크아웃
 
-      # - name: Setup SSH Key
-      #   uses: webfactory/ssh-agent@v0.9.0
-      #   with:
-      #     ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
-
-      # - name: Extract commit SHA from tag
-      #   run: |
-      #     TAG="${GITHUB_REF#refs/tags/}"
-      #     COMMIT_SHA=$(git rev-list -n 1 "$TAG")
-      #     SHORT_SHA=${COMMIT_SHA:0:7}
-      #     echo "SHORT_SHA=$SHORT_SHA" >> $GITHUB_ENV
-
-      # - name: Upload GCP json key as Gihtub Action ENV
-      #   run: |
-      #     echo "GCP_SA_KEY=$(echo '${{ secrets.GCP_SA_KEY_DEV_BASE64 }}')" >> $GITHUB_ENV
-
       - name: Extract tag name
         id: tag
         run: |
@@ -322,15 +306,15 @@ jobs:
           script: |
             set -e
             echo "GCP 인증 및 Docker 로그인"
-            echo '${{ secrets.GCP_SA_KEY_DEV_BASE64 }}' | base64 -d > /opt/backend/app/leafresh-gcs.json
-            gcloud auth activate-service-account --key-file=/opt/backend/app/leafresh-gcs.json
+            echo '${{ secrets.GCP_SA_KEY_DEV_BASE64 }}' | base64 -d > /home/ubuntu/backend/app/leafresh-gcs.json
+            gcloud auth activate-service-account --key-file=/home/ubuntu/backend/app/leafresh-gcs.json
             gcloud auth configure-docker
 
             echo "Secret Manager에서 .env 기져오기"
             mkdir -p /home/ubuntu/app
             if ! gcloud secrets versions access latest \
               --secret="env-be-dev" \
-              --project="leafresh-dev2" > /opt/backend/app/.env; then
+              --project="leafresh-dev2" > /home/ubuntu/backend/app/.env; then
               echo ".env 파일 다운로드 실패"
               exit 1
             fi
