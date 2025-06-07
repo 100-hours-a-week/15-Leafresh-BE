@@ -315,7 +315,7 @@ jobs:
           script: |
             set -e
             echo "GCP 인증 및 Docker 로그인"
-            echo "${GCP_SA_KEY}" | base64 -d > /home/ubuntu/leafresh-gcs.json
+            echo "${{ secrets.GCP_SA_KEY_DEV_BASE64 }}" | base64 -d > /home/ubuntu/leafresh-gcs.json
             gcloud auth activate-service-account --key-file=/home/ubuntu/leafresh-gcs.json
             gcloud auth configure-docker
 
