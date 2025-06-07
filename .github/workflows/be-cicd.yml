@@ -305,7 +305,7 @@ jobs:
       - name: Upload GCP json key to BE Server
         run: |
           echo "${{ secrets.GCP_SA_KEY_DEV_BASE64 }}" | base64 -d > leafresh-gcs.json
-          scp -o StrictHostKeyChecking=no gcp-key.json ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST_DEV }}:/home/ubuntu/leafresh-gcs.json
+          scp -o StrictHostKeyChecking=no leafresh-gcs.json ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST_DEV }}:/home/ubuntu/leafresh-gcs.json
 
       - name: Deploy Backend (Develop) via SSH
         uses: appleboy/ssh-action@v1.0.3
