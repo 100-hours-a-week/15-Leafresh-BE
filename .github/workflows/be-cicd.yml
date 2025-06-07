@@ -328,6 +328,9 @@ jobs:
               exit 1
             fi
 
+            echo "json 파일 저장 중"
+            echo '${{ secrets.GCP_SA_KEY_DEV_BASE64 }}' | base64 -d > /home/ubuntu/leafresh-gcs.json
+            
             echo "[DEV] 환경 배포 중"
             IMAGE="jchanho99/backend-develop:${SHORT_SHA}"
             sudo docker stop backend-develop || true
