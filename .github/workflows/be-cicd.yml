@@ -322,33 +322,24 @@ jobs:
           script: |
             set -e
             echo "GCP 인증 및 Docker 로그인"
-            echo "${{ secrets.GCP_SA_KEY_DEV_BASE64 }}" | base64 -d > /home/ubuntu/leafresh-gcs.json
-            gcloud auth activate-service-account --key-file=/home/ubuntu/leafresh-gcs.json
+            echo '${{ secrets.GCP_SA_KEY_DEV_BASE64 }}' | base64 -d > /opt/backend/app/leafresh-gcs.json
+            gcloud auth activate-service-account --key-file=/opt/backend/app/leafresh-gcs.json
             gcloud auth configure-docker
 
             echo "Secret Manager에서 .env 기져오기"
             mkdir -p /home/ubuntu/app
             if ! gcloud secrets versions access latest \
               --secret="env-be-dev" \
-              --project="leafresh-dev2" > /home/ubuntu/app/.env; then
+              --project="leafresh-dev2" > /opt/backend/app/.env; then
               echo ".env 파일 다운로드 실패"
               exit 1
             fi
-
-            echo "json 파일 저장 중"
-            echo '${{ secrets.GCP_SA_KEY_DEV_BASE64 }}' | base64 -d > /home/ubuntu/leafresh-gcs.json
             
             echo "[DEV] 환경 배포 중"
-            IMAGE="jchanho99/backend-develop:latest"
-            sudo docker stop backend-develop || true
-            sudo docker rm backend-develop || true
-            sudo docker pull "$IMAGE"
-            sudo docker run -d --name backend-develop \
-              --env-file /home/ubuntu/app/.env \
-              -p 8080:8080 \
-              --network backend_default \
-              --restart always \
-              "$IMAGE"
+            cd /opt/backend
+            sudo docker-compose pull app
+            sudo docker-compose up -d app
+            sudo docker-compose ps
 
       - name: Upload tag-versioned image to Docker Hub
         uses: docker/login-action@v3
