@@ -308,8 +308,8 @@ jobs:
             echo "[DEV] 환경 배포 중"
             cd /home/ubuntu/backend
             sudo docker compose down --rmi all
-            sudo docker compose pull app
-            sudo docker compose up -d app
+            sudo docker compose pull
+            sudo docker compose up -d
             sudo docker compose ps
 
       - name: Upload tag-versioned image to Docker Hub
