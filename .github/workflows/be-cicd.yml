@@ -30,12 +30,12 @@ jobs:
           if [[ "${GITHUB_REF##*/}" == "main" ]]; then
             echo "GCP_PROJECT_ID=${{ secrets.GCP_PROJECT_ID_PROD }}" >> $GITHUB_ENV
             echo "SECRET_NAME=env-be-prod" >> $GITHUB_ENV
-            echo "${{ secrets.ENV_DOCKER_PROD }}" > .env
+            echo "${{ secrets.ENV_BE_PROD }}" > .env
             echo "Using A project and production .env"
           else
             echo "GCP_PROJECT_ID=${{ secrets.GCP_PROJECT_ID_DEV }}" >> $GITHUB_ENV
             echo "SECRET_NAME=env-be-dev" >> $GITHUB_ENV
-            echo "${{ secrets.ENV_DOCKER_LOCAL }}" > .env
+            echo "${{ secrets.ENV_BE_DEV }}" > .env
             echo "Using B project and development .env"
           fi
 
@@ -138,7 +138,7 @@ jobs:
           java-version: 21
 
       - name: Create .env file from GitHub Secret
-        run: echo "${{ secrets.ENV_DOCKER_LOCAL }}" > .env
+        run: echo "${{ secrets.ENV_BE_DEV }}" > .env
 
       - name: Export environment variables
         run: |
