@@ -312,6 +312,7 @@ jobs:
           host: ${{ secrets.SSH_HOST_DEV }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
+          envs: SHORT_SHA
           script: |
             set -e
             echo "GCP 인증 및 Docker 로그인"
