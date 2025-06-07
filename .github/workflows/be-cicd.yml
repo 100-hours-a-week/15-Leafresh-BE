@@ -333,10 +333,8 @@ jobs:
             
             echo "[DEV] 환경 배포 중"
             IMAGE="jchanho99/backend-develop:${SHORT_SHA}"
-            # sudo docker stop backend-develop || true
-            # sudo docker rm backend-develop || true
-            sudo docker stop frontend-develop || true
-            sudo docker rm frontend-develop || true
+            sudo docker stop backend-develop || true
+            sudo docker rm backend-develop || true
             sudo docker pull "$IMAGE"
             sudo docker run -d --name backend-develop \
               --env-file /home/ubuntu/app/.env \
