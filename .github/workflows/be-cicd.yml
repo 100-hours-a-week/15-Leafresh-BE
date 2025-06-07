@@ -235,7 +235,7 @@ jobs:
           file: ./Dockerfile
           push: true
           tags: |
-            jchanho99/frontend-develop:${{ env.SHORT_SHA }}
+            jchanho99/backend-develop:${{ env.SHORT_SHA }}
           cache-from: type=gha,scope=build-backend-develop
           cache-to: type=gha,mode=max,scope=build-backend-develop
 
