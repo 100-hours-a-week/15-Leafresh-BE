@@ -292,12 +292,18 @@ jobs:
             sudo chmod 600 /home/ubuntu/backend/app/leafresh-gcs.json
 
             echo "Secret Manager에서 .env 기져오기"
+            # .env를 홈 디렉토리에 우선 저장
             if ! gcloud secrets versions access latest \
               --secret="env-be-dev" \
-              --project="leafresh-dev2" > /home/ubuntu/backend/app/.env; then
+              --project="leafresh-dev2" > ~/env-be-dev.tmp; then
               echo ".env 파일 다운로드 실패"
               exit 1
             fi
+            
+            # 권한 수정 후 앱 디렉토리로 이동
+            sudo mv ~/env-be-dev.tmp /home/ubuntu/backend/app/.env
+            sudo chown ubuntu:ubuntu /home/ubuntu/backend/app/.env
+            sudo chmod 600 /home/ubuntu/backend/app/.env
             
             echo "[DEV] 환경 배포 중"
             cd /home/ubuntu/backend
