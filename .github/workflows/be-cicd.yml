@@ -154,7 +154,7 @@ jobs:
           grep -v '^#' .env | xargs -L1 echo export >> $GITHUB_ENV
       
       - name: Create GCP credentials file
-        run: echo "${{ secrets.GCP_SA_KEY_DEV_BASE64 }}" | base64 -d > /home/runner/gcp-sa-key.json
+        run: echo "${{ secrets.GCP_SA_KEY_DEV_BASE64 }}" | base64 -d > /home/runner/leafresh2-428172295b3d.json
 
       - name: Build Spring Boot App
         run: ./gradlew bootJar
@@ -301,7 +301,7 @@ jobs:
       - name: Upload GCP json key to BE Server
         run: |
           echo "${{ secrets.GCP_SA_KEY_DEV_BASE64 }}" | base64 -d > gcp-key.json
-          scp -o StrictHostKeyChecking=no gcp-key.json ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST_DEV }}:/home/ubuntu/gcp-key.json
+          scp -o StrictHostKeyChecking=no gcp-key.json ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST_DEV }}:/home/ubuntu/leafresh2-428172295b3d.json
 
       - name: Deploy Backend (Develop) via SSH
         uses: appleboy/ssh-action@v1.0.3
@@ -312,7 +312,7 @@ jobs:
           script: |
             set -e
             echo "GCP 인증 및 Docker 로그인"
-            gcloud auth activate-service-account --key-file=/home/ubuntu/gcp-key.json
+            gcloud auth activate-service-account --key-file=/home/ubuntu/leafresh2-428172295b3d.json
             gcloud auth configure-docker
 
             echo "Secret Manager에서 .env 기져오기"
