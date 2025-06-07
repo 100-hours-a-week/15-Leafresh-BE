@@ -339,7 +339,7 @@ jobs:
             sudo docker run -d --name backend-develop \
               --env-file /home/ubuntu/app/.env \
               -p 8080:8080 \
-              --network backend_default
+              --network backend_default \
               --restart always \
               "$IMAGE"
       
