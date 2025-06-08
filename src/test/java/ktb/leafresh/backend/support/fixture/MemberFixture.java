@@ -1,6 +1,7 @@
 package ktb.leafresh.backend.support.fixture;
 
 import ktb.leafresh.backend.domain.member.domain.entity.Member;
+import ktb.leafresh.backend.domain.member.domain.entity.TreeLevel;
 import ktb.leafresh.backend.domain.member.domain.entity.enums.LoginType;
 import ktb.leafresh.backend.domain.member.domain.entity.enums.Role;
 
@@ -13,9 +14,13 @@ public class MemberFixture {
     }
 
     public static Member of(Long id, String email, String nickname) {
+        return of(id, email, nickname, TreeLevelFixture.defaultLevel());
+    }
+
+    public static Member of(Long id, String email, String nickname, TreeLevel treeLevel) {
         return Member.builder()
                 .id(id)
-                .treeLevel(TreeLevelFixture.defaultLevel())
+                .treeLevel(treeLevel)
                 .loginType(LoginType.SOCIAL)
                 .email(email)
                 .password(null)
@@ -25,7 +30,20 @@ public class MemberFixture {
                 .activated(true)
                 .totalLeafPoints(0)
                 .currentLeafPoints(0)
+
                 .memberBadges(new ArrayList<>())
+                .auths(new ArrayList<>())
+                .groupChallenges(new ArrayList<>())
+                .groupChallengeParticipantRecords(new ArrayList<>())
+                .personalChallengeVerifications(new ArrayList<>())
+                .comments(new ArrayList<>())
+                .likes(new ArrayList<>())
+                .notifications(new ArrayList<>())
+                .productPurchases(new ArrayList<>())
+                .purchaseIdempotencyKeys(new ArrayList<>())
+                .purchaseFailureLogs(new ArrayList<>())
+                .feedbacks(new ArrayList<>())
+
                 .build();
     }
 }
