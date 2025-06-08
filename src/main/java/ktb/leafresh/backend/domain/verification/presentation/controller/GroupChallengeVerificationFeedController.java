@@ -1,8 +1,8 @@
 package ktb.leafresh.backend.domain.verification.presentation.controller;
 
-import ktb.leafresh.backend.domain.challenge.group.presentation.dto.response.GroupChallengeVerificationListResponseDto;
-import ktb.leafresh.backend.domain.challenge.group.presentation.dto.response.GroupChallengeVerificationSummaryDto;
 import ktb.leafresh.backend.domain.verification.application.service.GroupChallengeVerificationFeedService;
+import ktb.leafresh.backend.domain.verification.presentation.dto.response.GroupChallengeVerificationFeedListResponseDto;
+import ktb.leafresh.backend.domain.verification.presentation.dto.response.GroupChallengeVerificationFeedSummaryDto;
 import ktb.leafresh.backend.global.exception.CustomException;
 import ktb.leafresh.backend.global.exception.GlobalErrorCode;
 import ktb.leafresh.backend.global.exception.VerificationErrorCode;
@@ -27,7 +27,7 @@ public class GroupChallengeVerificationFeedController {
     private final GroupChallengeVerificationFeedService feedService;
 
     @GetMapping
-    public ResponseEntity<ApiResponse<GroupChallengeVerificationListResponseDto>> getFeed(
+    public ResponseEntity<ApiResponse<GroupChallengeVerificationFeedListResponseDto>> getFeed(
             @RequestParam(required = false) Long cursorId,
             @RequestParam(required = false) String cursorTimestamp,
             @RequestParam(defaultValue = "12") int size,
@@ -41,12 +41,12 @@ public class GroupChallengeVerificationFeedController {
         Long memberId = userDetails != null ? userDetails.getMemberId() : null;
 
         try {
-            CursorPaginationResult<GroupChallengeVerificationSummaryDto> result =
+            CursorPaginationResult<GroupChallengeVerificationFeedSummaryDto> result =
                     feedService.getGroupChallengeVerifications(cursorId, cursorTimestamp, size, category, memberId);
 
             return ResponseEntity.ok(ApiResponse.success(
                     "단체 챌린지 인증 내역 목록 조회에 성공했습니다.",
-                    GroupChallengeVerificationListResponseDto.from(result)));
+                    GroupChallengeVerificationFeedListResponseDto.from(result)));
 
         } catch (CustomException e) {
             throw e;
