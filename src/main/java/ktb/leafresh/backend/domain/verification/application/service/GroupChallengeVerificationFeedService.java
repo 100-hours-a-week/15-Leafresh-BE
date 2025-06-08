@@ -1,10 +1,10 @@
 package ktb.leafresh.backend.domain.verification.application.service;
 
-import ktb.leafresh.backend.domain.challenge.group.presentation.dto.response.GroupChallengeVerificationSummaryDto;
 import ktb.leafresh.backend.domain.verification.domain.entity.GroupChallengeVerification;
 import ktb.leafresh.backend.domain.verification.infrastructure.cache.VerificationStatCacheService;
 import ktb.leafresh.backend.domain.verification.infrastructure.repository.GroupChallengeVerificationFeedQueryRepository;
 import ktb.leafresh.backend.domain.verification.infrastructure.repository.LikeRepository;
+import ktb.leafresh.backend.domain.verification.presentation.dto.response.GroupChallengeVerificationFeedSummaryDto;
 import ktb.leafresh.backend.global.util.pagination.CursorPaginationHelper;
 import ktb.leafresh.backend.global.util.pagination.CursorPaginationResult;
 import lombok.RequiredArgsConstructor;
@@ -27,7 +27,7 @@ public class GroupChallengeVerificationFeedService {
     private final VerificationStatCacheService verificationStatCacheService;
     private final LikeRepository likeRepository;
 
-    public CursorPaginationResult<GroupChallengeVerificationSummaryDto> getGroupChallengeVerifications(
+    public CursorPaginationResult<GroupChallengeVerificationFeedSummaryDto> getGroupChallengeVerifications(
             Long cursorId,
             String cursorTimestamp,
             int size,
@@ -54,13 +54,13 @@ public class GroupChallengeVerificationFeedService {
         return CursorPaginationHelper.paginateWithTimestamp(
                 verifications,
                 size,
-                v -> GroupChallengeVerificationSummaryDto.from(
+                v -> GroupChallengeVerificationFeedSummaryDto.from(
                         v,
                         redisStats.get(v.getId()),
                         likedIds.contains(v.getId())
                 ),
-                GroupChallengeVerificationSummaryDto::id,
-                GroupChallengeVerificationSummaryDto::createdAt
+                GroupChallengeVerificationFeedSummaryDto::id,
+                GroupChallengeVerificationFeedSummaryDto::createdAt
         );
     }
 }
