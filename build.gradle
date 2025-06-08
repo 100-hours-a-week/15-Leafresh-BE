@@ -125,6 +125,34 @@ jacocoTestReport {
 		html.required = true
 		csv.required = false
 	}
+
+	classDirectories.setFrom(
+			files(classDirectories.files.collect {
+				fileTree(dir: it, exclude: [
+						'**/dto/**',
+						'**/enums/**',
+						'**/*Request*',
+						'**/*Response*'
+				])
+			})
+	)
+}
+
+jacocoTestCoverageVerification {
+	violationRules {
+		rule {
+			element = 'CLASS'
+			excludes = [
+					'**/dto/**',
+					'**/enums/**',
+					'**/*Request*',
+					'**/*Response*'
+			]
+			limit {
+				minimum = 0.80
+			}
+		}
+	}
 }
 
 tasks.named('test') {
