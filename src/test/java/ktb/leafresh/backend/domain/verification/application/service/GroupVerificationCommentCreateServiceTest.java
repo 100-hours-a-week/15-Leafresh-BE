@@ -1,0 +1,160 @@
+package ktb.leafresh.backend.domain.verification.application.service;
+
+import ktb.leafresh.backend.domain.member.domain.entity.Member;
+import ktb.leafresh.backend.domain.verification.domain.entity.Comment;
+import ktb.leafresh.backend.domain.verification.domain.entity.GroupChallengeVerification;
+import ktb.leafresh.backend.domain.verification.infrastructure.repository.CommentRepository;
+import ktb.leafresh.backend.domain.verification.infrastructure.repository.GroupChallengeVerificationRepository;
+import ktb.leafresh.backend.domain.verification.presentation.dto.request.GroupVerificationCommentCreateRequestDto;
+import ktb.leafresh.backend.domain.verification.presentation.dto.response.CommentResponseDto;
+import ktb.leafresh.backend.global.exception.CustomException;
+import ktb.leafresh.backend.global.exception.VerificationErrorCode;
+import ktb.leafresh.backend.global.util.redis.VerificationStatRedisLuaService;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+
+import java.util.Optional;
+
+import static ktb.leafresh.backend.support.fixture.GroupChallengeVerificationFixture.of;
+import static ktb.leafresh.backend.support.fixture.MemberFixture.of;
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
+class GroupVerificationCommentCreateServiceTest {
+
+    private CommentRepository commentRepository;
+    private GroupChallengeVerificationRepository verificationRepository;
+    private VerificationStatRedisLuaService redisLuaService;
+    private ktb.leafresh.backend.domain.member.infrastructure.repository.MemberRepository memberRepository;
+    private GroupVerificationCommentCreateService service;
+
+    private Member member;
+    private GroupChallengeVerification verification;
+
+    @BeforeEach
+    void setUp() {
+        commentRepository = mock(CommentRepository.class);
+        verificationRepository = mock(GroupChallengeVerificationRepository.class);
+        redisLuaService = mock(VerificationStatRedisLuaService.class);
+        memberRepository = mock(ktb.leafresh.backend.domain.member.infrastructure.repository.MemberRepository.class);
+
+        service = new GroupVerificationCommentCreateService(
+                commentRepository,
+                verificationRepository,
+                memberRepository,
+                redisLuaService
+        );
+
+        member = of(1L, "test@leafresh.com", "테스터");
+        verification = of(null);
+    }
+
+    @Test
+    @DisplayName("일반 댓글을 생성한다")
+    void createComment_success() {
+        var requestDto = new GroupVerificationCommentCreateRequestDto("좋은 챌린지네요!");
+        when(memberRepository.findById(1L)).thenReturn(Optional.of(member));
+        when(verificationRepository.findByIdAndDeletedAtIsNull(1L)).thenReturn(Optional.of(verification));
+
+        CommentResponseDto response = service.createComment(1L, 1L, 1L, requestDto);
+
+        assertThat(response.content()).isEqualTo("좋은 챌린지네요!");
+        verify(commentRepository, times(1)).save(any(Comment.class));
+        verify(redisLuaService).increaseVerificationCommentCount(1L);
+    }
+
+    @Test
+    @DisplayName("대댓글을 생성한다")
+    void createReply_success() {
+        var requestDto = new GroupVerificationCommentCreateRequestDto("동의합니다!");
+        Comment parent = Comment.builder()
+                .id(999L)
+                .content("좋은 챌린지네요!")
+                .member(member)
+                .verification(verification)
+                .build();
+
+        when(memberRepository.findById(1L)).thenReturn(Optional.of(member));
+        when(verificationRepository.findByIdAndDeletedAtIsNull(1L)).thenReturn(Optional.of(verification));
+        when(commentRepository.findById(999L)).thenReturn(Optional.of(parent));
+
+        CommentResponseDto response = service.createReply(1L, 1L, 999L, 1L, requestDto);
+
+        assertThat(response.parentCommentId()).isEqualTo(999L);
+        verify(commentRepository, times(1)).save(any(Comment.class));
+        verify(redisLuaService).increaseVerificationCommentCount(1L);
+    }
+
+
+    @Test
+    @DisplayName("삭제된 댓글에 대댓글을 작성하려고 하면 예외가 발생한다")
+    void createReply_fail_deletedParent() {
+        // Given
+        var requestDto = new GroupVerificationCommentCreateRequestDto("동의합니다!");
+        Comment deletedParent = mock(Comment.class);
+        when(deletedParent.getDeletedAt()).thenReturn(java.time.LocalDateTime.now());
+
+        when(memberRepository.findById(1L)).thenReturn(Optional.of(member));
+        when(verificationRepository.findByIdAndDeletedAtIsNull(1L)).thenReturn(Optional.of(verification));
+        when(commentRepository.findById(999L)).thenReturn(Optional.of(deletedParent));
+
+        // When
+        CustomException exception = catchThrowableOfType(
+                () -> service.createReply(1L, 1L, 999L, 1L, requestDto),
+                CustomException.class
+        );
+
+        // Then
+        assertThat(exception).isNotNull();
+        assertThat(exception.getErrorCode()).isEqualTo(VerificationErrorCode.CANNOT_REPLY_TO_DELETED_COMMENT);
+    }
+
+    @Test
+    @DisplayName("댓글 생성 중 예상치 못한 예외가 발생하면 COMMENT_CREATE_FAILED 예외를 반환한다")
+    void createComment_fail_by_unexpected_exception() {
+        // Given
+        var requestDto = new GroupVerificationCommentCreateRequestDto("좋은 챌린지네요!");
+        when(memberRepository.findById(1L)).thenReturn(Optional.of(member));
+        when(verificationRepository.findByIdAndDeletedAtIsNull(1L)).thenReturn(Optional.of(verification));
+        doThrow(new RuntimeException("Redis 에러")).when(redisLuaService).increaseVerificationCommentCount(anyLong());
+
+        // When
+        CustomException exception = catchThrowableOfType(
+                () -> service.createComment(1L, 1L, 1L, requestDto),
+                CustomException.class
+        );
+
+        // Then
+        assertThat(exception).isNotNull();
+        assertThat(exception.getErrorCode()).isEqualTo(VerificationErrorCode.COMMENT_CREATE_FAILED);
+    }
+
+    @Test
+    @DisplayName("대댓글 생성 중 예상치 못한 예외가 발생하면 COMMENT_CREATE_FAILED 예외를 반환한다")
+    void createReply_fail_by_unexpected_exception() {
+        // Given
+        var requestDto = new GroupVerificationCommentCreateRequestDto("저도 동의합니다!");
+        Comment parent = Comment.builder()
+                .id(999L)
+                .content("좋은 챌린지네요!")
+                .member(member)
+                .verification(verification)
+                .build();
+
+        when(memberRepository.findById(1L)).thenReturn(Optional.of(member));
+        when(verificationRepository.findByIdAndDeletedAtIsNull(1L)).thenReturn(Optional.of(verification));
+        when(commentRepository.findById(999L)).thenReturn(Optional.of(parent));
+        doThrow(new RuntimeException("Redis 에러")).when(redisLuaService).increaseVerificationCommentCount(anyLong());
+
+        // When
+        CustomException exception = catchThrowableOfType(
+                () -> service.createReply(1L, 1L, 999L, 1L, requestDto),
+                CustomException.class
+        );
+
+        // Then
+        assertThat(exception).isNotNull();
+        assertThat(exception.getErrorCode()).isEqualTo(VerificationErrorCode.COMMENT_CREATE_FAILED);
+    }
+}
