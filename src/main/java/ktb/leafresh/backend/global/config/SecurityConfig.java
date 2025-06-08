@@ -81,6 +81,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/challenges/events").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/challenges/group/{challengeId:\\d+}/verifications").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/challenges/group/{challengeId:\\d+}/verifications/{verificationId:\\d+}").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/challenges/group/verifications").permitAll()
 
                         // 인증 피드
                         .requestMatchers(HttpMethod.GET, "/api/challenges/group/{challengeId:\\d+}/verifications/{verificationId:\\d+}/comments").permitAll()
@@ -93,7 +94,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/challenges/personal/{challengeId:\\d+}").permitAll()
 
                         // 그 외 개인 챌린지 API는 인증 필요
-                        .requestMatchers("/api/chalglenges/personal/**").authenticated()
+                        .requestMatchers("/api/challenges/personal/**").authenticated()
 
                         // AI로부터 챌린지 인증 결과 받는 API
                         .requestMatchers(HttpMethod.POST, "/api/verifications/**").permitAll()
