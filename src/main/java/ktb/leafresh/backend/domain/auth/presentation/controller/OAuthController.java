@@ -38,13 +38,29 @@ public class OAuthController {
         return ResponseEntity.ok("<h1>카카오 로그인 성공</h1><p>쿠키 확인은 개발자 도구에서</p>");
     }
 
+//    @Operation(summary = "카카오 로그인 리다이렉트", description = "카카오 인증 페이지로 리다이렉트합니다.")
+//    @ApiResponseConstants.RedirectResponses
+//    @GetMapping("/{provider}")
+//    public ResponseEntity<ApiResponse<OAuthRedirectUrlResponseDto>> redirectToProvider(@PathVariable String provider) {
+//        OAuthProvider providerEnum = OAuthProvider.from(provider);
+//        String redirectUrl = oAuthLoginService.getRedirectUrl();
+//
+//        OAuthRedirectUrlResponseDto responseData = new OAuthRedirectUrlResponseDto(redirectUrl);
+//        return ResponseEntity.ok(ApiResponse.success("소셜 로그인 URL을 반환합니다.", responseData));
+//    }
+
     @Operation(summary = "카카오 로그인 리다이렉트", description = "카카오 인증 페이지로 리다이렉트합니다.")
     @ApiResponseConstants.RedirectResponses
     @GetMapping("/{provider}")
-    public ResponseEntity<ApiResponse<OAuthRedirectUrlResponseDto>> redirectToProvider(@PathVariable String provider) {
-        OAuthProvider providerEnum = OAuthProvider.from(provider);
-        String redirectUrl = oAuthLoginService.getRedirectUrl();
+    public ResponseEntity<ApiResponse<OAuthRedirectUrlResponseDto>> redirectToProvider(
+            @PathVariable String provider,
+            @RequestParam(required = false) String origin
+    ) {
+        if (origin == null || origin.isBlank()) {
+            origin = "https://leafresh.app"; // fallback 도메인
+        }
 
+        String redirectUrl = oAuthLoginService.getRedirectUrl(origin);
         OAuthRedirectUrlResponseDto responseData = new OAuthRedirectUrlResponseDto(redirectUrl);
         return ResponseEntity.ok(ApiResponse.success("소셜 로그인 URL을 반환합니다.", responseData));
     }

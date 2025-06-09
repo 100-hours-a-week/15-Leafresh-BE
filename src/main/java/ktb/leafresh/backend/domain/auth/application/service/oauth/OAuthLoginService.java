@@ -53,10 +53,17 @@ public class OAuthLoginService {
     private final RefreshTokenRepository refreshTokenRepository;
     private final AuthCookieProvider authCookieProvider;
 
-    public String getRedirectUrl() {
+//    public String getRedirectUrl() {
+//        return "https://kauth.kakao.com/oauth/authorize" +
+//                "?client_id=" + clientId +
+//                "&redirect_uri=" + redirectUri +
+//                "&response_type=code";
+//    }
+    public String getRedirectUrl(String origin) {
+        String encodedRedirectUri = origin + "/member/kakao/callback";
         return "https://kauth.kakao.com/oauth/authorize" +
                 "?client_id=" + clientId +
-                "&redirect_uri=" + redirectUri +
+                "&redirect_uri=" + encodedRedirectUri +
                 "&response_type=code";
     }
 
