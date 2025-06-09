@@ -330,7 +330,7 @@ jobs:
         run: echo "status=success" >> "$GITHUB_OUTPUT"
 
       - name: Set Status (Dev Failure)
-        if: failure() && steps.deploy-step.outcome == 'failure' # deploy-step이 실패했을 때만
+        if: failure() && steps.deploy-dev.outcome == 'failure' # deploy-step이 실패했을 때만
         run: echo "status=failure" >> "$GITHUB_OUTPUT"
 
   deploy-prod:
@@ -418,7 +418,7 @@ jobs:
         run: echo "status=success" >> "$GITHUB_OUTPUT"
 
       - name: Set Status (Prod Failure)
-        if: failure() && steps.deploy-step.outcome == 'failure' # deploy-step이 실패했을 때만
+        if: failure() && steps.deploy-prod.outcome == 'failure' # deploy-step이 실패했을 때만
         run: echo "status=failure" >> "$GITHUB_OUTPUT"
 
   notify:
