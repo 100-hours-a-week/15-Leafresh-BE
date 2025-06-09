@@ -19,8 +19,8 @@ public enum GlobalErrorCode implements BaseErrorCode {
     UNSUPPORTED_CONTENT_TYPE(HttpStatus.BAD_REQUEST, "지원하지 않는 Content-Type입니다."),
     INVALID_IMAGE_URL(HttpStatus.BAD_REQUEST, "유효하지 않은 이미지 URL입니다."),
     VERIFICATION_NOT_FOUND(HttpStatus.NOT_FOUND, "인증 기록이 존재하지 않습니다."),
-    SSE_STREAM_INTERRUPTED(HttpStatus.INTERNAL_SERVER_ERROR, "SSE 스트림이 중단되었습니다.");
-
+    SSE_STREAM_INTERRUPTED(HttpStatus.INTERNAL_SERVER_ERROR, "SSE 스트림이 중단되었습니다."),
+    INVALID_ORIGIN(HttpStatus.BAD_REQUEST, "접근이 금지되었습니다.");
 
     private final HttpStatus status;
     private final String message;

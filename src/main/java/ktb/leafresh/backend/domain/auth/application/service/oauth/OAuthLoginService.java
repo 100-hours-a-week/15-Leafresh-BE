@@ -53,6 +53,13 @@ public class OAuthLoginService {
     private final RefreshTokenRepository refreshTokenRepository;
     private final AuthCookieProvider authCookieProvider;
 
+    private static final List<String> ALLOWED_ORIGINS = List.of(
+            "https://local.dev-leafresh.app",
+            "https://dev-leafresh.app",
+            "https://leafresh.app"
+    );
+
+
 //    public String getRedirectUrl() {
 //        return "https://kauth.kakao.com/oauth/authorize" +
 //                "?client_id=" + clientId +
@@ -60,7 +67,16 @@ public class OAuthLoginService {
 //                "&response_type=code";
 //    }
     public String getRedirectUrl(String origin) {
+        if (origin == null || origin.isBlank()) {
+            origin = "https://leafresh.app"; // fallback
+        }
+
+        if (!ALLOWED_ORIGINS.contains(origin)) {
+            throw new CustomException(GlobalErrorCode.INVALID_ORIGIN);
+        }
+
         String encodedRedirectUri = origin + "/member/kakao/callback";
+
         return "https://kauth.kakao.com/oauth/authorize" +
                 "?client_id=" + clientId +
                 "&redirect_uri=" + encodedRedirectUri +
