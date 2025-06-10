@@ -74,9 +74,9 @@ public class OAuthLoginService {
     }
 
     @Transactional
-    public OAuthTokenResponseDto loginWithKakao(String authorizationCode) {
+    public OAuthTokenResponseDto loginWithKakao(String authorizationCode, String redirectUri) {
         try {
-            OAuthUserInfoDto userInfo = oAuthKakaoService.getUserInfo(authorizationCode);
+            OAuthUserInfoDto userInfo = oAuthKakaoService.getUserInfo(authorizationCode, redirectUri);
             Optional<Member> optionalMember = memberRepository.findByEmail(userInfo.getEmail());
 
             if (optionalMember.isPresent()) {

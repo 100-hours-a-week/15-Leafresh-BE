@@ -73,11 +73,15 @@ public class OAuthController {
     public ResponseEntity<ApiResponse<OAuthLoginResponseDto>> kakaoCallback(
             @PathVariable String provider,
             @RequestParam String code,
+            @RequestParam(required = false) String origin,
             HttpServletResponse response
     ) {
         log.info("인가 코드 수신 - code={}", code);
 
-        OAuthProvider providerEnum = OAuthProvider.from(provider);
+        if (origin == null || origin.isBlank()) {
+            origin = "https://leafresh.app";
+        }
+        String redirectUri = origin + "/member/kakao/callback";
 
         OAuthTokenResponseDto tokenDto = oAuthLoginService.loginWithKakao(code);
         log.info("카카오 로그인 토큰 발급 완료 - accessToken={}, refreshToken={}",

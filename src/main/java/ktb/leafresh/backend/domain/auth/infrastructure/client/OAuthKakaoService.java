@@ -13,9 +13,9 @@ public class OAuthKakaoService {
     private final KakaoTokenClient kakaoTokenClient;
     private final KakaoProfileClient kakaoProfileClient;
 
-    public OAuthUserInfoDto getUserInfo(String authorizationCode) {
+    public OAuthUserInfoDto getUserInfo(String authorizationCode, String redirectUri) {
         try {
-            String accessToken = kakaoTokenClient.getAccessToken(authorizationCode);
+            String accessToken = kakaoTokenClient.getAccessToken(authorizationCode, redirectUri);
             OAuthUserInfoDto kakaoUser = kakaoProfileClient.getUserProfile(accessToken);
 
             // 디폴트 이미지 적용

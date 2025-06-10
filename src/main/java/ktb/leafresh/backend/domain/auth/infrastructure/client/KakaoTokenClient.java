@@ -34,7 +34,7 @@ public class KakaoTokenClient {
                 clientId, redirectUri, clientSecret);
     }
 
-    public String getAccessToken(String authorizationCode) {
+    public String getAccessToken(String authorizationCode, String redirectUri) {
         var formData = BodyInserters
                 .fromFormData("grant_type", "authorization_code")
                 .with("client_id", clientId)
