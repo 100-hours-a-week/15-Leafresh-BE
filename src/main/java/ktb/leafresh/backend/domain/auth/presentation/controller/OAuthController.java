@@ -62,7 +62,7 @@ public class OAuthController {
         String state = jwtProvider.generateStateToken(origin);
         String redirectUrl = "https://kauth.kakao.com/oauth/authorize" +
                 "?client_id=" + oAuthLoginService.getClientId() +
-                "&redirect_uri=" + origin + "/oauth/" + provider + "/callback" +
+                "&redirect_uri=" + origin + "/member/" + provider + "/callback" +
                 "&response_type=code" +
                 "&state=" + state;
 
