@@ -53,7 +53,6 @@ jwt:
 
 kakao:
   client-id: ${kakao_client_id}
-  redirect-uri: ${kakao_redirect_uri}
   client-secret: ${kakao_client_secret}
 
 cookie:
