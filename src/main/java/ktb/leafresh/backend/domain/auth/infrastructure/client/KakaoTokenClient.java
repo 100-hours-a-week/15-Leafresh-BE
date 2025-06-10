@@ -20,9 +20,6 @@ public class KakaoTokenClient {
     @Value("${kakao.client-id}")
     private String clientId;
 
-    @Value("${kakao.redirect-uri}")
-    private String redirectUri;
-
     @Value("${kakao.client-secret:}")
     private String clientSecret;
 
@@ -30,8 +27,8 @@ public class KakaoTokenClient {
 
     @PostConstruct
     public void logConfig() {
-        log.info("카카오 TokenClient 설정 로드 완료 - clientId={}, redirectUri={}, clientSecret={}",
-                clientId, redirectUri, clientSecret);
+        log.info("카카오 TokenClient 설정 로드 완료 - clientId={}, clientSecret={}",
+                clientId, clientSecret);
     }
 
     public String getAccessToken(String authorizationCode, String redirectUri) {

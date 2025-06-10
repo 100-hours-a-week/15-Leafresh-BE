@@ -66,7 +66,7 @@ public class OAuthController {
     @ApiResponseConstants.SuccessResponses
     @ApiResponseConstants.ClientErrorResponses
     @ApiResponseConstants.ServerErrorResponses
-    @GetMapping("/member/{provider}/callback")
+    @GetMapping("/{provider}/callback")
     public ResponseEntity<ApiResponse<OAuthLoginResponseDto>> kakaoCallback(
             @PathVariable String provider,
             @RequestParam String code,
