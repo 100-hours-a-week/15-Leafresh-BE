@@ -10,6 +10,7 @@ import ktb.leafresh.backend.domain.member.application.service.RewardGrantService
 import ktb.leafresh.backend.domain.member.domain.entity.Member;
 import ktb.leafresh.backend.domain.member.infrastructure.repository.MemberRepository;
 import ktb.leafresh.backend.domain.member.infrastructure.repository.RefreshTokenRepository;
+import ktb.leafresh.backend.global.config.SecurityProperties;
 import ktb.leafresh.backend.global.exception.GlobalErrorCode;
 import ktb.leafresh.backend.global.exception.MemberErrorCode;
 import ktb.leafresh.backend.global.security.*;
@@ -52,26 +53,15 @@ public class OAuthLoginService {
     private final MemberRepository memberRepository;
     private final RefreshTokenRepository refreshTokenRepository;
     private final AuthCookieProvider authCookieProvider;
+    private final SecurityProperties securityProperties;
 
-    private static final List<String> ALLOWED_ORIGINS = List.of(
-            "https://local.dev-leafresh.app:3000",
-            "https://dev-leafresh.app",
-            "https://leafresh.app"
-    );
-
-
-//    public String getRedirectUrl() {
-//        return "https://kauth.kakao.com/oauth/authorize" +
-//                "?client_id=" + clientId +
-//                "&redirect_uri=" + redirectUri +
-//                "&response_type=code";
-//    }
     public String getRedirectUrl(String origin) {
         if (origin == null || origin.isBlank()) {
-            origin = "https://leafresh.app"; // fallback
+            origin = "https://leafresh.app";
         }
 
-        if (!ALLOWED_ORIGINS.contains(origin)) {
+        if (!securityProperties.getAllowedOrigins().contains(origin)) {
+            log.warn("허용되지 않은 origin 요청: {}", origin);
             throw new CustomException(GlobalErrorCode.INVALID_ORIGIN);
         }
 

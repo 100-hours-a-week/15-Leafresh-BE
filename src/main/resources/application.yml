@@ -61,3 +61,9 @@ cookie:
 
 ai-server:
   base-url: ${ai_server_base_url}
+
+security:
+  allowed-origins:
+    - https://local.dev-leafresh.app:3000
+    - https://dev-leafresh.app
+    - https://leafresh.app
