@@ -54,7 +54,7 @@ public class OAuthLoginService {
     private final AuthCookieProvider authCookieProvider;
 
     private static final List<String> ALLOWED_ORIGINS = List.of(
-            "https://local.dev-leafresh.app",
+            "https://local.dev-leafresh.app:3000",
             "https://dev-leafresh.app",
             "https://leafresh.app"
     );
