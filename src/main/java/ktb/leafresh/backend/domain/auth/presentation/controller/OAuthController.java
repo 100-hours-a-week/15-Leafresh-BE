@@ -81,9 +81,10 @@ public class OAuthController {
         if (origin == null || origin.isBlank()) {
             origin = "https://leafresh.app";
         }
-        String redirectUri = origin + "/member/kakao/callback";
 
-        OAuthTokenResponseDto tokenDto = oAuthLoginService.loginWithKakao(code);
+        String redirectUri = origin + "/member/kakao/callback";
+        OAuthTokenResponseDto tokenDto = oAuthLoginService.loginWithKakao(code, redirectUri);
+
         log.info("카카오 로그인 토큰 발급 완료 - accessToken={}, refreshToken={}",
                 tokenDto.accessToken(), tokenDto.refreshToken());
 
