@@ -40,10 +40,6 @@ public class OAuthLoginService {
     @Value("${kakao.client-id}")
     private String clientId;
 
-    @Getter
-    @Value("${kakao.redirect-uri}")
-    private String redirectUri;
-
     private final OAuthKakaoService oAuthKakaoService;
     private final RewardGrantService rewardGrantService;
     private final JwtLogoutService jwtLogoutService;
