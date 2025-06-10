@@ -15,8 +15,11 @@ public class AuthCookieProvider {
     @Value("${cookie.secure}")
     private boolean secure;
 
-    @Value("${cookie.samesite:Strict}") // 기본은 Strict
+    @Value("${cookie.samesite:Strict}")
     private String sameSite;
+
+    @Value("${cookie.domain}")
+    private String domain;
 
     @PostConstruct
     public void init() {
@@ -27,6 +30,7 @@ public class AuthCookieProvider {
         ResponseCookie.ResponseCookieBuilder builder = ResponseCookie.from(name, value)
                 .httpOnly(true)
                 .secure(secure)
+                .domain(domain)
                 .path("/")
                 .sameSite(sameSite)
                 .maxAge(maxAge);
@@ -38,6 +42,7 @@ public class AuthCookieProvider {
         return ResponseCookie.from(name, "")
                 .httpOnly(true)
                 .secure(secure)
+                .domain(domain)
                 .path("/")
                 .sameSite(sameSite)
                 .maxAge(0)
