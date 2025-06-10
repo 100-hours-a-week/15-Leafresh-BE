@@ -75,6 +75,8 @@ public class OAuthLoginService {
 
     @Transactional
     public OAuthTokenResponseDto loginWithKakao(String authorizationCode, String redirectUri) {
+        log.info("[OAuthLoginService] 카카오 로그인 시작 - code={}, redirectUri={}", authorizationCode, redirectUri);
+
         try {
             OAuthUserInfoDto userInfo = oAuthKakaoService.getUserInfo(authorizationCode, redirectUri);
             Optional<Member> optionalMember = memberRepository.findByEmail(userInfo.getEmail());
