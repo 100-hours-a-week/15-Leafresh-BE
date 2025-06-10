@@ -13,6 +13,7 @@ import ktb.leafresh.backend.global.exception.MemberErrorCode;
 import ktb.leafresh.backend.global.response.ApiResponse;
 import ktb.leafresh.backend.global.response.ApiResponseConstants;
 import ktb.leafresh.backend.global.security.AuthCookieProvider;
+import ktb.leafresh.backend.global.security.JwtProvider;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
@@ -29,6 +30,7 @@ public class OAuthController {
     private final OAuthLoginService oAuthLoginService;
     private final OAuthReissueTokenService oAuthReissueTokenService;
     private final AuthCookieProvider authCookieProvider;
+    private final JwtProvider jwtProvider;
 
     @GetMapping("/success")
     public ResponseEntity<String> oauthSuccessPage() {
@@ -57,9 +59,17 @@ public class OAuthController {
             origin = "https://leafresh.app"; // fallback 도메인
         }
 
-        String redirectUrl = oAuthLoginService.getRedirectUrl(origin);
-        OAuthRedirectUrlResponseDto responseData = new OAuthRedirectUrlResponseDto(redirectUrl);
-        return ResponseEntity.ok(ApiResponse.success("소셜 로그인 URL을 반환합니다.", responseData));
+        String state = jwtProvider.generateStateToken(origin);
+        String redirectUrl = "https://kauth.kakao.com/oauth/authorize" +
+                "?client_id=" + oAuthLoginService.getClientId() +
+                "&redirect_uri=" + origin + "/oauth/" + provider + "/callback" +
+                "&response_type=code" +
+                "&state=" + state;
+
+        return ResponseEntity.ok(ApiResponse.success(
+                "소셜 로그인 URL을 반환합니다.",
+                new OAuthRedirectUrlResponseDto(redirectUrl)
+        ));
     }
 
     @Operation(summary = "카카오 로그인 콜백", description = "인가 코드를 받아 JWT를 발급하고 쿠키에 저장하며 사용자 정보를 반환합니다.")
@@ -70,14 +80,13 @@ public class OAuthController {
     public ResponseEntity<ApiResponse<OAuthLoginResponseDto>> kakaoCallback(
             @PathVariable String provider,
             @RequestParam String code,
-            @RequestParam(required = false) String origin,
+            @RequestParam String state,
             HttpServletResponse response
     ) {
         log.info("인가 코드 수신 - code={}", code);
 
-        if (origin == null || origin.isBlank()) {
-            origin = "https://leafresh.app";
-        }
+        String origin = jwtProvider.parseStateToken(state);
+        log.info("복호화된 origin: {}", origin);
 
         String redirectUri = origin + "/member/kakao/callback";
         OAuthTokenResponseDto tokenDto = oAuthLoginService.loginWithKakao(code, redirectUri);

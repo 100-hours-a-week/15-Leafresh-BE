@@ -94,4 +94,26 @@ public class JwtProvider {
         return Jwts.parserBuilder().setSigningKey(key).build()
                 .parseClaimsJws(token).getBody();
     }
+
+    // OAuth 인가 요청 시 state JWT 생성
+    public String generateStateToken(String origin) {
+        return Jwts.builder()
+                .setSubject("oauth_state")
+                .claim("origin", origin)
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 3)) // 3분 유효
+                .signWith(key, SignatureAlgorithm.HS512)
+                .compact();
+    }
+
+    // 콜백 시 state JWT 복호화
+    public String parseStateToken(String stateToken) {
+        Claims claims = Jwts.parserBuilder()
+                .setSigningKey(key)
+                .build()
+                .parseClaimsJws(stateToken)
+                .getBody();
+
+        return claims.get("origin", String.class);
+    }
 }
