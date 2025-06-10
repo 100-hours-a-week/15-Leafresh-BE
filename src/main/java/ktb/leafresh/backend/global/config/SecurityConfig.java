@@ -73,6 +73,7 @@ public class SecurityConfig {
                         .requestMatchers("/oauth/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/members/nickname").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/members").permitAll()
+                        .requestMatchers("/member/kakao/callback").permitAll()
 
                         // 단체 챌린지
                         .requestMatchers(HttpMethod.GET, "/api/challenges/group/categories").permitAll()

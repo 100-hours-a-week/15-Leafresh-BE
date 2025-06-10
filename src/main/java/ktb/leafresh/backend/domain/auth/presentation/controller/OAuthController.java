@@ -4,7 +4,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import jakarta.servlet.http.HttpServletResponse;
 import ktb.leafresh.backend.domain.auth.application.service.oauth.OAuthLoginService;
 import ktb.leafresh.backend.domain.auth.application.service.oauth.OAuthReissueTokenService;
-import ktb.leafresh.backend.domain.auth.domain.entity.enums.OAuthProvider;
 import ktb.leafresh.backend.domain.auth.presentation.dto.response.OAuthLoginResponseDto;
 import ktb.leafresh.backend.domain.auth.presentation.dto.response.OAuthRedirectUrlResponseDto;
 import ktb.leafresh.backend.domain.auth.presentation.dto.response.OAuthTokenResponseDto;
@@ -20,8 +19,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.net.URI;
 
 @Slf4j
 @RestController
@@ -69,7 +66,7 @@ public class OAuthController {
     @ApiResponseConstants.SuccessResponses
     @ApiResponseConstants.ClientErrorResponses
     @ApiResponseConstants.ServerErrorResponses
-    @GetMapping("/{provider}/callback")
+    @GetMapping("/member/{provider}/callback")
     public ResponseEntity<ApiResponse<OAuthLoginResponseDto>> kakaoCallback(
             @PathVariable String provider,
             @RequestParam String code,
