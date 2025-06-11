@@ -29,12 +29,6 @@ public class GroupChallengeCategoryService {
                             .build())
                     .collect(Collectors.toList());
 
-            categories.add(0, GroupChallengeCategoryResponseDto.builder()
-                    .category("ALL")
-                    .label("전체")
-                    .imageUrl("https://storage.googleapis.com/leafresh-images/init/all.png")
-                    .build());
-
             if (categories.isEmpty()) {
                 throw new CustomException(ChallengeErrorCode.CHALLENGE_CATEGORY_LIST_EMPTY);
             }

@@ -11,6 +11,8 @@ import java.util.List;
 public record GroupChallengeSummaryResponseDto(
         Long id,
         String title,
+        String category,
+        String description,
         String thumbnailUrl,
         int leafReward,
         String startDate,
@@ -25,6 +27,8 @@ public record GroupChallengeSummaryResponseDto(
         return GroupChallengeSummaryResponseDto.builder()
                 .id(entity.getId())
                 .title(entity.getTitle())
+                .category(entity.getCategory().getName())
+                .description(entity.getDescription())
                 .thumbnailUrl(entity.getImageUrl())
                 .leafReward(entity.getLeafReward())
                 .startDate(entity.getStartDate().toLocalDate().toString())
