@@ -2,6 +2,7 @@ package ktb.leafresh.backend.domain.challenge.group.domain.entity.enums;
 
 public enum GroupChallengeCategoryName {
 
+    ALL("전체"),
     ZERO_WASTE("제로웨이스트"),
     PLOGGING("플로깅"),
     CARBON_FOOTPRINT("탄소 발자국"),
@@ -24,6 +25,7 @@ public enum GroupChallengeCategoryName {
 
     public static String getImageUrl(String name) {
         return switch (name) {
+            case "ALL" -> "https://storage.googleapis.com/leafresh-images/init/all.png";
             case "ZERO_WASTE" -> "https://storage.googleapis.com/leafresh-images/init/zero_waste.png";
             case "PLOGGING" -> "https://storage.googleapis.com/leafresh-images/init/plogging.png";
             case "CARBON_FOOTPRINT" -> "https://storage.googleapis.com/leafresh-images/init/carbon_footprint.png";
