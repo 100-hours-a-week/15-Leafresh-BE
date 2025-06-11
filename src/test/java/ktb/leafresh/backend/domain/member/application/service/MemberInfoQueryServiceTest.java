@@ -43,6 +43,7 @@ class MemberInfoQueryServiceTest {
 
         // then
         assertThat(result.getNickname()).isEqualTo("테스터");
+        assertThat(result.getEmail()).isEqualTo("test@leafresh.com");
         assertThat(result.getTreeLevelId()).isEqualTo(treeLevel.getId());
     }
 

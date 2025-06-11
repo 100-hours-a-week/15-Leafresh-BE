@@ -12,6 +12,7 @@ import lombok.Getter;
 public class MemberInfoResponseDto {
 
     private String nickname;
+    private String email;
     private String profileImageUrl;
     private Long treeLevelId;
     private String treeLevelName;
@@ -20,6 +21,7 @@ public class MemberInfoResponseDto {
     public static MemberInfoResponseDto of(Member member, TreeLevel treeLevel) {
         return MemberInfoResponseDto.builder()
                 .nickname(member.getNickname())
+                .email(member.getEmail())
                 .profileImageUrl(member.getImageUrl())
                 .treeLevelId(treeLevel.getId())
                 .treeLevelName(treeLevel.getName().name())
