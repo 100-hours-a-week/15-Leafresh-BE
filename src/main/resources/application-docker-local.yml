@@ -21,3 +21,8 @@ gcp:
     location: classpath:${gcp_credentials_location}
   storage:
     bucket: ${gcp_storage_bucket}
+
+redis:
+  bloom:
+    host: ${docker_local_cache_host}
+    port: ${docker_local_cache_port}
