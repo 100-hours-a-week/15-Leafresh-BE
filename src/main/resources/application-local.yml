@@ -12,7 +12,8 @@ spring:
 
 cookie:
   secure: false
-  samesite: ${cookie_samesite:none}
+  samesite: ${local_cookie_samesite:Strict}
+  domain: ${local_cookie_domain:localhost}
 
 gcp:
   project-id: ${gcp_project_id}
