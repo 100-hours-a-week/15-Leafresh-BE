@@ -29,6 +29,12 @@ public class GroupChallengeCategoryService {
                             .build())
                     .collect(Collectors.toList());
 
+            categories.add(0, GroupChallengeCategoryResponseDto.builder()
+                    .category("ALL")
+                    .label("전체")
+                    .imageUrl("https://storage.googleapis.com/leafresh-images/init/all.png")
+                    .build());
+
             if (categories.isEmpty()) {
                 throw new CustomException(ChallengeErrorCode.CHALLENGE_CATEGORY_LIST_EMPTY);
             }
@@ -43,6 +49,7 @@ public class GroupChallengeCategoryService {
 
     private String getLabelFromCategoryName(String name) {
         return switch (name) {
+            case "ALL" -> "전체";
             case "ZERO_WASTE" -> "제로웨이스트";
             case "PLOGGING" -> "플로깅";
             case "CARBON_FOOTPRINT" -> "탄소 발자국";
