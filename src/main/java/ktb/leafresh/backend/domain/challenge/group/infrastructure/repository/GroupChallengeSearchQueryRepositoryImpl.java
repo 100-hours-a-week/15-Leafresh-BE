@@ -26,6 +26,7 @@ public class GroupChallengeSearchQueryRepositoryImpl implements GroupChallengeSe
                 .where(
                         gc.deletedAt.isNull(),
                         gc.endDate.goe(LocalDateTime.now()),
+                        gc.eventFlag.isFalse(),
                         likeInput(input),
                         eqCategory(category),
                         CursorConditionUtils.ltCursorWithTimestamp(gc.createdAt, gc.id, ts, cursorId)
