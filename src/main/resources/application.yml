@@ -70,3 +70,4 @@ security:
     - https://be.dev-leafresh.app
     - https://local.dev-leafresh.app:3000
     - https://be.dev-leafresh.app
+    - https://springboot.dev-leafresh.app
