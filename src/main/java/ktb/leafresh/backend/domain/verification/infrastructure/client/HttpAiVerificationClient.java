@@ -39,8 +39,7 @@ public class HttpAiVerificationClient implements AiVerificationClient {
                     .bodyValue(requestDto)
                     .retrieve()
                     .bodyToMono(String.class)
-                    .block(Duration.ofSeconds(5));
-//                    .block();
+                    .block(Duration.ofSeconds(15));
 
             log.info("[AI 응답 수신 완료]");
             log.debug("[AI 응답 원문 JSON] {}", rawJson);
