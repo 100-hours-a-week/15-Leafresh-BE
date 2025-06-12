@@ -5,6 +5,7 @@ import ktb.leafresh.backend.domain.chatbot.application.handler.ChatbotSseStreamH
 import ktb.leafresh.backend.global.util.sse.SseStreamExecutor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -16,6 +17,8 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class ChatbotRecommendationSseService {
 
+    @Value("${ai-server.base-url}")
+    private String aiServerBaseUrl;
     private final ChatbotSseStreamHandler streamHandler;
     private final SseStreamExecutor sseStreamExecutor;
     private final ObjectMapper objectMapper;
@@ -33,7 +36,8 @@ public class ChatbotRecommendationSseService {
 
     private String buildUriWithParams(String aiUri, Object dto) {
         Map<String, String> map = objectMapper.convertValue(dto, Map.class);
-        UriComponentsBuilder builder = UriComponentsBuilder.fromPath(aiUri);
+        UriComponentsBuilder builder = UriComponentsBuilder
+                .fromHttpUrl(aiServerBaseUrl + aiUri); // 여기 prefix 추가
         map.forEach(builder::queryParam);
         return builder.toUriString();
     }
