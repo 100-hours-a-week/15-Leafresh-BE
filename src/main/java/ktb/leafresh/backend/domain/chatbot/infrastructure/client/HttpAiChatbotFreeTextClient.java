@@ -15,9 +15,7 @@ public class HttpAiChatbotFreeTextClient implements AiChatbotFreeTextClient {
 
     private final WebClient aiServerWebClient;
 
-    public HttpAiChatbotFreeTextClient(
-            @Qualifier("aiServerWebClient") WebClient aiServerWebClient
-    ) {
+    public HttpAiChatbotFreeTextClient(@Qualifier("textAiWebClient") WebClient aiServerWebClient) {
         this.aiServerWebClient = aiServerWebClient;
     }
 

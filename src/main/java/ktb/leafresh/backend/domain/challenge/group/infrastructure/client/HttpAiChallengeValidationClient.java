@@ -6,6 +6,7 @@ import ktb.leafresh.backend.domain.challenge.group.infrastructure.dto.response.A
 import ktb.leafresh.backend.domain.challenge.group.infrastructure.dto.response.AiChallengeValidationResponseDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -13,11 +14,14 @@ import org.springframework.web.reactive.function.client.WebClient;
 @Slf4j
 @Component
 @Profile("!local")
-@RequiredArgsConstructor
 public class HttpAiChallengeValidationClient implements AiChallengeValidationClient {
 
-    private final WebClient aiServerWebClient;
     private final ObjectMapper objectMapper = new ObjectMapper();
+    private final WebClient aiServerWebClient;
+
+    public HttpAiChallengeValidationClient(@Qualifier("textAiWebClient") WebClient aiServerWebClient) {
+        this.aiServerWebClient = aiServerWebClient;
+    }
 
     @Override
     public AiChallengeValidationResponseDto validateChallenge(AiChallengeValidationRequestDto requestDto) {
