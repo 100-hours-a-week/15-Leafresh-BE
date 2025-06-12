@@ -36,9 +36,21 @@ public class ChatbotRecommendationSseService {
 
     private String buildUriWithParams(String aiUri, Object dto) {
         Map<String, String> map = objectMapper.convertValue(dto, Map.class);
+
+        log.debug("[SSE 요청 파라미터] {}", map);
+
         UriComponentsBuilder builder = UriComponentsBuilder
-                .fromHttpUrl(aiServerBaseUrl + aiUri); // 여기 prefix 추가
-        map.forEach(builder::queryParam);
-        return builder.toUriString();
+                .fromHttpUrl(aiServerBaseUrl + aiUri);
+
+        map.forEach((key, value) -> {
+            log.debug("[쿼리 파라미터 추가] {}={}", key, value);
+            builder.queryParam(key, value);
+        });
+
+        String encodedUri = builder.encode().toUriString();
+
+        log.info("[AI 요청 URI] {}", encodedUri);
+
+        return encodedUri;
     }
 }
