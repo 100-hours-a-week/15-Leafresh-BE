@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -111,14 +112,18 @@ public class TimedealProductReadService {
                         dto.dealStartTime(),
                         dto.dealEndTime(),
                         dto.productStatus(),
-                        determineTimeDealStatus(nowTime, dto.dealStartTime(), dto.dealEndTime())
+                        determineTimeDealStatus(dto.dealStartTime(), dto.dealEndTime())
                 ))
                 .toList();
 
         return new TimedealProductListResponseDto(updated);
     }
 
-    private String determineTimeDealStatus(LocalDateTime now, LocalDateTime start, LocalDateTime end) {
-        return (start.isBefore(now) && end.isAfter(now)) ? "ONGOING" : "UPCOMING";
+    private String determineTimeDealStatus(LocalDateTime start, LocalDateTime end) {
+        ZonedDateTime nowKST = ZonedDateTime.now(ZoneId.of("Asia/Seoul"));
+        ZonedDateTime startZoned = start.atZone(ZoneId.of("Asia/Seoul"));
+        ZonedDateTime endZoned = end.atZone(ZoneId.of("Asia/Seoul"));
+
+        return (!nowKST.isBefore(startZoned) && nowKST.isBefore(endZoned)) ? "ONGOING" : "UPCOMING";
     }
 }
