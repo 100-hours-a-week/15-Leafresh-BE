@@ -47,10 +47,10 @@ public class ChatbotRecommendationSseService {
             builder.queryParam(key, value);
         });
 
-        String encodedUri = builder.encode().toUriString();
+        String uri = builder.toUriString();
 
-        log.info("[AI 요청 URI] {}", encodedUri);
+        log.info("[AI 요청 URI] {}", uri);
 
-        return encodedUri;
+        return uri;
     }
 }
