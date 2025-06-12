@@ -21,10 +21,10 @@ import java.time.Duration;
 @Profile("!local")
 public class HttpFeedbackCreationClient implements FeedbackCreationClient {
 
-    private final WebClient aiServerWebClient;
     private final ObjectMapper objectMapper = new ObjectMapper();
+    private final WebClient aiServerWebClient;
 
-    public HttpFeedbackCreationClient(@Qualifier("aiServerWebClient") WebClient aiServerWebClient) {
+    public HttpFeedbackCreationClient(@Qualifier("textAiWebClient") WebClient aiServerWebClient) {
         this.aiServerWebClient = aiServerWebClient;
     }
 

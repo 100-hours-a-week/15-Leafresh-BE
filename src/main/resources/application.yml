@@ -59,7 +59,8 @@ cookie:
   secure: true
 
 ai-server:
-  base-url: ${ai_server_base_url}
+  text-base-url: ${text_ai_server_base_url}
+  image-base-url: ${image_ai_server_base_url}
 
 security:
   allowed-origins:

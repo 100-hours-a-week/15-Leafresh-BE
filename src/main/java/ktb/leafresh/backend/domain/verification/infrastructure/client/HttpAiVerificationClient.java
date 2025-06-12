@@ -18,15 +18,13 @@ import java.time.Duration;
 
 @Slf4j
 @Component
-@Profile("!local") // prod
+@Profile("!local")
 public class HttpAiVerificationClient implements AiVerificationClient {
 
-    private final WebClient aiServerWebClient;
     private final ObjectMapper objectMapper = new ObjectMapper();
+    private final WebClient aiServerWebClient;
 
-    public HttpAiVerificationClient(
-            @Qualifier("aiServerWebClient") WebClient aiServerWebClient
-    ) {
+    public HttpAiVerificationClient(@Qualifier("imageAiWebClient") WebClient aiServerWebClient) {
         this.aiServerWebClient = aiServerWebClient;
     }
 

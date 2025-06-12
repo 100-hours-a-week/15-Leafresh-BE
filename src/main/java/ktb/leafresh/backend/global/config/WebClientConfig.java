@@ -8,17 +8,22 @@ import org.springframework.web.reactive.function.client.WebClient;
 @Configuration
 public class WebClientConfig {
 
-    // 기본 WebClient
     @Bean
     public WebClient webClient() {
         return WebClient.builder().build();
     }
 
-    // AI 서버 전용 WebClient
-    @Bean(name = "aiServerWebClient")
-    public WebClient aiServerWebClient(@Value("${ai-server.base-url}") String aiServerBaseUrl) {
+    @Bean(name = "textAiWebClient")
+    public WebClient textAiWebClient(@Value("${ai-server.text-base-url}") String textAiBaseUrl) {
         return WebClient.builder()
-                .baseUrl(aiServerBaseUrl)
+                .baseUrl(textAiBaseUrl)
+                .build();
+    }
+
+    @Bean(name = "imageAiWebClient")
+    public WebClient imageAiWebClient(@Value("${ai-server.image-base-url}") String imageAiBaseUrl) {
+        return WebClient.builder()
+                .baseUrl(imageAiBaseUrl)
                 .build();
     }
 }

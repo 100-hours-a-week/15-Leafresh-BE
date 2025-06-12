@@ -15,9 +15,7 @@ public class HttpAiChatbotBaseInfoClient implements AiChatbotBaseInfoClient {
 
     private final WebClient aiServerWebClient;
 
-    public HttpAiChatbotBaseInfoClient(
-            @Qualifier("aiServerWebClient") WebClient aiServerWebClient
-    ) {
+    public HttpAiChatbotBaseInfoClient(@Qualifier("textAiWebClient") WebClient aiServerWebClient) {
         this.aiServerWebClient = aiServerWebClient;
     }
 

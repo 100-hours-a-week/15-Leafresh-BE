@@ -17,7 +17,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class ChatbotRecommendationSseService {
 
-    @Value("${ai-server.base-url}")
+    @Value("${ai-server.text-base-url}")
     private String aiServerBaseUrl;
     private final ChatbotSseStreamHandler streamHandler;
     private final SseStreamExecutor sseStreamExecutor;
