@@ -325,7 +325,7 @@ jobs:
 
           # 임시 컨테이너 생성 후 레이블 추가로 digest 변경
           docker container create --name temp-container temp-image-with-label
-          docker commit --change "LABEL force-push-tag=${TAG_NAME}-$(date +%s)" temp-container jchanho99/frontend-develop:${TAG_NAME}
+          docker commit --change "LABEL force-push-tag=${TAG_NAME}-$(date +%s)" temp-container jchanho99/backend-develop:${TAG_NAME}
 
           # 정리
           docker container stop temp-container
