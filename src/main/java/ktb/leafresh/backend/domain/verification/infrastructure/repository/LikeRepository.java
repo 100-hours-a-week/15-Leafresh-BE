@@ -20,7 +20,9 @@ public interface LikeRepository extends JpaRepository<Like, Long> {
     @Query("""
     SELECT l.verification.id
     FROM Like l
-    WHERE l.member.id = :memberId AND l.verification.id IN :verificationIds
+    WHERE l.member.id = :memberId
+    AND l.verification.id IN :verificationIds
+    AND l.deletedAt IS NULL
     """)
     Set<Long> findLikedVerificationIdsByMemberId(@Param("memberId") Long memberId,
                                                  @Param("verificationIds") List<Long> verificationIds);
