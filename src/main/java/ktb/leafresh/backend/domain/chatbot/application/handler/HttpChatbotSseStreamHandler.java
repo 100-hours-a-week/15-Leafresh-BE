@@ -1,6 +1,5 @@
 package ktb.leafresh.backend.domain.chatbot.application.handler;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Profile;
@@ -19,17 +18,15 @@ import java.io.IOException;
 @Profile("!local")
 public class HttpChatbotSseStreamHandler implements ChatbotSseStreamHandler {
 
-    private final WebClient aiWebClient;
+    private final WebClient textAiWebClient;
 
-    public HttpChatbotSseStreamHandler(
-            @Qualifier("aiServerWebClient") WebClient aiWebClient
-    ) {
-        this.aiWebClient = aiWebClient;
+    public HttpChatbotSseStreamHandler(@Qualifier("textAiWebClient") WebClient textAiWebClient) {
+        this.textAiWebClient = textAiWebClient;
     }
 
     @Override
     public void streamToEmitter(SseEmitter emitter, String uriWithQueryParams) {
-        Flux<ServerSentEvent<String>> flux = aiWebClient.get()
+        Flux<ServerSentEvent<String>> flux = textAiWebClient.get()
                 .uri(uriWithQueryParams)
                 .accept(MediaType.TEXT_EVENT_STREAM)
                 .retrieve()
