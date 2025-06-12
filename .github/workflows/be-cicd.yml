@@ -286,7 +286,7 @@ jobs:
           script: |
             set -e
             echo "GCP 인증 및 Docker 로그인"
-            echo '${{ secrets.GCP_SA_KEY_DEV_BASE64 }}' | base64 -d > ~/leafresh-gcs.json
+            echo '${{ secrets.GCP_SA_KEY_GCS_BASE64 }}' | base64 -d > ~/leafresh-gcs.json
             sudo mv ~/leafresh-gcs.json /home/ubuntu/backend/app/leafresh-gcs.json
             sudo chown ubuntu:ubuntu /home/ubuntu/backend/app/leafresh-gcs.json
             sudo chmod 600 /home/ubuntu/backend/app/leafresh-gcs.json
@@ -321,7 +321,16 @@ jobs:
       - name: Tag and Push Docker Image (tag = ${{ env.TAG_NAME }})
         run: |
           docker pull jchanho99/backend-develop:latest
-          docker tag jchanho99/backend-develop:latest jchanho99/backend-develop:${TAG_NAME}
+          docker image tag jchanho99/frontend-develop:latest temp-image-with-label
+
+          # 임시 컨테이너 생성 후 레이블 추가로 digest 변경
+          docker container create --name temp-container temp-image-with-label
+          docker commit --change "LABEL force-push-tag=${TAG_NAME}-$(date +%s)" temp-container jchanho99/frontend-develop:${TAG_NAME}
+
+          # 정리
+          docker container stop temp-container
+          docker container rm temp-container
+          docker image rm temp-image-with-label
           docker push jchanho99/backend-develop:${TAG_NAME}
       
       - name: Set Status (Dev)
@@ -330,7 +339,7 @@ jobs:
         run: echo "status=success" >> "$GITHUB_OUTPUT"
 
       - name: Set Status (Dev Failure)
-        if: failure() && steps.deploy-step.outcome == 'failure' # deploy-step이 실패했을 때만
+        if: failure() && steps.deploy-dev.outcome == 'failure' # deploy-step이 실패했을 때만
         run: echo "status=failure" >> "$GITHUB_OUTPUT"
 
   deploy-prod:
@@ -418,43 +427,40 @@ jobs:
         run: echo "status=success" >> "$GITHUB_OUTPUT"
 
       - name: Set Status (Prod Failure)
-        if: failure() && steps.deploy-step.outcome == 'failure' # deploy-step이 실패했을 때만
+        if: failure() && steps.deploy-prod.outcome == 'failure' # deploy-step이 실패했을 때만
         run: echo "status=failure" >> "$GITHUB_OUTPUT"
 
   notify:
     name: Discord Notification
     needs: [deploy-dev, deploy-prod]
     if: |
-      (needs.deploy-dev.result != 'skipped') || (needs.deploy-prod.result != 'skipped')
+      always() &&
+      (
+        needs.deploy-dev.result != 'skipped' ||
+        needs.deploy-prod.result != 'skipped'
+      )
     runs-on: ubuntu-latest
     steps:
       - name: Send Discord Message
         run: |
-          MESSAGE=""
-
-          # Check Dev Deploy Status
-          if [ "${{ needs.deploy-dev.result }}" != "" ]; then
-            STATUS_DEV="${{ needs.deploy-dev.outputs.status }}"
-            if [ "$STATUS_DEV" = "success" ]; then
-              MESSAGE="${MESSAGE}✅ \`[BE develop]\` 배포 완료\n"
-            elif [ "$STATUS_DEV" = "failure" ]; then
-              MESSAGE="${MESSAGE}🚨 \`[BE develop]\` 배포 실패\n"
-            fi
+          TAG="${GITHUB_REF#refs/tags/}"
+          if [[ "${{ needs.deploy-dev.result }}" != 'skipped' ]]; then
+            STATUS="${{ needs.deploy-dev.outputs.status }}"
+          elif [[ "${{ needs.deploy-prod.result }}" != 'skipped' ]]; then
+            STATUS="${{ needs.deploy-prod.outputs.status }}"
+          else
+            STATUS="unknown"
           fi
 
-          # Check Prod Deploy Status
-          if [ "${{ needs.deploy-prod.result }}" != "" ]; then
-            STATUS_PROD="${{ needs.deploy-prod.outputs.status }}"
-            if [ "$STATUS_PROD" = "success" ]; then
-              MESSAGE="${MESSAGE}✅ \`[BE prod]\` 배포 완료 (Blue-Green)\n"
-            elif [ "$STATUS_PROD" = "failure" ]; then
-              MESSAGE="${MESSAGE}🚨 \`[BE prod]\` 배포 실패 (헬스체크 실패 등)\n"
-            fi
+          if [[ "$STATUS" == "success" ]]; then
+            MESSAGE="✅ [${TAG}] 배포 완료"
+          elif [[ "$STATUS" == "failure" ]]; then
+            MESSAGE="🚨 [${TAG}] 배포 실패. actions에서 로그를 확인하세요."
+          else
+            MESSAGE="⚠️ [${TAG}] 배포 상태를 알 수 없습니다."
           fi
 
-          if [ -z "$MESSAGE" ]; then
-            MESSAGE="⚠️ 배포 상태 정보를 찾을 수 없습니다."
-          fi
+          echo "message=$MESSAGE" >> $GITHUB_OUTPUT
 
           curl -H "Content-Type: application/json" \
                -X POST \
