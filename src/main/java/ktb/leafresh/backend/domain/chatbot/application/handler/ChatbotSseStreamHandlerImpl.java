@@ -2,6 +2,7 @@ package ktb.leafresh.backend.domain.chatbot.application.handler;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Profile;
 import org.springframework.http.codec.ServerSentEvent;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -13,6 +14,7 @@ import java.io.IOException;
 @Slf4j
 @Component
 @RequiredArgsConstructor
+@Profile("docker-local")
 public class ChatbotSseStreamHandlerImpl implements ChatbotSseStreamHandler {
 
     private final WebClient textAiWebClient;

@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 
 @Component
-@Profile("!local")
+@Profile("bigbang-prod")
 public class HttpAiChatbotBaseInfoClient implements AiChatbotBaseInfoClient {
 
     private final WebClient aiServerWebClient;
