@@ -8,6 +8,7 @@ import ktb.leafresh.backend.domain.chatbot.presentation.dto.response.ChatbotReco
 import ktb.leafresh.backend.global.response.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Profile;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/chatbot/recommendation")
 @RequiredArgsConstructor
+@Profile("bigbang-prod")
 public class ChatbotRecommendationController {
 
     private final ChatbotRecommendationService recommendationService;

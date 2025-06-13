@@ -6,6 +6,7 @@ import ktb.leafresh.backend.global.util.sse.SseStreamExecutor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -15,6 +16,7 @@ import java.util.Map;
 @Slf4j
 @Service
 @RequiredArgsConstructor
+@Profile({"docker-local", "docker-prod"})
 public class ChatbotRecommendationSseService {
 
     @Value("${ai-server.text-base-url}")
