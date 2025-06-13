@@ -25,6 +25,16 @@ public class ChatbotRecommendationSseService {
 
     public SseEmitter stream(String aiUri, Object dto) {
         SseEmitter emitter = new SseEmitter(60_000L);
+
+        emitter.onCompletion(() -> log.info("[SSE 완료]"));
+        emitter.onTimeout(() -> {
+            log.warn("[SSE 타임아웃]");
+            emitter.complete();
+        });
+        emitter.onError(e -> {
+            log.warn("[SSE 에러 발생]", e);
+        });
+
         String uri = buildUriWithParams(aiUri, dto);
 
         sseStreamExecutor.execute(emitter, () ->
