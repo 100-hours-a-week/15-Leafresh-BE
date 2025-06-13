@@ -11,6 +11,7 @@ import ktb.leafresh.backend.domain.chatbot.presentation.dto.request.ChatbotFreeT
 import ktb.leafresh.backend.domain.chatbot.presentation.dto.response.ChatbotRecommendationResponseDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -19,6 +20,7 @@ import java.util.Optional;
 @Slf4j
 @Service
 @RequiredArgsConstructor
+@Profile("bigbang-prod")
 public class ChatbotRecommendationService {
 
     private final AiChatbotBaseInfoClient aiChatbotBaseInfoClientClient;
