@@ -34,7 +34,19 @@ public class ChatbotSseStreamHandlerImpl implements ChatbotSseStreamHandler {
 
         eventStream.subscribe(
                 event -> {
+                    String eventName = event.event();
+                    String data = event.data();
+
                     try {
+                        if ("close".equalsIgnoreCase(eventName)) {
+                            log.info("[SSE 종료 이벤트 수신] event: close, data: {}", data);
+                            log.info("[SSE 종료 처리] emitter.complete() 호출");
+                            emitter.complete();
+                            return;
+                        }
+
+                        log.info("[SSE 응답 전달] event: {}, data: {}", eventName, data);
+
                         emitter.send(SseEmitter.event()
                                 .name(event.event())
                                 .data(event.data()));
@@ -48,8 +60,8 @@ public class ChatbotSseStreamHandlerImpl implements ChatbotSseStreamHandler {
                     emitter.completeWithError(error);
                 },
                 () -> {
-                    log.info("[SSE 스트림 종료]");
-                    emitter.complete();
+                    log.info("[SSE 스트림 종료 콜백 발생] → 무시됨 (event: close로만 종료)");
+                    // 종료하지 않음: emitter.complete()은 event: close로만 호출
                 }
         );
     }
