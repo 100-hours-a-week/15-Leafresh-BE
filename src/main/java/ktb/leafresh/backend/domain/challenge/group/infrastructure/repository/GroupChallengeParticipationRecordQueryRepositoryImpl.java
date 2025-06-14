@@ -128,7 +128,16 @@ public class GroupChallengeParticipationRecordQueryRepositoryImpl implements Gro
                                     verification.deletedAt.isNull()
                             )
             );
-            case "ongoing" -> challenge.startDate.loe(now).and(challenge.endDate.goe(now));
+            case "ongoing" -> challenge.startDate.loe(now)
+                    .and(challenge.endDate.goe(now))
+                    .and(record.id.in(
+                            JPAExpressions.select(verification.participantRecord.id)
+                                    .from(verification)
+                                    .where(
+                                            verification.participantRecord.id.eq(record.id),
+                                            verification.deletedAt.isNull()
+                                    )
+                    ));
             case "completed" -> challenge.endDate.lt(now).or(record.status.eq(FINISHED));
             default -> throw new CustomException(GlobalErrorCode.INVALID_REQUEST);
         };
