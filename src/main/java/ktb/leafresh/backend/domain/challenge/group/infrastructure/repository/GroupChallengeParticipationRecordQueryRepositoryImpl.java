@@ -120,7 +120,14 @@ public class GroupChallengeParticipationRecordQueryRepositoryImpl implements Gro
 
     private BooleanExpression applyStatusFilter(String status, LocalDateTime now) {
         return switch (status.toLowerCase()) {
-            case "not_started" -> challenge.startDate.gt(now);
+            case "not_started" -> record.id.notIn(
+                    JPAExpressions.select(verification.participantRecord.id)
+                            .from(verification)
+                            .where(
+                                    verification.participantRecord.id.eq(record.id),
+                                    verification.deletedAt.isNull()
+                            )
+            );
             case "ongoing" -> challenge.startDate.loe(now).and(challenge.endDate.goe(now));
             case "completed" -> challenge.endDate.lt(now).or(record.status.eq(FINISHED));
             default -> throw new CustomException(GlobalErrorCode.INVALID_REQUEST);
