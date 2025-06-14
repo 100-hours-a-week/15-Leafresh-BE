@@ -10,6 +10,12 @@ spring:
       host: ${local_cache_host}
       port: ${local_cache_port}
 
+  jpa:
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
 cookie:
   secure: false
   samesite: ${local_cookie_samesite:Strict}
@@ -26,3 +32,13 @@ redis:
   bloom:
     host: ${local_cache_host}
     port: ${local_cache_port}
+
+logging:
+  level:
+    org:
+      hibernate:
+        SQL: DEBUG
+        type:
+          descriptor:
+            sql:
+              BasicBinder: TRACE

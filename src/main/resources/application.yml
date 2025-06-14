@@ -5,8 +5,8 @@ spring:
   profiles:
     active: ${spring_profiles_active}
 
-    jackson:
-      time-zone: Asia/Seoul
+  jackson:
+    time-zone: Asia/Seoul
 
   security:
     basic:
@@ -16,10 +16,10 @@ spring:
     database-platform: org.hibernate.dialect.MySQLDialect
     hibernate:
       ddl-auto: update
-    show-sql: true
+    show-sql: false
     properties:
       hibernate:
-        format_sql: true
+        format_sql: false
 
   servlet:
     multipart:
@@ -43,11 +43,11 @@ logging:
       springframework:
         security: DEBUG
       hibernate:
-        SQL: DEBUG
+        SQL: OFF
         type:
           descriptor:
             sql:
-              BasicBinder: TRACE
+              BasicBinder: OFF
     org.springframework.web.servlet.DispatcherServlet: DEBUG
     ktb.leafresh.backend: DEBUG
 
