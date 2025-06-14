@@ -55,10 +55,11 @@ public class GroupChallengeParticipationRecordQueryRepositoryImpl implements Gro
         for (GroupChallengeParticipantRecord r : records) {
             GroupChallenge c = r.getGroupChallenge();
             ParticipantStatus status = r.getStatus();
+            boolean hasNoVerification = r.getVerifications().stream().noneMatch(v -> v.getDeletedAt() == null);
 
             if (status == FINISHED || now.isAfter(c.getEndDate())) {
                 completed++;
-            } else if (now.isBefore(c.getStartDate())) {
+            } else if (hasNoVerification) {
                 notStarted++;
             } else {
                 ongoing++;
