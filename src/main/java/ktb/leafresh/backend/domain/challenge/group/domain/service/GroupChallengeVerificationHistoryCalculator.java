@@ -22,6 +22,7 @@ public class GroupChallengeVerificationHistoryCalculator {
             List<GroupChallengeVerification> verifications
     ) {
         LocalDate startDate = challenge.getStartDate().toLocalDate();
+        LocalDate endDate = challenge.getEndDate().toLocalDate();
         LocalDate today = LocalDate.now();
 
         // 최신 인증이 먼저 보이도록 정렬 + 시작일 기준 day 계산
@@ -40,12 +41,7 @@ public class GroupChallengeVerificationHistoryCalculator {
         long success = verifications.stream().filter(v -> v.getStatus() == ChallengeStatus.SUCCESS).count();
         long failure = verifications.stream().filter(v -> v.getStatus() == ChallengeStatus.FAILURE).count();
 
-        LocalDate lastVerificationDate = verifications.stream()
-                .map(v -> v.getCreatedAt().toLocalDate())
-                .max(LocalDate::compareTo)
-                .orElse(startDate);
-
-        long remaining = ChronoUnit.DAYS.between(lastVerificationDate, challenge.getEndDate().toLocalDate());
+        int remaining = (int) Math.max(0, ChronoUnit.DAYS.between(today, endDate) + 1);
 
         String todayStatus = verifications.stream()
                 .filter(v -> v.getCreatedAt().toLocalDate().isEqual(today))
@@ -61,7 +57,7 @@ public class GroupChallengeVerificationHistoryCalculator {
                 .id(challenge.getId())
                 .title(challenge.getTitle())
                 .achievement(new GroupChallengeVerificationHistoryResponseDto.AchievementDto(
-                        (int) success, (int) failure, (int) remaining))
+                        (int) success, (int) failure, remaining))
                 .verifications(verificationDtos)
                 .todayStatus(todayStatus)
                 .build();
