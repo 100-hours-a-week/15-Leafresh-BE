@@ -1,7 +1,10 @@
 package ktb.leafresh.backend.domain.challenge.group.infrastructure.repository;
 
+import com.querydsl.core.Tuple;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import ktb.leafresh.backend.domain.challenge.group.domain.entity.QGroupChallengeParticipantRecord;
+import ktb.leafresh.backend.domain.challenge.group.presentation.dto.response.GroupChallengeParticipationSummaryDto;
 import ktb.leafresh.backend.domain.verification.domain.entity.GroupChallengeVerification;
 import ktb.leafresh.backend.domain.verification.domain.entity.QGroupChallengeVerification;
 import ktb.leafresh.backend.global.util.pagination.CursorConditionUtils;
@@ -9,8 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Repository
 @RequiredArgsConstructor
@@ -18,6 +20,8 @@ public class GroupChallengeVerificationQueryRepositoryImpl implements GroupChall
 
     private final JPAQueryFactory queryFactory;
     private final QGroupChallengeVerification gv = QGroupChallengeVerification.groupChallengeVerification;
+    private final QGroupChallengeVerification verification = QGroupChallengeVerification.groupChallengeVerification;
+    private final QGroupChallengeParticipantRecord record = QGroupChallengeParticipantRecord.groupChallengeParticipantRecord;
 
     @Override
     public List<GroupChallengeVerification> findByChallengeId(Long challengeId, Long cursorId, String cursorTimestamp, int size) {
@@ -62,5 +66,39 @@ public class GroupChallengeVerificationQueryRepositoryImpl implements GroupChall
                         v.deletedAt.isNull()
                 )
                 .fetchOne());
+    }
+
+    @Override
+    public Map<Long, List<GroupChallengeParticipationSummaryDto.AchievementRecordDto>> findVerificationsGroupedByChallenge(List<Long> challengeIds, Long memberId) {
+
+        List<Tuple> results = queryFactory
+                .select(
+                        record.groupChallenge.id,
+                        verification.status,
+                        verification.createdAt
+                )
+                .from(verification)
+                .join(verification.participantRecord, record)
+                .where(
+                        record.groupChallenge.id.in(challengeIds),
+                        record.member.id.eq(memberId),
+                        verification.deletedAt.isNull()
+                )
+                .orderBy(verification.createdAt.asc())
+                .fetch();
+
+        Map<Long, List<GroupChallengeParticipationSummaryDto.AchievementRecordDto>> map = new HashMap<>();
+        Map<Long, Integer> challengeIdToDayCounter = new HashMap<>();
+
+        for (Tuple tuple : results) {
+            Long challengeId = tuple.get(record.groupChallenge.id);
+            String status = tuple.get(verification.status).name();
+            int day = challengeIdToDayCounter.merge(challengeId, 1, Integer::sum);
+
+            map.computeIfAbsent(challengeId, k -> new ArrayList<>())
+                    .add(new GroupChallengeParticipationSummaryDto.AchievementRecordDto(day, status));
+        }
+
+        return map;
     }
 }
