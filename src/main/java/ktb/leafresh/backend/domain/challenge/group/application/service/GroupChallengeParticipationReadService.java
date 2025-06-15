@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @Service
@@ -20,6 +21,7 @@ import java.util.List;
 public class GroupChallengeParticipationReadService {
 
     private final GroupChallengeParticipationRecordQueryRepository groupChallengeParticipationRecordQueryRepository;
+    private final GroupChallengeVerificationQueryRepository groupChallengeVerificationQueryRepository;
 
     public GroupChallengeParticipationCountResponseDto getParticipationCounts(Long memberId) {
         GroupChallengeParticipationCountSummaryDto summary =
@@ -35,6 +37,13 @@ public class GroupChallengeParticipationReadService {
                 groupChallengeParticipationRecordQueryRepository
                         .findParticipatedByStatus(memberId, status, cursorId, cursorTimestamp, size + 1);
 
+        List<Long> challengeIds = dtos.stream()
+                .map(GroupChallengeParticipationDto::getId)
+                .toList();
+
+        Map<Long, List<GroupChallengeParticipationSummaryDto.AchievementRecordDto>> achievementRecordMap =
+                groupChallengeVerificationQueryRepository.findVerificationsGroupedByChallenge(challengeIds, memberId);
+
         CursorPaginationResult<GroupChallengeParticipationSummaryDto> page = CursorPaginationHelper.paginateWithTimestamp(
                 dtos,
                 size,
@@ -46,6 +55,7 @@ public class GroupChallengeParticipationReadService {
                         dto.getEndDate(),
                         dto.getSuccess(),
                         dto.getTotal(),
+                        achievementRecordMap.getOrDefault(dto.getId(), List.of()),
                         dto.getCreatedAt()
                 ),
                 GroupChallengeParticipationSummaryDto::id,
