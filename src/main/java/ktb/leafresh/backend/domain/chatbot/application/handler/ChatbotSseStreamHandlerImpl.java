@@ -34,34 +34,43 @@ public class ChatbotSseStreamHandlerImpl implements ChatbotSseStreamHandler {
 
         eventStream.subscribe(
                 event -> {
-                    String eventName = event.event();
+                    String rawEventName = event.event();
+                    String eventName = (rawEventName == null || rawEventName.isBlank()) ? "message" : rawEventName;
+
                     String data = event.data();
+                    if (data == null) {
+                        log.warn("[SSE 무효 이벤트 수신] event: {}, data: null", eventName);
+                        return;
+                    }
 
                     try {
                         if ("close".equalsIgnoreCase(eventName)) {
                             log.info("[SSE 종료 이벤트 수신] event: close, data: {}", data);
-                            log.info("[SSE 종료 처리] emitter.complete() 호출");
                             emitter.complete();
                             return;
                         }
 
-                        log.info("[SSE 응답 전달] event: {}, data: {}", eventName, data);
+                        if (data.isBlank()) {
+                            log.debug("[SSE Keep-Alive 전송] event: {}, data: <빈 문자열>", eventName);
+                            emitter.send(SseEmitter.event().comment("ping"));
+                        } else {
+                            log.info("[SSE 응답 전달] event: {}, data: {}", eventName, data);
+                            emitter.send(SseEmitter.event()
+                                    .name(eventName)
+                                    .data(data, MediaType.APPLICATION_JSON));
+                        }
 
-                        emitter.send(SseEmitter.event()
-                                .name(event.event())
-                                .data(event.data()));
                     } catch (IOException e) {
                         log.warn("[SSE 전송 실패] {}", e.getMessage());
                         emitter.completeWithError(e);
                     }
                 },
                 error -> {
-                    log.error("[SSE 스트림 오류]", error);
+                    log.error("[SSE 스트림 오류 발생]", error);
                     emitter.completeWithError(error);
                 },
                 () -> {
                     log.info("[SSE 스트림 종료 콜백 발생] → 무시됨 (event: close로만 종료)");
-                    // 종료하지 않음: emitter.complete()은 event: close로만 호출
                 }
         );
     }
