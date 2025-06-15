@@ -26,7 +26,7 @@ public class ChatbotRecommendationSseService {
     private final ObjectMapper objectMapper;
 
     public SseEmitter stream(String aiUri, Object dto) {
-        SseEmitter emitter = new SseEmitter(60_000L);
+        SseEmitter emitter = new SseEmitter(300_000L);
 
         emitter.onCompletion(() -> log.info("[SSE 완료]"));
         emitter.onTimeout(() -> {
