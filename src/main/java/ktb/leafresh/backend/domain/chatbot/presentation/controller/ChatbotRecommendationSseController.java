@@ -5,6 +5,7 @@ import ktb.leafresh.backend.domain.chatbot.presentation.dto.request.ChatbotBaseI
 import ktb.leafresh.backend.domain.chatbot.presentation.dto.request.ChatbotFreeTextRequestDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Profile;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
@@ -14,6 +15,7 @@ import jakarta.servlet.http.HttpServletResponse;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/chatbot/recommendation")
+@Profile({"docker-local", "docker-prod"})
 public class ChatbotRecommendationSseController {
 
     private final ChatbotRecommendationSseService chatbotRecommendationSseService;
