@@ -8,6 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
+import jakarta.servlet.http.HttpServletResponse;
 
 @Slf4j
 @RestController
@@ -22,8 +23,12 @@ public class ChatbotRecommendationSseController {
             @RequestParam String sessionId,
             @RequestParam String location,
             @RequestParam String workType,
-            @RequestParam String category
+            @RequestParam String category,
+            HttpServletResponse response
     ) {
+        response.setHeader("Cache-Control", "no-cache");
+        response.setHeader("X-Accel-Buffering", "no");
+
         return chatbotRecommendationSseService.stream(
                 "/ai/chatbot/recommendation/base-info",
                 new ChatbotBaseInfoRequestDto(sessionId, location, workType, category)
@@ -33,8 +38,12 @@ public class ChatbotRecommendationSseController {
     @GetMapping(value = "/free-text", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public SseEmitter freeText(
             @RequestParam String sessionId,
-            @RequestParam String message
+            @RequestParam String message,
+            HttpServletResponse response
     ) {
+        response.setHeader("Cache-Control", "no-cache");
+        response.setHeader("X-Accel-Buffering", "no");
+
         return chatbotRecommendationSseService.stream(
                 "/ai/chatbot/recommendation/free-text",
                 new ChatbotFreeTextRequestDto(sessionId, message)
