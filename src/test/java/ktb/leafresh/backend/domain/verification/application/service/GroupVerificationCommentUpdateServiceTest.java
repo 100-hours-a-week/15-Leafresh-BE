@@ -13,7 +13,9 @@ import ktb.leafresh.backend.global.exception.VerificationErrorCode;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.test.util.ReflectionTestUtils;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -62,6 +64,9 @@ class GroupVerificationCommentUpdateServiceTest {
         when(verificationRepository.findByIdAndDeletedAtIsNull(1L)).thenReturn(Optional.of(verification));
         when(commentRepository.findById(100L)).thenReturn(Optional.of(comment));
         when(commentRepository.findByParentCommentAndDeletedAtIsNull(comment)).thenReturn(List.of());
+
+        // 수정 로직 후 updatedAt이 null인 상태이므로, 테스트에서 수동 세팅
+        ReflectionTestUtils.setField(comment, "updatedAt", LocalDateTime.now());
 
         // when
         CommentUpdateResponseDto response = service.updateComment(1L, 1L, 100L, 1L, dto);

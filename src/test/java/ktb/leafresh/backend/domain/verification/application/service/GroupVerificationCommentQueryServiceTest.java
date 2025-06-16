@@ -45,14 +45,30 @@ class GroupVerificationCommentQueryServiceTest {
         when(verificationRepository.findByIdAndDeletedAtIsNull(verificationId)).thenReturn(Optional.of(verification));
 
         var member = of(loginMemberId, "test@leafresh.com", "테스터");
-        var comment1 = Comment.builder().id(1L).member(member).verification(verification).content("댓글1").build();
-        var comment2 = Comment.builder().id(2L).member(member).verification(verification).content("댓글2").build();
 
-        // 필수 필드인 createdAt을 명시적으로 설정
-        ReflectionTestUtils.setField(comment1, "createdAt", java.time.LocalDateTime.now().minusSeconds(10));
-        ReflectionTestUtils.setField(comment2, "createdAt", java.time.LocalDateTime.now());
+        var comment1 = Comment.builder()
+                .id(1L)
+                .member(member)
+                .verification(verification)
+                .content("댓글1")
+                .build();
 
-        when(commentRepository.findAllByVerificationIdWithMember(verificationId)).thenReturn(List.of(comment1, comment2));
+        var comment2 = Comment.builder()
+                .id(2L)
+                .member(member)
+                .verification(verification)
+                .content("댓글2")
+                .build();
+
+        var now = java.time.LocalDateTime.now();
+        ReflectionTestUtils.setField(comment1, "createdAt", now.minusSeconds(10));
+        ReflectionTestUtils.setField(comment1, "updatedAt", now.minusSeconds(5));
+
+        ReflectionTestUtils.setField(comment2, "createdAt", now);
+        ReflectionTestUtils.setField(comment2, "updatedAt", now);
+
+        when(commentRepository.findAllByVerificationIdWithMember(verificationId))
+                .thenReturn(List.of(comment1, comment2));
 
         // When
         List<CommentSummaryResponseDto> result = service.getComments(challengeId, verificationId, loginMemberId);

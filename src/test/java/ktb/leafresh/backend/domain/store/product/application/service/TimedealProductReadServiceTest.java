@@ -14,6 +14,8 @@ import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.data.redis.core.ZSetOperations;
 
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Set;
 
@@ -55,8 +57,8 @@ class TimedealProductReadServiceTest {
                         1L, 1L, "비누", "설명",
                         3000, 2000, 30, 10,
                         "https://img.png",
-                        LocalDateTime.now().plusHours(1),
-                        LocalDateTime.now().plusHours(2),
+                        OffsetDateTime.now(ZoneOffset.UTC).plusHours(1),
+                        OffsetDateTime.now(ZoneOffset.UTC).plusHours(2),
                         "ACTIVE", "ONGOING"
                 )
         ));
@@ -79,8 +81,8 @@ class TimedealProductReadServiceTest {
                 1L, 1L, "샴푸", "세정력 좋은 샴푸",
                 5000, 3500, 30, 20,
                 "https://img.png",
-                LocalDateTime.now().plusHours(1),
-                LocalDateTime.now().plusHours(2),
+                OffsetDateTime.now(ZoneOffset.UTC).plusHours(1),
+                OffsetDateTime.now(ZoneOffset.UTC).plusHours(2),
                 "ACTIVE", "ONGOING"
         );
         when(valueOps.get(ProductCacheKeys.timedealSingle(1L))).thenReturn(dto);
@@ -102,8 +104,8 @@ class TimedealProductReadServiceTest {
                 1L, 1L, "친환경 수세미", "지속 가능한 수세미",
                 3500, 2000, 40, 10,
                 "https://img.png",
-                LocalDateTime.now().plusHours(1),
-                LocalDateTime.now().plusHours(2),
+                OffsetDateTime.now(ZoneOffset.UTC).plusHours(1),
+                OffsetDateTime.now(ZoneOffset.UTC).plusHours(2),
                 "ACTIVE", "ONGOING"
         );
         when(queryService.findAllById(List.of(1L))).thenReturn(List.of(fallbackDto));

@@ -17,6 +17,8 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.Optional;
 
 import static ktb.leafresh.backend.support.fixture.ProductFixture.of;
@@ -52,8 +54,8 @@ class TimedealCreateServiceTest {
     void createTimedeal_success() {
         // given
         Product product = of("친환경 주방세제", 3000, 50);
-        LocalDateTime start = LocalDateTime.now().plusHours(1);
-        LocalDateTime end = LocalDateTime.now().plusHours(2);
+        OffsetDateTime start = OffsetDateTime.now(ZoneOffset.UTC).plusHours(1);
+        OffsetDateTime end = OffsetDateTime.now(ZoneOffset.UTC).plusHours(2);
 
         TimedealCreateRequestDto dto = new TimedealCreateRequestDto(
                 product.getId(),
@@ -77,7 +79,7 @@ class TimedealCreateServiceTest {
 
         // then
         assertThat(response.dealId()).isEqualTo(10L);
-        verify(productCacheService).cacheTimedealStock(eq(10L), eq(50), eq(end));
+        verify(productCacheService).cacheTimedealStock(eq(10L), eq(50), eq(end.toLocalDateTime()));
         verify(productCacheService).updateSingleTimedealCache(any(TimedealPolicy.class));
         verify(eventPublisher).publishEvent(any(ProductUpdatedEvent.class));
     }
@@ -87,8 +89,8 @@ class TimedealCreateServiceTest {
     void createTimedeal_fail_productNotFound() {
         TimedealCreateRequestDto dto = new TimedealCreateRequestDto(
                 999L,
-                LocalDateTime.now().plusHours(1),
-                LocalDateTime.now().plusHours(2),
+                OffsetDateTime.now(ZoneOffset.UTC).plusHours(1),
+                OffsetDateTime.now(ZoneOffset.UTC).plusHours(2),
                 2000,
                 20
         );
@@ -104,8 +106,8 @@ class TimedealCreateServiceTest {
         Product product = of("친환경 주방세제", 3000, 50);
         TimedealCreateRequestDto dto = new TimedealCreateRequestDto(
                 product.getId(),
-                LocalDateTime.now().plusHours(3),
-                LocalDateTime.now().plusHours(1),
+                OffsetDateTime.now(ZoneOffset.UTC).plusHours(3),
+                OffsetDateTime.now(ZoneOffset.UTC).plusHours(1),
                 2000,
                 20
         );
@@ -121,8 +123,8 @@ class TimedealCreateServiceTest {
         Product product = of("친환경 주방세제", 3000, 50);
         TimedealCreateRequestDto dto = new TimedealCreateRequestDto(
                 product.getId(),
-                LocalDateTime.now().plusHours(1),
-                LocalDateTime.now().plusHours(2),
+                OffsetDateTime.now(ZoneOffset.UTC).plusHours(1),
+                OffsetDateTime.now(ZoneOffset.UTC).plusHours(2),
                 2000,
                 20
         );
@@ -140,8 +142,8 @@ class TimedealCreateServiceTest {
         Product product = of("친환경 주방세제", 3000, 50);
         TimedealCreateRequestDto dto = new TimedealCreateRequestDto(
                 product.getId(),
-                LocalDateTime.now().plusHours(1),
-                LocalDateTime.now().plusHours(2),
+                OffsetDateTime.now(ZoneOffset.UTC).plusHours(1),
+                OffsetDateTime.now(ZoneOffset.UTC).plusHours(2),
                 2000,
                 20
         );

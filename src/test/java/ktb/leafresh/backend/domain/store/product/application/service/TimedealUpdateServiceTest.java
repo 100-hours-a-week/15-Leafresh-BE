@@ -14,6 +14,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.context.ApplicationEventPublisher;
 
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.Optional;
 
 import static ktb.leafresh.backend.support.fixture.ProductFixture.of;
@@ -44,8 +46,8 @@ class TimedealUpdateServiceTest {
         Product product = of("주방세제", 3000, 100);
         TimedealPolicy policy = TimedealPolicyFixture.of(product);
 
-        LocalDateTime newStart = policy.getStartTime().minusDays(1);
-        LocalDateTime newEnd = policy.getEndTime().plusDays(1);
+        OffsetDateTime newStart = policy.getStartTime().atOffset(ZoneOffset.UTC);
+        OffsetDateTime newEnd = policy.getEndTime().atOffset(ZoneOffset.UTC);
 
         when(policyRepository.findById(1L)).thenReturn(Optional.of(policy));
         when(policyRepository.existsByProductIdAndTimeOverlapExceptSelf(any(), any(), any(), any())).thenReturn(false);
@@ -59,10 +61,10 @@ class TimedealUpdateServiceTest {
         assertThat(policy.getStock()).isEqualTo(20);
         assertThat(policy.getDiscountedPrice()).isEqualTo(2100);
         assertThat(policy.getDiscountedPercentage()).isEqualTo(15);
-        assertThat(policy.getStartTime()).isEqualTo(newStart);
-        assertThat(policy.getEndTime()).isEqualTo(newEnd);
+        assertThat(policy.getStartTime()).isEqualTo(newStart.toLocalDateTime());
+        assertThat(policy.getEndTime()).isEqualTo(newEnd.toLocalDateTime());
 
-        verify(productCacheService).cacheTimedealStock(eq(policy.getId()), eq(20), eq(newEnd));
+        verify(productCacheService).cacheTimedealStock(eq(policy.getId()), eq(20), eq(newEnd.toLocalDateTime()));
         verify(productCacheService).evictTimedealCache(eq(policy));
         verify(productCacheService).updateSingleTimedealCache(eq(policy));
         verify(eventPublisher).publishEvent(any(ProductUpdatedEvent.class));
@@ -88,7 +90,7 @@ class TimedealUpdateServiceTest {
         when(policyRepository.findById(1L)).thenReturn(Optional.of(policy));
 
         TimedealUpdateRequestDto dto = new TimedealUpdateRequestDto(
-                LocalDateTime.now().plusHours(2), LocalDateTime.now().minusHours(1), null, null, 10
+                OffsetDateTime.now(ZoneOffset.UTC).plusHours(2), OffsetDateTime.now(ZoneOffset.UTC).minusHours(1), null, null, 10
         );
 
         CustomException exception = catchThrowableOfType(() -> service.update(1L, dto), CustomException.class);
@@ -101,8 +103,8 @@ class TimedealUpdateServiceTest {
         Product product = of("주방세제", 3000, 100);
         TimedealPolicy policy = TimedealPolicyFixture.of(product);
 
-        LocalDateTime newStart = policy.getStartTime().plusHours(1);
-        LocalDateTime newEnd = policy.getEndTime().plusHours(2);
+        OffsetDateTime newStart = policy.getStartTime().atOffset(ZoneOffset.UTC);
+        OffsetDateTime newEnd = policy.getEndTime().atOffset(ZoneOffset.UTC);
 
         when(policyRepository.findById(1L)).thenReturn(Optional.of(policy));
         when(policyRepository.existsByProductIdAndTimeOverlapExceptSelf(any(), any(), any(), any()))
