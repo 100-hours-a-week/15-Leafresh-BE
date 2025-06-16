@@ -6,6 +6,7 @@ import ktb.leafresh.backend.domain.store.order.domain.entity.PurchaseIdempotency
 import ktb.leafresh.backend.domain.store.order.infrastructure.publisher.PurchaseMessagePublisher;
 import ktb.leafresh.backend.domain.store.order.infrastructure.repository.PurchaseIdempotencyKeyRepository;
 import ktb.leafresh.backend.domain.store.product.domain.entity.Product;
+import ktb.leafresh.backend.domain.store.product.infrastructure.cache.ProductCacheService;
 import ktb.leafresh.backend.domain.store.product.infrastructure.repository.ProductRepository;
 import ktb.leafresh.backend.domain.store.product.infrastructure.cache.ProductCacheKeys;
 import ktb.leafresh.backend.global.exception.*;
@@ -30,6 +31,7 @@ public class ProductOrderCreateService {
     private final PurchaseIdempotencyKeyRepository idempotencyRepository;
     private final RedisLuaService redisLuaService;
     private final PurchaseMessagePublisher purchaseMessagePublisher;
+    private final ProductCacheService productCacheService;
 
     @Transactional
     public void create(Long memberId, Long productId, int quantity, String idempotencyKey) {
@@ -47,6 +49,12 @@ public class ProductOrderCreateService {
         // 3. 상품 존재 여부 확인 (재고 키 조회용)
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new CustomException(ProductErrorCode.PRODUCT_NOT_FOUND));
+
+        // 3-1. 캐시 없으면 Redisson Lock 기반으로 캐싱 (스탬피드 방지)
+        productCacheService.getProductStockWithDistributedLock(
+                productId,
+                () -> product.getStock()
+        );
 
         // 4. Redis 재고 선점
         String redisKey = ProductCacheKeys.productStock(productId);
