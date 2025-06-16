@@ -6,6 +6,7 @@ import ktb.leafresh.backend.domain.store.order.domain.entity.PurchaseIdempotency
 import ktb.leafresh.backend.domain.store.order.infrastructure.publisher.PurchaseMessagePublisher;
 import ktb.leafresh.backend.domain.store.order.infrastructure.repository.PurchaseIdempotencyKeyRepository;
 import ktb.leafresh.backend.domain.store.product.domain.entity.Product;
+import ktb.leafresh.backend.domain.store.product.infrastructure.cache.ProductCacheService;
 import ktb.leafresh.backend.domain.store.product.infrastructure.repository.ProductRepository;
 import ktb.leafresh.backend.global.exception.CustomException;
 import ktb.leafresh.backend.global.exception.MemberErrorCode;
@@ -32,6 +33,7 @@ class ProductOrderCreateServiceTest {
     private RedisLuaService redisLuaService;
     private PurchaseMessagePublisher purchaseMessagePublisher;
     private ktb.leafresh.backend.domain.member.infrastructure.repository.MemberRepository memberRepository;
+    private ProductCacheService productCacheService;
 
     @BeforeEach
     void setUp() {
@@ -40,13 +42,15 @@ class ProductOrderCreateServiceTest {
         redisLuaService = mock(RedisLuaService.class);
         purchaseMessagePublisher = mock(PurchaseMessagePublisher.class);
         memberRepository = mock(ktb.leafresh.backend.domain.member.infrastructure.repository.MemberRepository.class);
+        productCacheService = mock(ProductCacheService.class);
 
         service = new ProductOrderCreateService(
                 memberRepository,
                 productRepository,
                 idempotencyRepository,
                 redisLuaService,
-                purchaseMessagePublisher
+                purchaseMessagePublisher,
+                productCacheService
         );
     }
 
