@@ -2,7 +2,7 @@ package ktb.leafresh.backend.domain.store.product.infrastructure.cache.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 
 public record ProductSummaryCacheDto(
         Long id,
@@ -12,6 +12,6 @@ public record ProductSummaryCacheDto(
         int price,
         int stock,
         String status,
-        @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
-        LocalDateTime createdAt
+        @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ssXXX")
+        OffsetDateTime createdAt
 ) {}

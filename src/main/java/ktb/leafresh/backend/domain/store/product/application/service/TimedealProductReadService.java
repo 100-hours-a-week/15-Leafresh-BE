@@ -10,10 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
-import java.time.Duration;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
+import java.time.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -112,18 +109,18 @@ public class TimedealProductReadService {
                         dto.dealStartTime(),
                         dto.dealEndTime(),
                         dto.productStatus(),
-                        determineTimeDealStatus(dto.dealStartTime(), dto.dealEndTime())
+                        determineTimeDealStatus(
+                                dto.dealStartTime(),
+                                dto.dealEndTime()
+                        )
                 ))
                 .toList();
 
         return new TimedealProductListResponseDto(updated);
     }
 
-    private String determineTimeDealStatus(LocalDateTime start, LocalDateTime end) {
-        ZonedDateTime nowKST = ZonedDateTime.now(ZoneId.of("Asia/Seoul"));
-        ZonedDateTime startZoned = start.atZone(ZoneId.of("Asia/Seoul"));
-        ZonedDateTime endZoned = end.atZone(ZoneId.of("Asia/Seoul"));
-
-        return (!nowKST.isBefore(startZoned) && nowKST.isBefore(endZoned)) ? "ONGOING" : "UPCOMING";
+    private String determineTimeDealStatus(OffsetDateTime start, OffsetDateTime end) {
+        OffsetDateTime nowUtc = OffsetDateTime.now(ZoneOffset.UTC);
+        return (!nowUtc.isBefore(start) && nowUtc.isBefore(end)) ? "ONGOING" : "UPCOMING";
     }
 }

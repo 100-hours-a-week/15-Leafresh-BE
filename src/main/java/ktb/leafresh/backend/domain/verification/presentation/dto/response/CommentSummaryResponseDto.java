@@ -11,6 +11,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -36,8 +38,8 @@ public class CommentSummaryResponseDto {
 
     private Long id;
     private String content;
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
+    private OffsetDateTime createdAt;
+    private OffsetDateTime updatedAt;
     private String nickname;
     private String profileImageUrl;
     private Long parentCommentId;
@@ -62,8 +64,8 @@ public class CommentSummaryResponseDto {
         return CommentSummaryResponseDto.builder()
                 .id(comment.getId())
                 .content(isDeleted ? "삭제된 댓글입니다." : comment.getContent())
-                .createdAt(comment.getCreatedAt())
-                .updatedAt(comment.getUpdatedAt())
+                .createdAt(comment.getCreatedAt().atOffset(ZoneOffset.UTC))
+                .updatedAt(comment.getUpdatedAt().atOffset(ZoneOffset.UTC))
                 .nickname(isDeleted ? "(알수없음)" : comment.getMember().getNickname())
                 .profileImageUrl(isDeleted
                         ? "https://storage.googleapis.com/leafresh-images/init/user_icon.png"
@@ -71,7 +73,7 @@ public class CommentSummaryResponseDto {
                 .parentCommentId(isReply ? comment.getParentComment().getId() : null)
                 .isMine(loginMemberId != null && Objects.equals(comment.getMember().getId(), loginMemberId))
                 .deleted(isDeleted)
-                .replies((includeReplies && !isReply) ? new ArrayList<>() : null)  // <-- 핵심 수정
+                .replies((includeReplies && !isReply) ? new ArrayList<>() : null)
                 .build();
     }
 }

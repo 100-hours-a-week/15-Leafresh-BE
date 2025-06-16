@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 
 @Getter
 @NoArgsConstructor
@@ -15,7 +16,7 @@ public class GroupChallengeParticipationDto {
     private String endDate;
     private Long success;
     private Long total;
-    private LocalDateTime createdAt;
+    private OffsetDateTime createdAt;
 
     public GroupChallengeParticipationDto(
             Long id,
@@ -25,7 +26,7 @@ public class GroupChallengeParticipationDto {
             String endDate,
             Long success,
             Long total,
-            LocalDateTime createdAt
+            OffsetDateTime createdAt
     ) {
         this.id = id;
         this.title = title;

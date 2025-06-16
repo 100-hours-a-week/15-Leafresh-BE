@@ -59,8 +59,8 @@ public class GroupChallengeVerificationFeedService {
                         redisStats.get(v.getId()),
                         likedIds.contains(v.getId())
                 ),
-                GroupChallengeVerificationFeedSummaryDto::id,
-                GroupChallengeVerificationFeedSummaryDto::createdAt
+                dto -> dto.id(),
+                dto -> dto.createdAt().toLocalDateTime()
         );
     }
 }

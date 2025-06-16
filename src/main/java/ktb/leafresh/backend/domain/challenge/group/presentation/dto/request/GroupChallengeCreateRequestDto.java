@@ -8,6 +8,7 @@ import ktb.leafresh.backend.global.validator.ValidGcsImageUrl;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.OffsetDateTime;
 import java.util.List;
 
 @Schema(description = "단체 챌린지 생성 요청")
@@ -29,10 +30,10 @@ public record GroupChallengeCreateRequestDto(
         @Schema(description = "썸네일 이미지 URL") String thumbnailImageUrl,
 
         @NotNull
-        @Schema(description = "시작일") LocalDate startDate,
+        @Schema(description = "시작일") OffsetDateTime startDate,
 
         @NotNull
-        @Schema(description = "종료일") LocalDate endDate,
+        @Schema(description = "종료일") OffsetDateTime endDate,
 
         @NotNull
         @Schema(description = "인증 시작 시간") LocalTime verificationStartTime,

@@ -56,7 +56,7 @@ public class GroupChallengeParticipationReadService {
                         dto.getSuccess(),
                         dto.getTotal(),
                         achievementRecordMap.getOrDefault(dto.getId(), List.of()),
-                        dto.getCreatedAt()
+                        dto.getCreatedAt().toLocalDateTime()
                 ),
                 GroupChallengeParticipationSummaryDto::id,
                 GroupChallengeParticipationSummaryDto::createdAt

@@ -6,6 +6,8 @@ import lombok.Builder;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 
 @Getter
 @Builder
@@ -19,7 +21,7 @@ public class ProductPurchaseSummaryResponseDto {
 
     private final int price;
 
-    private final String purchasedAt;
+    private final OffsetDateTime purchasedAt;
 
     @JsonIgnore
     private final String type;
@@ -42,7 +44,7 @@ public class ProductPurchaseSummaryResponseDto {
                         .build())
                 .quantity(entity.getQuantity())
                 .price(entity.getPrice())
-                .purchasedAt(entity.getPurchasedAt().toString())
+                .purchasedAt(entity.getPurchasedAt().atOffset(ZoneOffset.UTC))
                 .type(entity.getType().name()) // JsonIgnore로 제외됨
                 .build();
     }
@@ -52,6 +54,6 @@ public class ProductPurchaseSummaryResponseDto {
     }
 
     public static LocalDateTime purchasedAt(ProductPurchaseSummaryResponseDto dto) {
-        return LocalDateTime.parse(dto.getPurchasedAt());
+        return dto.getPurchasedAt().toLocalDateTime();
     }
 }

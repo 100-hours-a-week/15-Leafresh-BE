@@ -6,6 +6,8 @@ import lombok.Builder;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 
 @Builder
@@ -15,8 +17,8 @@ public record GroupChallengeDetailResponseDto(
         String title,
         String description,
         String category,
-        LocalDate startDate,
-        LocalDate endDate,
+        OffsetDateTime startDate,
+        OffsetDateTime endDate,
         LocalTime verificationStartTime,
         LocalTime verificationEndTime,
         Integer leafReward,
@@ -37,8 +39,8 @@ public record GroupChallengeDetailResponseDto(
                 .title(challenge.getTitle())
                 .description(challenge.getDescription())
                 .category(challenge.getCategory().getName())
-                .startDate(challenge.getStartDate().toLocalDate())
-                .endDate(challenge.getEndDate().toLocalDate())
+                .startDate(challenge.getStartDate().atOffset(ZoneOffset.UTC))
+                .endDate(challenge.getStartDate().atOffset(ZoneOffset.UTC))
                 .verificationStartTime(challenge.getVerificationStartTime())
                 .verificationEndTime(challenge.getVerificationEndTime())
                 .leafReward(challenge.getLeafReward())

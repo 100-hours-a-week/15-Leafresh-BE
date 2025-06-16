@@ -37,7 +37,7 @@ public class TimedealCreateService {
         }
 
         boolean hasOverlap = timedealPolicyRepository.existsByProductIdAndTimeOverlap(
-                dto.productId(), dto.startTime(), dto.endTime()
+                dto.productId(), dto.startTime().toLocalDateTime(), dto.endTime().toLocalDateTime()
         );
 
         if (hasOverlap) {
@@ -49,8 +49,8 @@ public class TimedealCreateService {
                 .discountedPrice(dto.discountedPrice())
                 .discountedPercentage(dto.discountedPercentage())
                 .stock(product.getStock())
-                .startTime(dto.startTime())
-                .endTime(dto.endTime())
+                .startTime(dto.startTime().toLocalDateTime())
+                .endTime(dto.endTime().toLocalDateTime())
                 .build();
 
         try {

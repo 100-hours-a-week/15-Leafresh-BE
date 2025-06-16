@@ -31,7 +31,7 @@ public class GroupChallengeCreatedReadService {
                 size,
                 CreatedGroupChallengeSummaryResponseDto::from,
                 CreatedGroupChallengeSummaryResponseDto::id,
-                CreatedGroupChallengeSummaryResponseDto::createdAt
+                dto -> dto.createdAt().toLocalDateTime()
         );
     }
 }

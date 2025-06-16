@@ -6,6 +6,8 @@ import lombok.Builder;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 
 @Builder
@@ -16,8 +18,8 @@ public record GroupChallengeRuleResponseDto(
 
     @Builder
     public record CertificationPeriod(
-            LocalDate startDate,
-            LocalDate endDate,
+            OffsetDateTime startDate,
+            OffsetDateTime endDate,
             LocalTime startTime,
             LocalTime endTime
     ) {}
@@ -26,8 +28,8 @@ public record GroupChallengeRuleResponseDto(
         return GroupChallengeRuleResponseDto.builder()
                 .certificationPeriod(
                         CertificationPeriod.builder()
-                                .startDate(challenge.getStartDate().toLocalDate())
-                                .endDate(challenge.getEndDate().toLocalDate())
+                                .startDate(challenge.getStartDate().atOffset(ZoneOffset.UTC))
+                                .endDate(challenge.getEndDate().atOffset(ZoneOffset.UTC))
                                 .startTime(challenge.getVerificationStartTime())
                                 .endTime(challenge.getVerificationEndTime())
                                 .build()

@@ -4,6 +4,8 @@ import ktb.leafresh.backend.domain.verification.domain.entity.Comment;
 import lombok.Builder;
 
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.Collections;
 import java.util.List;
 
@@ -11,7 +13,7 @@ import java.util.List;
 public record CommentResponseDto(
         Long id,
         String content,
-        LocalDateTime createdAt,
+        OffsetDateTime createdAt,
         String nickname,
         String profileImageUrl,
         Long parentCommentId,
@@ -22,7 +24,7 @@ public record CommentResponseDto(
         return CommentResponseDto.builder()
                 .id(comment.getId())
                 .content(comment.getContent())
-                .createdAt(comment.getCreatedAt())
+                .createdAt(comment.getCreatedAt().atOffset(ZoneOffset.UTC))
                 .nickname(comment.getMember().getNickname())
                 .profileImageUrl(comment.getMember().getImageUrl())
                 .parentCommentId(comment.getParentComment() != null ? comment.getParentComment().getId() : null)

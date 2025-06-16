@@ -10,6 +10,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.time.Duration;
+import java.time.LocalTime;
+import java.time.OffsetDateTime;
 import java.time.temporal.ChronoUnit;
 
 @Component
@@ -55,10 +57,10 @@ public class GroupChallengeDomainValidator {
     }
 
     private void validateCommon(
-            java.time.LocalDate startDate,
-            java.time.LocalDate endDate,
-            java.time.LocalTime verificationStartTime,
-            java.time.LocalTime verificationEndTime,
+            OffsetDateTime startDate,
+            OffsetDateTime endDate,
+            LocalTime verificationStartTime,
+            LocalTime verificationEndTime,
             String categoryName
     ) {
         if (!endDate.isAfter(startDate)) {

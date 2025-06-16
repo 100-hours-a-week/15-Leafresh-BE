@@ -4,6 +4,8 @@ import ktb.leafresh.backend.domain.verification.domain.entity.GroupChallengeVeri
 import lombok.Builder;
 
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.Map;
 
 @Builder
@@ -16,10 +18,10 @@ public record GroupChallengeVerificationDetailResponseDto(
         String content,
         String category,
         String status,
-        LocalDateTime verifiedAt,
+        OffsetDateTime verifiedAt,
         Counts counts,
-        LocalDateTime createdAt,
-        LocalDateTime updatedAt
+        OffsetDateTime createdAt,
+        OffsetDateTime updatedAt
 ) {
     @Builder
     public record Counts(
@@ -45,14 +47,14 @@ public record GroupChallengeVerificationDetailResponseDto(
                 .content(v.getContent())
                 .category(challenge.getCategory().getName())
                 .status(v.getStatus().name())
-                .verifiedAt(v.getVerifiedAt())
+                .verifiedAt(v.getVerifiedAt().atOffset(ZoneOffset.UTC))
                 .counts(new Counts(
                         parseStat(cachedStats, "viewCount", v.getViewCount()),
                         parseStat(cachedStats, "likeCount", v.getLikeCount()),
                         parseStat(cachedStats, "commentCount", v.getCommentCount())
                 ))
-                .createdAt(v.getCreatedAt())
-                .updatedAt(v.getUpdatedAt())
+                .createdAt(v.getCreatedAt().atOffset(ZoneOffset.UTC))
+                .updatedAt(v.getUpdatedAt().atOffset(ZoneOffset.UTC))
                 .build();
     }
 

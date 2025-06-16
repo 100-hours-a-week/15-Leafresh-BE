@@ -1,6 +1,6 @@
 package ktb.leafresh.backend.domain.store.product.presentation.dto.response;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 
 public record TimedealProductSummaryResponseDto(
         Long dealId,
@@ -12,8 +12,8 @@ public record TimedealProductSummaryResponseDto(
         int discountedPercentage,
         int stock,
         String imageUrl,
-        LocalDateTime dealStartTime,
-        LocalDateTime dealEndTime,
+        OffsetDateTime dealStartTime,
+        OffsetDateTime dealEndTime,
         String productStatus,      // ACTIVE or SOLD_OUT
         String timeDealStatus      // ONGOING or UPCOMING
 ) {}
