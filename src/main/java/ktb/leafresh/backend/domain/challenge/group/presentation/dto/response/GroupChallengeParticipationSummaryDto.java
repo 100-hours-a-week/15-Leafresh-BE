@@ -3,7 +3,7 @@ package ktb.leafresh.backend.domain.challenge.group.presentation.dto.response;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Builder;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.List;
 
 @Builder
@@ -16,7 +16,7 @@ public record GroupChallengeParticipationSummaryDto(
         AchievementDto achievement,
         List<AchievementRecordDto> achievementRecords,
         @JsonIgnore
-        LocalDateTime createdAt
+        OffsetDateTime createdAt
 ) {
     @Builder
     public record AchievementDto(Long success, Long total) {}
@@ -33,7 +33,7 @@ public record GroupChallengeParticipationSummaryDto(
             Long success,
             Long total,
             List<AchievementRecordDto> achievementRecords,
-            LocalDateTime createdAt
+            OffsetDateTime createdAt
     ) {
         return GroupChallengeParticipationSummaryDto.builder()
                 .id(id)

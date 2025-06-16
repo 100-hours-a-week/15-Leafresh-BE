@@ -16,7 +16,7 @@ public class GroupChallengeParticipationDto {
     private String endDate;
     private Long success;
     private Long total;
-    private OffsetDateTime createdAt;
+    private LocalDateTime createdAt;
 
     public GroupChallengeParticipationDto(
             Long id,
@@ -26,7 +26,7 @@ public class GroupChallengeParticipationDto {
             String endDate,
             Long success,
             Long total,
-            OffsetDateTime createdAt
+            LocalDateTime createdAt
     ) {
         this.id = id;
         this.title = title;
