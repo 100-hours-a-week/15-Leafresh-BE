@@ -46,18 +46,23 @@ public class HttpFeedbackCreationClient implements FeedbackCreationClient {
 
             AiFeedbackApiResponseDto parsed = objectMapper.readValue(rawJson, AiFeedbackApiResponseDto.class);
 
-            if (parsed.status() != 202) {
+            if (parsed.status() == 200) {
+                AiFeedbackResponseDto result = parsed.data();
+                if (result == null || result.content() == null || result.content().isBlank()) {
+                    log.warn("[AI 응답 오류] data.content 비어 있음");
+                    throw new CustomException(FeedbackErrorCode.FEEDBACK_SERVER_ERROR);
+                }
+                log.info("[AI 피드백 응답 파싱 완료] content={}", result.content());
+
+            } else if (parsed.status() == 202) {
+                log.info("[AI 피드백 요청 정상 접수 - 비동기 처리 예정]");
+                // 202일 경우에는 content 비어 있어도 정상 처리로 간주
+
+            } else {
                 log.error("[AI 응답 에러] status={}, message={}", parsed.status(), parsed.message());
                 throw new CustomException(FeedbackErrorCode.FEEDBACK_SERVER_ERROR);
             }
 
-            AiFeedbackResponseDto result = parsed.data();
-            if (result == null || result.content() == null || result.content().isBlank()) {
-                log.warn("[AI 응답 오류] data.content 비어 있음");
-                throw new CustomException(FeedbackErrorCode.FEEDBACK_SERVER_ERROR);
-            }
-
-            log.info("[AI 피드백 응답 파싱 완료] content={}", result.content());
         } catch (WebClientRequestException ex) {
             Throwable cause = ex.getCause();
             if (cause instanceof SocketTimeoutException) {
