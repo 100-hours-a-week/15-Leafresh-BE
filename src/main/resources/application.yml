@@ -2,6 +2,9 @@ spring:
   application:
     name: backend
 
+  web:
+    application-type: reactive
+
   profiles:
     active: ${spring_profiles_active}
 
