@@ -46,7 +46,7 @@ public class HttpFeedbackCreationClient implements FeedbackCreationClient {
 
             AiFeedbackApiResponseDto parsed = objectMapper.readValue(rawJson, AiFeedbackApiResponseDto.class);
 
-            if (parsed.status() != 200) {
+            if (parsed.status() != 202) {
                 log.error("[AI 응답 에러] status={}, message={}", parsed.status(), parsed.message());
                 throw new CustomException(FeedbackErrorCode.FEEDBACK_SERVER_ERROR);
             }
