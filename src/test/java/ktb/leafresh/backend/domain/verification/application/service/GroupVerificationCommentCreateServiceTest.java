@@ -13,7 +13,10 @@ import ktb.leafresh.backend.global.util.redis.VerificationStatRedisLuaService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.stubbing.Answer;
+import org.springframework.test.util.ReflectionTestUtils;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 import static ktb.leafresh.backend.support.fixture.GroupChallengeVerificationFixture.of;
@@ -57,10 +60,18 @@ class GroupVerificationCommentCreateServiceTest {
         when(memberRepository.findById(1L)).thenReturn(Optional.of(member));
         when(verificationRepository.findByIdAndDeletedAtIsNull(1L)).thenReturn(Optional.of(verification));
 
+        // save()로 전달된 Comment 객체에 createdAt을 세팅해서 그대로 반환
+        when(commentRepository.save(any(Comment.class))).thenAnswer((Answer<Comment>) invocation -> {
+            Comment comment = invocation.getArgument(0);
+            ReflectionTestUtils.setField(comment, "id", 1L); // 테스트용 ID도 세팅
+            ReflectionTestUtils.setField(comment, "createdAt", LocalDateTime.now());
+            return comment;
+        });
+
         CommentResponseDto response = service.createComment(1L, 1L, 1L, requestDto);
 
         assertThat(response.content()).isEqualTo("좋은 챌린지네요!");
-        verify(commentRepository, times(1)).save(any(Comment.class));
+        verify(commentRepository).save(any(Comment.class));
         verify(redisLuaService).increaseVerificationCommentCount(1L);
     }
 
@@ -74,18 +85,26 @@ class GroupVerificationCommentCreateServiceTest {
                 .member(member)
                 .verification(verification)
                 .build();
+        ReflectionTestUtils.setField(parent, "createdAt", LocalDateTime.now());
 
         when(memberRepository.findById(1L)).thenReturn(Optional.of(member));
         when(verificationRepository.findByIdAndDeletedAtIsNull(1L)).thenReturn(Optional.of(verification));
         when(commentRepository.findById(999L)).thenReturn(Optional.of(parent));
 
+        // save 시점에 createdAt 세팅
+        when(commentRepository.save(any(Comment.class))).thenAnswer((Answer<Comment>) invocation -> {
+            Comment reply = invocation.getArgument(0);
+            ReflectionTestUtils.setField(reply, "id", 1000L);
+            ReflectionTestUtils.setField(reply, "createdAt", LocalDateTime.now());
+            return reply;
+        });
+
         CommentResponseDto response = service.createReply(1L, 1L, 999L, 1L, requestDto);
 
         assertThat(response.parentCommentId()).isEqualTo(999L);
-        verify(commentRepository, times(1)).save(any(Comment.class));
+        verify(commentRepository).save(any(Comment.class));
         verify(redisLuaService).increaseVerificationCommentCount(1L);
     }
-
 
     @Test
     @DisplayName("삭제된 댓글에 대댓글을 작성하려고 하면 예외가 발생한다")
