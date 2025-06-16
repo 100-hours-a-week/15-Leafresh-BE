@@ -4,6 +4,8 @@ import ktb.leafresh.backend.domain.verification.domain.entity.GroupChallengeVeri
 import lombok.Builder;
 
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.Map;
 
 @Builder
@@ -15,7 +17,7 @@ public record GroupChallengeVerificationSummaryDto(
         String description,
         String category,
         Counts counts,
-        LocalDateTime createdAt,
+        OffsetDateTime createdAt,
         Boolean isLiked
 ) {
     @Builder
@@ -45,7 +47,7 @@ public record GroupChallengeVerificationSummaryDto(
                         parseCount(cachedStats, "likeCount", verification.getLikeCount()),
                         parseCount(cachedStats, "commentCount", verification.getCommentCount())
                 ))
-                .createdAt(verification.getCreatedAt())
+                .createdAt(verification.getCreatedAt().atOffset(ZoneOffset.UTC))
                 .isLiked(isLiked)
                 .build();
     }

@@ -46,11 +46,11 @@ public class TimedealUpdateService {
             }
 
             boolean hasOverlap = timedealPolicyRepository.existsByProductIdAndTimeOverlapExceptSelf(
-                    policy.getProduct().getId(), dto.startTime(), dto.endTime(), dealId);
+                    policy.getProduct().getId(), dto.startTime().toLocalDateTime(), dto.endTime().toLocalDateTime(), dealId);
             if (hasOverlap) throw new CustomException(TimedealErrorCode.OVERLAPPING_TIME);
 
             if (!dto.startTime().equals(originalStart) || !dto.endTime().equals(originalEnd)) {
-                policy.updateTime(dto.startTime(), dto.endTime());
+                policy.updateTime(dto.startTime().toLocalDateTime(), dto.endTime().toLocalDateTime());
                 shouldUpdateStockCache = true;
                 isTimeChanged = true;
             }

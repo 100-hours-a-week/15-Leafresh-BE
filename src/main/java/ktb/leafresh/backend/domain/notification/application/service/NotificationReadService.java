@@ -35,7 +35,7 @@ public class NotificationReadService {
                 size,
                 NotificationSummaryResponse::from,
                 NotificationSummaryResponse::id,
-                NotificationSummaryResponse::createdAt
+                dto -> dto.createdAt().toLocalDateTime()
         );
     }
 

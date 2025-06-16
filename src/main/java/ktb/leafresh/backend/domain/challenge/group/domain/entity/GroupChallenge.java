@@ -13,6 +13,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 
+import java.time.OffsetDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
@@ -93,8 +94,8 @@ public class GroupChallenge extends BaseEntity {
             String description,
             String imageUrl,
             int maxParticipantCount,
-            LocalDate startDate,
-            LocalDate endDate,
+            OffsetDateTime startDate,
+            OffsetDateTime endDate,
             LocalTime verificationStart,
             LocalTime verificationEnd
     ) {
@@ -102,8 +103,8 @@ public class GroupChallenge extends BaseEntity {
         this.description = description;
         this.imageUrl = imageUrl;
         this.maxParticipantCount = maxParticipantCount;
-        this.startDate = startDate.atStartOfDay();
-        this.endDate = endDate.atTime(23, 59, 59);
+        this.startDate = startDate.toLocalDate().atStartOfDay();
+        this.endDate = endDate.toLocalDate().atTime(23, 59, 59);
         this.verificationStartTime = verificationStart;
         this.verificationEndTime = verificationEnd;
     }

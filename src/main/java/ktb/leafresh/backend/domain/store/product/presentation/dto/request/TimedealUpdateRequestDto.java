@@ -1,10 +1,10 @@
 package ktb.leafresh.backend.domain.store.product.presentation.dto.request;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 
 public record TimedealUpdateRequestDto(
-        LocalDateTime startTime,
-        LocalDateTime endTime,
+        OffsetDateTime startTime,
+        OffsetDateTime endTime,
         Integer discountedPrice,
         Integer discountedPercentage,
         Integer stock

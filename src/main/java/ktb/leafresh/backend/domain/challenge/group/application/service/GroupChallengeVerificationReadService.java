@@ -66,8 +66,8 @@ public class GroupChallengeVerificationReadService {
                         redisStats.get(v.getId()),
                         likedIds.contains(v.getId())
                 ),
-                GroupChallengeVerificationSummaryDto::id,
-                GroupChallengeVerificationSummaryDto::createdAt
+                dto -> dto.id(),
+                dto -> dto.createdAt().toLocalDateTime()
         );
     }
 

@@ -5,6 +5,7 @@ import ktb.leafresh.backend.domain.store.product.domain.entity.TimedealPolicy;
 import ktb.leafresh.backend.domain.store.product.infrastructure.cache.dto.TimedealProductSummaryCacheDto;
 
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 
 public class TimedealProductSummaryCacheDtoMapper {
 
@@ -22,8 +23,8 @@ public class TimedealProductSummaryCacheDtoMapper {
                 policy.getDiscountedPercentage(),
                 policy.getStock(),
                 product.getImageUrl(),
-                policy.getStartTime(),
-                policy.getEndTime(),
+                policy.getStartTime().atOffset(ZoneOffset.UTC),
+                policy.getEndTime().atOffset(ZoneOffset.UTC),
                 product.getStatus().name(),
                 timeDealStatus
         );

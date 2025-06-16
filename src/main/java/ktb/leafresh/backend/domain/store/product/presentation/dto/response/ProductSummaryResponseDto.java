@@ -5,7 +5,8 @@ import ktb.leafresh.backend.domain.store.product.domain.entity.Product;
 import lombok.Builder;
 import lombok.Getter;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 
 @Getter
 @Builder
@@ -19,7 +20,7 @@ public class ProductSummaryResponseDto {
     private final int stock;
     private final String status;
     @JsonIgnore
-    private final LocalDateTime createdAt;
+    private final OffsetDateTime createdAt;
 
     public static ProductSummaryResponseDto from(Product product) {
         return ProductSummaryResponseDto.builder()
@@ -30,7 +31,7 @@ public class ProductSummaryResponseDto {
                 .price(product.getPrice())
                 .stock(product.getStock())
                 .status(product.getStatus().name())
-                .createdAt(product.getCreatedAt())
+                .createdAt(product.getCreatedAt().atOffset(ZoneOffset.UTC))
                 .build();
     }
 }

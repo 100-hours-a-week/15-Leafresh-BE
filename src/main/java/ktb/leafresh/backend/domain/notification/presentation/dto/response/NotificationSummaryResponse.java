@@ -5,13 +5,15 @@ import ktb.leafresh.backend.domain.notification.domain.entity.enums.Notification
 import lombok.Builder;
 
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 
 @Builder
 public record NotificationSummaryResponse(
         Long id,
         String title,
         String content,
-        LocalDateTime createdAt,
+        OffsetDateTime createdAt,
         boolean isRead,
         NotificationType type,
         String imageUrl,
@@ -22,7 +24,7 @@ public record NotificationSummaryResponse(
                 .id(entity.getId())
                 .title(entity.getTitle())
                 .content(entity.getContent())
-                .createdAt(entity.getCreatedAt())
+                .createdAt(entity.getCreatedAt().atOffset(ZoneOffset.UTC))
                 .isRead(entity.isStatus())
                 .type(entity.getType())
                 .imageUrl(entity.getImageUrl())
@@ -30,7 +32,7 @@ public record NotificationSummaryResponse(
                 .build();
     }
 
-    public LocalDateTime createdAt() {
+    public OffsetDateTime createdAt() {
         return this.createdAt;
     }
 

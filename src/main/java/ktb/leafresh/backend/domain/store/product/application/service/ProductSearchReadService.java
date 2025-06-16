@@ -26,7 +26,7 @@ public class ProductSearchReadService {
                 size,
                 ProductSummaryResponseDto::from,
                 ProductSummaryResponseDto::getId,
-                ProductSummaryResponseDto::getCreatedAt
+                dto -> dto.getCreatedAt().toLocalDateTime()
         );
 
         return ProductListResponseDto.from(result);

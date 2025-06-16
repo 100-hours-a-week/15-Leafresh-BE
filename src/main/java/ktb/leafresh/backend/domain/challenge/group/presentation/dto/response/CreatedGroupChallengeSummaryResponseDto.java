@@ -5,6 +5,8 @@ import ktb.leafresh.backend.domain.challenge.group.domain.entity.GroupChallenge;
 import lombok.Builder;
 
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 
 @Builder
@@ -18,7 +20,7 @@ public record CreatedGroupChallengeSummaryResponseDto(
         int currentParticipantCount,
         String category,
         @JsonIgnore
-        LocalDateTime createdAt
+        OffsetDateTime createdAt
 ) {
     public static CreatedGroupChallengeSummaryResponseDto from(GroupChallenge entity) {
         return CreatedGroupChallengeSummaryResponseDto.builder()
@@ -29,7 +31,7 @@ public record CreatedGroupChallengeSummaryResponseDto(
                 .endDate(entity.getEndDate().toLocalDate().toString())
                 .imageUrl(entity.getImageUrl())
                 .currentParticipantCount(entity.getCurrentParticipantCount())
-                .createdAt(entity.getCreatedAt())
+                .createdAt(entity.getCreatedAt().atOffset(ZoneOffset.UTC))
                 .category(entity.getCategory().getName())
                 .build();
     }
@@ -38,7 +40,7 @@ public record CreatedGroupChallengeSummaryResponseDto(
         return entities.stream().map(CreatedGroupChallengeSummaryResponseDto::from).toList();
     }
 
-    public LocalDateTime createdAt() {
+    public OffsetDateTime createdAt() {
         return createdAt;
     }
 }
