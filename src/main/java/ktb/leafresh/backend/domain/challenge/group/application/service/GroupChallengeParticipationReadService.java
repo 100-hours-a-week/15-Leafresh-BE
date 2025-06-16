@@ -11,6 +11,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Map;
 
@@ -56,10 +58,10 @@ public class GroupChallengeParticipationReadService {
                         dto.getSuccess(),
                         dto.getTotal(),
                         achievementRecordMap.getOrDefault(dto.getId(), List.of()),
-                        dto.getCreatedAt().toLocalDateTime()
+                        OffsetDateTime.of(dto.getCreatedAt(), ZoneOffset.UTC)
                 ),
                 GroupChallengeParticipationSummaryDto::id,
-                GroupChallengeParticipationSummaryDto::createdAt
+                dto -> dto.createdAt().toLocalDateTime()
         );
 
         return GroupChallengeParticipationListResponseDto.builder()
