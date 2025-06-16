@@ -7,10 +7,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Profile;
 import org.springframework.http.MediaType;
-import org.springframework.http.codec.ServerSentEvent;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.http.server.reactive.ServerHttpResponse;
-import reactor.core.publisher.Flux;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
+import jakarta.servlet.http.HttpServletResponse;
 
 @Slf4j
 @RestController
@@ -22,32 +21,32 @@ public class ChatbotRecommendationSseController {
     private final ChatbotRecommendationSseService chatbotRecommendationSseService;
 
     @GetMapping(value = "/base-info", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public Flux<ServerSentEvent<String>> baseInfo(
+    public SseEmitter baseInfo(
             @RequestParam String sessionId,
             @RequestParam String location,
             @RequestParam String workType,
             @RequestParam String category,
-            ServerHttpResponse response
+            HttpServletResponse response
     ) {
-        response.getHeaders().add("Cache-Control", "no-cache");
-        response.getHeaders().add("X-Accel-Buffering", "no");
+        response.setHeader("Cache-Control", "no-cache");
+        response.setHeader("X-Accel-Buffering", "no");
 
-        return chatbotRecommendationSseService.streamFlux(
+        return chatbotRecommendationSseService.stream(
                 "/ai/chatbot/recommendation/base-info",
                 new ChatbotBaseInfoRequestDto(sessionId, location, workType, category)
         );
     }
 
     @GetMapping(value = "/free-text", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public Flux<ServerSentEvent<String>> freeText(
+    public SseEmitter freeText(
             @RequestParam String sessionId,
             @RequestParam String message,
-            ServerHttpResponse response
+            HttpServletResponse response
     ) {
-        response.getHeaders().add("Cache-Control", "no-cache");
-        response.getHeaders().add("X-Accel-Buffering", "no");
+        response.setHeader("Cache-Control", "no-cache");
+        response.setHeader("X-Accel-Buffering", "no");
 
-        return chatbotRecommendationSseService.streamFlux(
+        return chatbotRecommendationSseService.stream(
                 "/ai/chatbot/recommendation/free-text",
                 new ChatbotFreeTextRequestDto(sessionId, message)
         );
