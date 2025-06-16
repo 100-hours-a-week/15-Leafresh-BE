@@ -5,6 +5,9 @@ spring:
   profiles:
     active: ${spring_profiles_active}
 
+  jackson:
+    time-zone: UTC
+
   security:
     basic:
       enabled: false

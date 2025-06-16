@@ -6,12 +6,16 @@ import ktb.leafresh.backend.domain.store.product.infrastructure.cache.dto.Produc
 import ktb.leafresh.backend.domain.store.product.infrastructure.cache.dto.TimedealProductSummaryCacheDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
 
 @Slf4j
 @Service
@@ -19,6 +23,10 @@ import java.time.ZoneId;
 public class ProductCacheService {
 
     private final RedisTemplate<String, Object> redisTemplate;
+    private final RedissonClient redissonClient;
+
+    private static final long LOCK_WAIT_TIME = 100; // ms
+    private static final long LOCK_LEASE_TIME = 3;   // sec
 
     /**
      * 일반 상품 캐시 등록
@@ -106,8 +114,57 @@ public class ProductCacheService {
      */
     public void cacheProductStock(Long productId, Integer stock) {
         String key = ProductCacheKeys.productStock(productId);
-        redisTemplate.opsForValue().set(key, stock);
-        log.info("[ProductCacheService] 일반 상품 재고 캐시 저장 - key={}, stock={}", key, stock);
+        Duration ttl = Duration.ofHours(24);
+        redisTemplate.opsForValue().set(key, stock, ttl);
+        log.info("[ProductCacheService] 일반 상품 재고 캐시 저장 - key={}, stock={}, TTL={}초", key, stock, ttl.getSeconds());
+    }
+
+    /**
+     * 캐시 MISS 시 Redisson Lock 기반 DB fallback
+     */
+    public Integer getProductStockWithDistributedLock(Long productId, Supplier<Integer> dbSupplier) {
+        String key = ProductCacheKeys.productStock(productId);
+        Object cached = redisTemplate.opsForValue().get(key);
+        if (cached != null) {
+            log.info("[ProductCacheService] 캐시 HIT - key={}, stock={}", key, cached);
+            return (Integer) cached;
+        }
+
+        String lockKey = "lock:stock:product:" + productId;
+        RLock lock = redissonClient.getLock(lockKey);
+        boolean acquired = false;
+
+        try {
+            acquired = lock.tryLock(LOCK_WAIT_TIME, LOCK_LEASE_TIME, TimeUnit.MILLISECONDS);
+            if (acquired) {
+                cached = redisTemplate.opsForValue().get(key);
+                if (cached != null) {
+                    log.info("[ProductCacheService] 캐시 HIT (락 이후 재확인) - key={}", key);
+                    return (Integer) cached;
+                }
+
+                Integer stock = dbSupplier.get();
+                cacheProductStock(productId, stock);
+                log.info("[ProductCacheService] DB fallback 및 캐싱 완료 - key={}, stock={}", key, stock);
+                return stock;
+            } else {
+                Thread.sleep(LOCK_LEASE_TIME * 1000); // 잠깐 대기 후 재시도
+                cached = redisTemplate.opsForValue().get(key);
+                if (cached != null) {
+                    log.info("[ProductCacheService] 캐시 HIT (락 실패 후 재시도) - key={}", key);
+                    return (Integer) cached;
+                }
+                log.warn("[ProductCacheService] 캐시 없음 (락 실패 + 재시도 실패) - key={}", key);
+                return null;
+            }
+        } catch (Exception e) {
+            log.error("[ProductCacheService] 재고 조회 예외 - productId={}", productId, e);
+            return null;
+        } finally {
+            if (acquired && lock.isHeldByCurrentThread()) {
+                lock.unlock();
+            }
+        }
     }
 
     /**

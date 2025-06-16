@@ -78,6 +78,7 @@ dependencies {
 	// Redis
 	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 	implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
+	implementation 'org.redisson:redisson-spring-boot-starter:3.23.4'
 
 	// RedisBloom + Jedis
 	implementation 'com.github.RedisBloom:JRedisBloom:2.1.0'
