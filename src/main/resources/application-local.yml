@@ -10,6 +10,14 @@ spring:
       host: ${local_cache_host}
       port: ${local_cache_port}
 
+redis:
+  redisson:
+    address: redis://${SPRING_DATA_REDIS_HOST}:${SPRING_DATA_REDIS_PORT}
+
+  bloom:
+    host: ${local_cache_host}
+    port: ${local_cache_port}
+
   jpa:
     show-sql: true
     properties:
@@ -27,11 +35,6 @@ gcp:
     location: classpath:${gcp_credentials_location}
   storage:
     bucket: ${gcp_storage_bucket}
-
-redis:
-  bloom:
-    host: ${local_cache_host}
-    port: ${local_cache_port}
 
 logging:
   level:

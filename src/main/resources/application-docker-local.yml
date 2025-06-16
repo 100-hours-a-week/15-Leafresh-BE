@@ -10,6 +10,14 @@ spring:
       host: ${docker_local_cache_host}
       port: ${docker_local_cache_port}
 
+redis:
+  redisson:
+    address: redis://${SPRING_DATA_REDIS_HOST}:${SPRING_DATA_REDIS_PORT}
+
+  bloom:
+    host: ${docker_local_cache_host}
+    port: ${docker_local_cache_port}
+
 cookie:
   secure: true
   samesite: ${docker_local_cookie_samesite:none}
@@ -21,8 +29,3 @@ gcp:
     location: classpath:${gcp_credentials_location}
   storage:
     bucket: ${gcp_storage_bucket}
-
-redis:
-  bloom:
-    host: ${docker_local_cache_host}
-    port: ${docker_local_cache_port}
