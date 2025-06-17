@@ -7,6 +7,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 
+import java.time.Duration;
+
 @Slf4j
 @Component
 @RequiredArgsConstructor
@@ -21,7 +23,7 @@ public class LeafPointInitializer {
     public void initializeLeafPointCache() {
         try {
             int sum = memberLeafPointQueryRepository.getTotalLeafPointSum();
-            redisTemplate.opsForValue().set(TOTAL_LEAF_SUM_KEY, String.valueOf(sum));
+            redisTemplate.opsForValue().set(TOTAL_LEAF_SUM_KEY, String.valueOf(sum), Duration.ofHours(24));
             log.info("[LeafPointInitializer] Redis 누적 나뭇잎 합계 초기화 완료: {}", sum);
         } catch (Exception e) {
             log.error("[LeafPointInitializer] Redis 초기화 실패", e);

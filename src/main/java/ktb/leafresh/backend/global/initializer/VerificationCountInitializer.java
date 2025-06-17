@@ -7,6 +7,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 
+import java.time.Duration;
+
 @Slf4j
 @Component
 @RequiredArgsConstructor
@@ -21,7 +23,8 @@ public class VerificationCountInitializer {
     public void initializeVerificationCountCache() {
         try {
             int total = queryService.getTotalVerificationCountFromDB();
-            redisTemplate.opsForValue().set(TOTAL_VERIFICATION_COUNT_KEY, String.valueOf(total));
+            redisTemplate.opsForValue()
+                    .set(TOTAL_VERIFICATION_COUNT_KEY, String.valueOf(total), Duration.ofHours(24));
             log.info("[VerificationCountInitializer] Redis 누적 인증 수 초기화 완료: {}", total);
         } catch (Exception e) {
             log.error("[VerificationCountInitializer] Redis 초기화 실패", e);
