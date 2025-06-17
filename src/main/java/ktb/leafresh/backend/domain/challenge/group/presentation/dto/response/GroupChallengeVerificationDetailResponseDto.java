@@ -47,7 +47,7 @@ public record GroupChallengeVerificationDetailResponseDto(
                 .content(v.getContent())
                 .category(challenge.getCategory().getName())
                 .status(v.getStatus().name())
-                .verifiedAt(v.getVerifiedAt().atOffset(ZoneOffset.UTC))
+                .verifiedAt(v.getVerifiedAt() != null ? v.getVerifiedAt().atOffset(ZoneOffset.UTC) : null)
                 .counts(new Counts(
                         parseStat(cachedStats, "viewCount", v.getViewCount()),
                         parseStat(cachedStats, "likeCount", v.getLikeCount()),
