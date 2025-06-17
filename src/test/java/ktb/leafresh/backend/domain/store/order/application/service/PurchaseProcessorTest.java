@@ -1,5 +1,6 @@
 package ktb.leafresh.backend.domain.store.order.application.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import ktb.leafresh.backend.domain.member.domain.entity.Member;
 import ktb.leafresh.backend.domain.store.order.application.service.model.PurchaseProcessContext;
 import ktb.leafresh.backend.domain.store.order.domain.entity.enums.PurchaseType;
@@ -18,6 +19,8 @@ import ktb.leafresh.backend.support.fixture.TimedealPolicyFixture;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.ValueOperations;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -28,6 +31,8 @@ class PurchaseProcessorTest {
     private ProductRepository productRepository;
     private TimedealPolicyRepository timedealPolicyRepository;
     private PurchaseProcessingLogRepository logRepository;
+    private StringRedisTemplate redisTemplate;
+    private ObjectMapper objectMapper;
 
     private PurchaseProcessor processor;
 
@@ -37,14 +42,22 @@ class PurchaseProcessorTest {
         productRepository = mock(ProductRepository.class);
         timedealPolicyRepository = mock(TimedealPolicyRepository.class);
         logRepository = mock(PurchaseProcessingLogRepository.class);
+        redisTemplate = mock(StringRedisTemplate.class);
+        objectMapper = mock(ObjectMapper.class);
+
+        ValueOperations<String, String> valueOperations = mock(ValueOperations.class);
+        when(redisTemplate.opsForValue()).thenReturn(valueOperations);
 
         processor = new PurchaseProcessor(
                 purchaseRepository,
                 productRepository,
                 timedealPolicyRepository,
-                logRepository
+                logRepository,
+                redisTemplate,
+                objectMapper
         );
     }
+
 
     @Test
     @DisplayName("일반 상품 구매 성공")
@@ -74,14 +87,16 @@ class PurchaseProcessorTest {
 
     @Test
     @DisplayName("타임딜 구매 성공")
-    void process_timedealPurchase_success() {
+    void process_timedealPurchase_success() throws Exception {
         // given
         Member member = MemberFixture.of(1L, "user@leafresh.com", "테스터");
         member.updateCurrentLeafPoints(5000);
 
         Product product = ProductFixture.of("타임딜상품", 3000, 10);
         TimedealPolicy validPolicy = TimedealPolicyFixture.of(product);
-        product.getTimedealPolicies().add(validPolicy);  // setter 없이 직접 추가
+        product.getTimedealPolicies().add(validPolicy);
+
+        when(objectMapper.writeValueAsString(any())).thenReturn("{}");
 
         PurchaseProcessContext context = new PurchaseProcessContext(
                 member, product, 1, 2500, PurchaseType.TIMEDEAL
