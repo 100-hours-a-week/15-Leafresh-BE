@@ -1,5 +1,7 @@
 package ktb.leafresh.backend.domain.store.order.application.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import ktb.leafresh.backend.domain.member.domain.entity.Member;
 import ktb.leafresh.backend.domain.store.order.application.service.model.PurchaseProcessContext;
 import ktb.leafresh.backend.domain.store.order.domain.entity.ProductPurchase;
@@ -10,6 +12,7 @@ import ktb.leafresh.backend.domain.store.order.infrastructure.repository.Product
 import ktb.leafresh.backend.domain.store.order.infrastructure.repository.PurchaseProcessingLogRepository;
 import ktb.leafresh.backend.domain.store.product.domain.entity.Product;
 import ktb.leafresh.backend.domain.store.product.domain.entity.TimedealPolicy;
+import ktb.leafresh.backend.domain.store.product.infrastructure.cache.TimedealProductSummaryCacheDtoMapper;
 import ktb.leafresh.backend.domain.store.product.infrastructure.repository.ProductRepository;
 import ktb.leafresh.backend.domain.store.product.infrastructure.repository.TimedealPolicyRepository;
 import ktb.leafresh.backend.global.exception.CustomException;
@@ -17,6 +20,7 @@ import ktb.leafresh.backend.global.exception.ProductErrorCode;
 import ktb.leafresh.backend.global.exception.PurchaseErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,6 +35,8 @@ public class PurchaseProcessor {
     private final ProductRepository productRepository;
     private final TimedealPolicyRepository timedealPolicyRepository;
     private final PurchaseProcessingLogRepository processingLogRepository;
+    private final StringRedisTemplate redisTemplate;
+    private final ObjectMapper objectMapper;
 
     @Transactional
     public void process(PurchaseProcessContext context) {
@@ -40,9 +46,10 @@ public class PurchaseProcessor {
         int quantity = context.quantity();
 
         log.debug("[검증] 재고 및 포인트 확인");
+        TimedealPolicy policy = null;
         if (context.purchaseType() == PurchaseType.TIMEDEAL) {
             // 타임딜일 경우 TimedealPolicy의 stock을 차감해야 함
-            TimedealPolicy policy = product.getTimedealPolicies().stream()
+            policy = product.getTimedealPolicies().stream()
                     .filter(p -> !p.isDeleted() && p.getStartTime().isBefore(LocalDateTime.now()) && p.getEndTime().isAfter(LocalDateTime.now()))
                     .findFirst()
                     .orElseThrow(() -> new CustomException(ProductErrorCode.PRODUCT_NOT_FOUND));
@@ -78,5 +85,17 @@ public class PurchaseProcessor {
 
         log.info("[구매 처리 완료] memberId={}, productId={}, price={}, points left={}",
                 member.getId(), product.getId(), totalPrice, member.getCurrentLeafPoints());
+
+        if (context.purchaseType() == PurchaseType.TIMEDEAL && policy != null) {
+            String itemKey = "store:products:timedeal:item:" + policy.getId();
+            try {
+                var cacheDto = TimedealProductSummaryCacheDtoMapper.from(product, policy);
+                String json = objectMapper.writeValueAsString(cacheDto);
+                redisTemplate.opsForValue().set(itemKey, json);
+                log.debug("[Redis] 단건 캐시 갱신 완료 - key={}, stock={}", itemKey, cacheDto.stock());
+            } catch (JsonProcessingException e) {
+                log.error("[Redis] 단건 캐시 직렬화 실패 - policyId={}", policy.getId(), e);
+            }
+        }
     }
 }
