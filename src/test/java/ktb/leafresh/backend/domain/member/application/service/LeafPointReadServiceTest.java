@@ -7,8 +7,12 @@ import ktb.leafresh.backend.global.exception.LeafPointErrorCode;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
+
+import java.time.Duration;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -17,21 +21,28 @@ class LeafPointReadServiceTest {
 
     private StringRedisTemplate redisTemplate;
     private MemberLeafPointQueryRepository queryRepository;
+    private RedissonClient redissonClient;
     private LeafPointReadService service;
 
     private ValueOperations<String, String> valueOperations;
+    private RLock mockLock;
 
     private static final String REDIS_KEY = "leafresh:totalLeafPoints:sum";
+    private static final String LOCK_KEY = "lock:leafresh:totalLeafPoints:sum";
 
     @BeforeEach
-    void setUp() {
+    void setUp() throws Exception {
         redisTemplate = mock(StringRedisTemplate.class);
         queryRepository = mock(MemberLeafPointQueryRepository.class);
+        redissonClient = mock(RedissonClient.class);
         valueOperations = mock(ValueOperations.class);
+        mockLock = mock(RLock.class);
 
         when(redisTemplate.opsForValue()).thenReturn(valueOperations);
+        when(redissonClient.getLock(LOCK_KEY)).thenReturn(mockLock);
+        when(mockLock.tryLock(anyLong(), anyLong(), any())).thenReturn(true);
 
-        service = new LeafPointReadService(redisTemplate, queryRepository);
+        service = new LeafPointReadService(redisTemplate, queryRepository, redissonClient);
     }
 
     @Test
@@ -60,7 +71,7 @@ class LeafPointReadServiceTest {
 
         // then
         assertThat(result.count()).isEqualTo(9876);
-        verify(valueOperations).set(REDIS_KEY, "9876");
+        verify(valueOperations).set(REDIS_KEY, "9876", Duration.ofHours(24));
     }
 
     @Test
