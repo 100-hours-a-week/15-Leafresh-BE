@@ -28,8 +28,8 @@ public record GroupChallengeParticipationSummaryDto(
             Long id,
             String title,
             String thumbnailUrl,
-            String startDate,
-            String endDate,
+            OffsetDateTime startDate,
+            OffsetDateTime endDate,
             Long success,
             Long total,
             List<AchievementRecordDto> achievementRecords,
@@ -39,8 +39,8 @@ public record GroupChallengeParticipationSummaryDto(
                 .id(id)
                 .title(title)
                 .thumbnailUrl(thumbnailUrl)
-                .startDate(startDate)
-                .endDate(endDate)
+                .startDate(startDate.toString())
+                .endDate(endDate.toString())
                 .achievement(new AchievementDto(success, total))
                 .achievementRecords(achievementRecords)
                 .createdAt(createdAt)

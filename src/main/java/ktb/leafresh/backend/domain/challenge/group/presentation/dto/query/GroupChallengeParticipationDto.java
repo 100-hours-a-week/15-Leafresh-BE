@@ -12,8 +12,8 @@ public class GroupChallengeParticipationDto {
     private Long id;
     private String title;
     private String thumbnailUrl;
-    private String startDate;
-    private String endDate;
+    private LocalDateTime startDate;
+    private LocalDateTime endDate;
     private Long success;
     private Long total;
     private LocalDateTime createdAt;
@@ -22,8 +22,8 @@ public class GroupChallengeParticipationDto {
             Long id,
             String title,
             String thumbnailUrl,
-            String startDate,
-            String endDate,
+            LocalDateTime startDate,
+            LocalDateTime endDate,
             Long success,
             Long total,
             LocalDateTime createdAt

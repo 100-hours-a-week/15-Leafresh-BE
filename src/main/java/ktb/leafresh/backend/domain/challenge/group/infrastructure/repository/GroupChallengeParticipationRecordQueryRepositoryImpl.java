@@ -81,8 +81,8 @@ public class GroupChallengeParticipationRecordQueryRepositoryImpl implements Gro
                         challenge.id,
                         challenge.title,
                         challenge.imageUrl,
-                        challenge.startDate.stringValue(),
-                        challenge.endDate.stringValue(),
+                        challenge.startDate,
+                        challenge.endDate,
                         ExpressionUtils.as(
                                 JPAExpressions.select(verification.count())
                                         .from(verification)
