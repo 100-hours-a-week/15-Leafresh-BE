@@ -40,7 +40,7 @@ public record GroupChallengeDetailResponseDto(
                 .description(challenge.getDescription())
                 .category(challenge.getCategory().getName())
                 .startDate(challenge.getStartDate().atOffset(ZoneOffset.UTC))
-                .endDate(challenge.getStartDate().atOffset(ZoneOffset.UTC))
+                .endDate(challenge.getEndDate().atOffset(ZoneOffset.UTC))
                 .verificationStartTime(challenge.getVerificationStartTime())
                 .verificationEndTime(challenge.getVerificationEndTime())
                 .leafReward(challenge.getLeafReward())
