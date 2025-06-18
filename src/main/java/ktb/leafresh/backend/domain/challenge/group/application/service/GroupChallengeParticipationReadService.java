@@ -49,17 +49,23 @@ public class GroupChallengeParticipationReadService {
         CursorPaginationResult<GroupChallengeParticipationSummaryDto> page = CursorPaginationHelper.paginateWithTimestamp(
                 dtos,
                 size,
-                dto -> GroupChallengeParticipationSummaryDto.of(
-                        dto.getId(),
-                        dto.getTitle(),
-                        dto.getThumbnailUrl(),
-                        dto.getStartDate(),
-                        dto.getEndDate(),
-                        dto.getSuccess(),
-                        dto.getTotal(),
-                        achievementRecordMap.getOrDefault(dto.getId(), List.of()),
-                        OffsetDateTime.of(dto.getCreatedAt(), ZoneOffset.UTC)
-                ),
+                dto -> {
+                    OffsetDateTime startUtc = OffsetDateTime.of(dto.getStartDate(), ZoneOffset.UTC);
+                    OffsetDateTime endUtc = OffsetDateTime.of(dto.getEndDate(), ZoneOffset.UTC);
+                    OffsetDateTime createdUtc = OffsetDateTime.of(dto.getCreatedAt(), ZoneOffset.UTC);
+
+                    return GroupChallengeParticipationSummaryDto.of(
+                            dto.getId(),
+                            dto.getTitle(),
+                            dto.getThumbnailUrl(),
+                            startUtc,
+                            endUtc,
+                            dto.getSuccess(),
+                            dto.getTotal(),
+                            achievementRecordMap.getOrDefault(dto.getId(), List.of()),
+                            createdUtc
+                    );
+                },
                 GroupChallengeParticipationSummaryDto::id,
                 dto -> dto.createdAt().toLocalDateTime()
         );
