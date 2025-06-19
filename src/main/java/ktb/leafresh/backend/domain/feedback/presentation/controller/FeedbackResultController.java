@@ -50,7 +50,7 @@ public class FeedbackResultController {
 
         if (response.getContent() == null) {
             log.info("[피드백 결과 없음] memberId={}", memberId);
-            throw new CustomException(FeedbackErrorCode.FEEDBACK_NOT_READY);
+            return ResponseEntity.noContent().build();
         }
 
         log.info("[피드백 결과 반환] memberId={}, content={}", memberId, response.getContent());

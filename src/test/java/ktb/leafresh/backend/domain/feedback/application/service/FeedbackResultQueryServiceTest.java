@@ -77,7 +77,7 @@ class FeedbackResultQueryServiceTest {
     }
 
     @Test
-    @DisplayName("Redis 캐시에 없고 DB에도 피드백이 없으면 FEEDBACK_NOT_READY 예외를 던진다")
+    @DisplayName("Redis 캐시에 없고 DB에도 피드백이 없으면 null을 포함한 응답을 반환한다")
     void waitForFeedback_notReady() {
         when(memberRepository.findById(memberId)).thenReturn(Optional.of(member));
         when(valueOperations.get("feedback:result:1")).thenReturn(null);
@@ -90,8 +90,9 @@ class FeedbackResultQueryServiceTest {
                     return supplier.get();
                 });
 
-        CustomException ex = catchThrowableOfType(() -> service.waitForFeedback(memberId), CustomException.class);
-        assertThat(ex.getErrorCode()).isEqualTo(FeedbackErrorCode.FEEDBACK_NOT_READY);
+        FeedbackResponseDto result = service.waitForFeedback(memberId);
+        assertThat(result).isNotNull();
+        assertThat(result.getContent()).isNull();
     }
 
     @Test
