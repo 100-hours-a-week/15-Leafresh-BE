@@ -19,7 +19,7 @@ public class HttpAiChallengeValidationClient implements AiChallengeValidationCli
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final WebClient aiServerWebClient;
 
-    public HttpAiChallengeValidationClient(@Qualifier("textAiWebClient") WebClient aiServerWebClient) {
+    public HttpAiChallengeValidationClient(@Qualifier("makeChallengeAiWebClient") WebClient aiServerWebClient) {
         this.aiServerWebClient = aiServerWebClient;
     }
 
