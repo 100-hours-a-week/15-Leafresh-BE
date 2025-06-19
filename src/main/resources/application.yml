@@ -64,6 +64,7 @@ cookie:
 ai-server:
   text-base-url: ${text_ai_server_base_url}
   image-base-url: ${image_ai_server_base_url}
+  make-challenge-base-url: ${make_challenge_ai_server_base_url}
 
 security:
   allowed-origins:
