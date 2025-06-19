@@ -10,6 +10,7 @@ import ktb.leafresh.backend.domain.store.product.domain.entity.TimedealPolicy;
 import ktb.leafresh.backend.domain.store.product.infrastructure.cache.ProductCacheKeys;
 import ktb.leafresh.backend.domain.store.product.infrastructure.repository.TimedealPolicyRepository;
 import ktb.leafresh.backend.global.exception.*;
+import ktb.leafresh.backend.global.lock.annotation.DistributedLock;
 import ktb.leafresh.backend.global.util.redis.RedisLuaService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -30,6 +31,7 @@ public class TimedealOrderCreateService {
     private final RedisLuaService redisLuaService;
     private final PurchaseMessagePublisher purchaseMessagePublisher;
 
+    @DistributedLock(key = "'timedeal:stock:' + #dealId", waitTime = 0, leaseTime = 3)
     @Transactional
     public void create(Long memberId, Long dealId, int quantity, String idempotencyKey) {
         // 1. 사용자 조회

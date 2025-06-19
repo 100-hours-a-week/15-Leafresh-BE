@@ -2,6 +2,7 @@ package ktb.leafresh.backend.domain.store.order.application.service;
 
 import ktb.leafresh.backend.domain.member.domain.entity.Member;
 import ktb.leafresh.backend.domain.store.order.application.dto.PurchaseCommand;
+import ktb.leafresh.backend.domain.store.order.application.facade.ProductCacheLockFacade;
 import ktb.leafresh.backend.domain.store.order.domain.entity.PurchaseIdempotencyKey;
 import ktb.leafresh.backend.domain.store.order.infrastructure.publisher.PurchaseMessagePublisher;
 import ktb.leafresh.backend.domain.store.order.infrastructure.repository.PurchaseIdempotencyKeyRepository;
@@ -33,7 +34,7 @@ class ProductOrderCreateServiceTest {
     private RedisLuaService redisLuaService;
     private PurchaseMessagePublisher purchaseMessagePublisher;
     private ktb.leafresh.backend.domain.member.infrastructure.repository.MemberRepository memberRepository;
-    private ProductCacheService productCacheService;
+    private ProductCacheLockFacade productCacheLockFacade;
 
     @BeforeEach
     void setUp() {
@@ -42,7 +43,7 @@ class ProductOrderCreateServiceTest {
         redisLuaService = mock(RedisLuaService.class);
         purchaseMessagePublisher = mock(PurchaseMessagePublisher.class);
         memberRepository = mock(ktb.leafresh.backend.domain.member.infrastructure.repository.MemberRepository.class);
-        productCacheService = mock(ProductCacheService.class);
+        productCacheLockFacade = mock(ProductCacheLockFacade.class);
 
         service = new ProductOrderCreateService(
                 memberRepository,
@@ -50,7 +51,7 @@ class ProductOrderCreateServiceTest {
                 idempotencyRepository,
                 redisLuaService,
                 purchaseMessagePublisher,
-                productCacheService
+                productCacheLockFacade
         );
     }
 

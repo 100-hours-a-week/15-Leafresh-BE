@@ -1,6 +1,7 @@
 package ktb.leafresh.backend.global.initializer;
 
 import jakarta.annotation.PostConstruct;
+import ktb.leafresh.backend.domain.store.order.application.facade.ProductCacheLockFacade;
 import ktb.leafresh.backend.domain.store.product.domain.entity.Product;
 import ktb.leafresh.backend.domain.store.product.infrastructure.cache.ProductCacheService;
 import ktb.leafresh.backend.domain.store.product.infrastructure.repository.ProductRepository;
@@ -16,7 +17,7 @@ import java.util.List;
 public class ProductStockCacheInitializer {
 
     private final ProductRepository productRepository;
-    private final ProductCacheService productCacheService;
+    private final ProductCacheLockFacade productCacheLockFacade;
 
     /**
      * 서비스 시작 시 모든 상품 재고를 Redis에 캐싱
@@ -28,7 +29,7 @@ public class ProductStockCacheInitializer {
         int successCount = 0;
         for (Product product : products) {
             try {
-                productCacheService.cacheProductStock(product.getId(), product.getStock());
+                productCacheLockFacade.cacheProductStock(product.getId(), product.getStock());
                 successCount++;
             } catch (Exception e) {
                 log.error("[ProductStockCacheInitializer] 캐시 등록 실패 - productId={}", product.getId(), e);

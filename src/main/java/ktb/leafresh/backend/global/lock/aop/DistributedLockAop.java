@@ -1,5 +1,7 @@
 package ktb.leafresh.backend.global.lock.aop;
 
+import ktb.leafresh.backend.global.exception.CustomException;
+import ktb.leafresh.backend.global.exception.GlobalErrorCode;
 import ktb.leafresh.backend.global.lock.annotation.DistributedLock;
 import ktb.leafresh.backend.global.lock.util.CustomSpringELParser;
 import lombok.RequiredArgsConstructor;
@@ -40,7 +42,7 @@ public class DistributedLockAop {
             isLocked = rLock.tryLock(distributedLock.waitTime(), distributedLock.leaseTime(), distributedLock.timeUnit());
             if (!isLocked) {
                 log.warn("[DistributedLockAop] Lock 획득 실패 - key={}", key);
-                return false;
+                throw new CustomException(GlobalErrorCode.TOO_MANY_REQUESTS);
             }
 
             return aopForTransaction.proceed(joinPoint);

@@ -1,10 +1,10 @@
 package ktb.leafresh.backend.domain.store.product.application.service;
 
+import ktb.leafresh.backend.domain.store.order.application.facade.ProductCacheLockFacade;
 import ktb.leafresh.backend.domain.store.product.application.event.ProductUpdatedEvent;
 import ktb.leafresh.backend.domain.store.product.domain.entity.Product;
 import ktb.leafresh.backend.domain.store.product.domain.entity.enums.ProductStatus;
 import ktb.leafresh.backend.domain.store.product.domain.factory.ProductFactory;
-import ktb.leafresh.backend.domain.store.product.infrastructure.cache.ProductCacheService;
 import ktb.leafresh.backend.domain.store.product.infrastructure.repository.ProductRepository;
 import ktb.leafresh.backend.domain.store.product.presentation.dto.request.ProductCreateRequestDto;
 import ktb.leafresh.backend.domain.store.product.presentation.dto.response.ProductCreateResponseDto;
@@ -23,7 +23,7 @@ class ProductCreateServiceTest {
 
     private ProductRepository productRepository;
     private ProductFactory productFactory;
-    private ProductCacheService productCacheService;
+    private ProductCacheLockFacade productCacheLockFacade;
     private ApplicationEventPublisher eventPublisher;
     private ProductCreateService service;
 
@@ -31,14 +31,14 @@ class ProductCreateServiceTest {
     void setUp() {
         productRepository = mock(ProductRepository.class);
         productFactory = mock(ProductFactory.class);
-        productCacheService = mock(ProductCacheService.class);
+        productCacheLockFacade = mock(ProductCacheLockFacade.class);
         eventPublisher = mock(ApplicationEventPublisher.class);
 
         service = new ProductCreateService(
                 productRepository,
                 productFactory,
                 eventPublisher,
-                productCacheService
+                productCacheLockFacade
         );
     }
 
@@ -76,7 +76,7 @@ class ProductCreateServiceTest {
 
         verify(productFactory).create(dto);
         verify(productRepository).save(createdProduct);
-        verify(productCacheService).cacheProductStock(1L, 10);
+        verify(productCacheLockFacade).cacheProductStock(1L, 10);
 
         ArgumentCaptor<ProductUpdatedEvent> eventCaptor = ArgumentCaptor.forClass(ProductUpdatedEvent.class);
         verify(eventPublisher).publishEvent(eventCaptor.capture());
@@ -94,7 +94,7 @@ class ProductCreateServiceTest {
                 "https://image.test/lotion.png",
                 5000,
                 5,
-                ProductStatus.ACTIVE // 또는 원하는 상태 값
+                ProductStatus.ACTIVE
         );
 
         when(productFactory.create(dto)).thenThrow(new RuntimeException("DB error"));
@@ -111,7 +111,7 @@ class ProductCreateServiceTest {
 
         verify(productFactory).create(dto);
         verify(productRepository, never()).save(any());
-        verify(productCacheService, never()).cacheProductStock(anyLong(), anyInt());
+        verify(productCacheLockFacade, never()).cacheProductStock(anyLong(), anyInt());
         verify(eventPublisher, never()).publishEvent(any());
     }
 }
