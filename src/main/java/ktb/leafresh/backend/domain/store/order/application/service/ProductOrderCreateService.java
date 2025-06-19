@@ -2,16 +2,16 @@ package ktb.leafresh.backend.domain.store.order.application.service;
 
 import ktb.leafresh.backend.domain.member.domain.entity.Member;
 import ktb.leafresh.backend.domain.member.infrastructure.repository.MemberRepository;
+import ktb.leafresh.backend.domain.store.order.application.facade.ProductCacheLockFacade;
 import ktb.leafresh.backend.domain.store.order.domain.entity.PurchaseIdempotencyKey;
 import ktb.leafresh.backend.domain.store.order.infrastructure.publisher.PurchaseMessagePublisher;
 import ktb.leafresh.backend.domain.store.order.infrastructure.repository.PurchaseIdempotencyKeyRepository;
 import ktb.leafresh.backend.domain.store.product.domain.entity.Product;
-import ktb.leafresh.backend.domain.store.product.infrastructure.cache.ProductCacheService;
 import ktb.leafresh.backend.domain.store.product.infrastructure.repository.ProductRepository;
 import ktb.leafresh.backend.domain.store.product.infrastructure.cache.ProductCacheKeys;
 import ktb.leafresh.backend.global.exception.*;
+import ktb.leafresh.backend.global.lock.annotation.DistributedLock;
 import ktb.leafresh.backend.global.util.redis.RedisLuaService;
-import ktb.leafresh.backend.domain.store.order.infrastructure.publisher.GcpPurchaseMessagePublisher;
 import ktb.leafresh.backend.domain.store.order.application.dto.PurchaseCommand;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -31,8 +31,9 @@ public class ProductOrderCreateService {
     private final PurchaseIdempotencyKeyRepository idempotencyRepository;
     private final RedisLuaService redisLuaService;
     private final PurchaseMessagePublisher purchaseMessagePublisher;
-    private final ProductCacheService productCacheService;
+    private final ProductCacheLockFacade productCacheLockFacade;
 
+    @DistributedLock(key = "'product:stock:' + #productId", waitTime = 0, leaseTime = 3)
     @Transactional
     public void create(Long memberId, Long productId, int quantity, String idempotencyKey) {
         // 1. 사용자 조회
@@ -51,10 +52,7 @@ public class ProductOrderCreateService {
                 .orElseThrow(() -> new CustomException(ProductErrorCode.PRODUCT_NOT_FOUND));
 
         // 3-1. 캐시 없으면 Redisson Lock 기반으로 캐싱 (스탬피드 방지)
-        productCacheService.getProductStockWithDistributedLock(
-                productId,
-                () -> product.getStock()
-        );
+        productCacheLockFacade.cacheProductStock(productId, product.getStock());
 
         // 4. Redis 재고 선점
         String redisKey = ProductCacheKeys.productStock(productId);

@@ -1,9 +1,9 @@
 package ktb.leafresh.backend.domain.store.product.application.service;
 
+import ktb.leafresh.backend.domain.store.order.application.facade.ProductCacheLockFacade;
 import ktb.leafresh.backend.domain.store.product.application.event.ProductUpdatedEvent;
 import ktb.leafresh.backend.domain.store.product.domain.entity.Product;
 import ktb.leafresh.backend.domain.store.product.domain.entity.TimedealPolicy;
-import ktb.leafresh.backend.domain.store.product.infrastructure.cache.ProductCacheService;
 import ktb.leafresh.backend.domain.store.product.infrastructure.repository.ProductRepository;
 import ktb.leafresh.backend.domain.store.product.infrastructure.repository.TimedealPolicyRepository;
 import ktb.leafresh.backend.domain.store.product.presentation.dto.request.TimedealCreateRequestDto;
@@ -16,7 +16,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.Optional;
@@ -29,23 +28,22 @@ class TimedealCreateServiceTest {
 
     private ProductRepository productRepository;
     private TimedealPolicyRepository timedealPolicyRepository;
-    private ProductCacheService productCacheService;
+    private ProductCacheLockFacade productCacheLockFacade;
     private ApplicationEventPublisher eventPublisher;
-
     private TimedealCreateService service;
 
     @BeforeEach
     void setUp() {
         productRepository = mock(ProductRepository.class);
         timedealPolicyRepository = mock(TimedealPolicyRepository.class);
-        productCacheService = mock(ProductCacheService.class);
+        productCacheLockFacade = mock(ProductCacheLockFacade.class);
         eventPublisher = mock(ApplicationEventPublisher.class);
 
         service = new TimedealCreateService(
                 productRepository,
                 timedealPolicyRepository,
                 eventPublisher,
-                productCacheService
+                productCacheLockFacade
         );
     }
 
@@ -58,11 +56,7 @@ class TimedealCreateServiceTest {
         OffsetDateTime end = OffsetDateTime.now(ZoneOffset.UTC).plusHours(2);
 
         TimedealCreateRequestDto dto = new TimedealCreateRequestDto(
-                product.getId(),
-                start,
-                end,
-                2000,
-                33
+                product.getId(), start, end, 2000, 33
         );
 
         when(productRepository.findById(dto.productId())).thenReturn(Optional.of(product));
@@ -72,15 +66,14 @@ class TimedealCreateServiceTest {
             ReflectionTestUtils.setField(saved, "id", 10L);
             return saved;
         });
-        when(productRepository.findById(dto.productId())).thenReturn(Optional.of(product)); // 캐시 갱신용
 
         // when
         TimedealCreateResponseDto response = service.create(dto);
 
         // then
         assertThat(response.dealId()).isEqualTo(10L);
-        verify(productCacheService).cacheTimedealStock(eq(10L), eq(50), eq(end.toLocalDateTime()));
-        verify(productCacheService).updateSingleTimedealCache(any(TimedealPolicy.class));
+        verify(productCacheLockFacade).cacheTimedealStock(eq(10L), eq(50), eq(end.toLocalDateTime()));
+        verify(productCacheLockFacade).updateSingleTimedealCache(any(TimedealPolicy.class));
         verify(eventPublisher).publishEvent(any(ProductUpdatedEvent.class));
     }
 

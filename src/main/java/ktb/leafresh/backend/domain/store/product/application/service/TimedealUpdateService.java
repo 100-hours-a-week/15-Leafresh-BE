@@ -1,6 +1,7 @@
 package ktb.leafresh.backend.domain.store.product.application.service;
 
 import jakarta.transaction.Transactional;
+import ktb.leafresh.backend.domain.store.order.application.facade.ProductCacheLockFacade;
 import ktb.leafresh.backend.domain.store.product.application.event.ProductUpdatedEvent;
 import ktb.leafresh.backend.domain.store.product.domain.entity.TimedealPolicy;
 import ktb.leafresh.backend.domain.store.product.infrastructure.cache.ProductCacheService;
@@ -21,7 +22,7 @@ import java.time.LocalDateTime;
 public class TimedealUpdateService {
 
     private final TimedealPolicyRepository timedealPolicyRepository;
-    private final ProductCacheService productCacheService;
+    private final ProductCacheLockFacade productCacheLockFacade;
     private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
@@ -80,7 +81,7 @@ public class TimedealUpdateService {
 
         // 캐시 갱신
         if (shouldUpdateStockCache) {
-            productCacheService.cacheTimedealStock(policy.getId(), policy.getStock(), policy.getEndTime());
+            productCacheLockFacade.cacheTimedealStock(policy.getId(), policy.getStock(), policy.getEndTime());
             String reason = isStockChanged ? "재고 변경"
                     : isTimeChanged ? "시간 변경"
                     : "기타";
@@ -88,8 +89,8 @@ public class TimedealUpdateService {
         }
 
         // 단건 캐시 + ZSet + 목록 무효화
-        productCacheService.evictTimedealCache(policy);
-        productCacheService.updateSingleTimedealCache(policy);
+        productCacheLockFacade.evictTimedealCache(policy);
+        productCacheLockFacade.updateSingleTimedealCache(policy);
 
         // 상품 전체 갱신 이벤트
         eventPublisher.publishEvent(new ProductUpdatedEvent(policy.getProduct().getId(), true));

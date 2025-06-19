@@ -1,6 +1,7 @@
 package ktb.leafresh.backend.global.initializer;
 
 import jakarta.annotation.PostConstruct;
+import ktb.leafresh.backend.domain.store.order.application.facade.ProductCacheLockFacade;
 import ktb.leafresh.backend.domain.store.product.domain.entity.TimedealPolicy;
 import ktb.leafresh.backend.domain.store.product.infrastructure.cache.ProductCacheService;
 import ktb.leafresh.backend.domain.store.product.infrastructure.repository.TimedealPolicyRepository;
@@ -17,7 +18,7 @@ import java.util.List;
 public class TimedealStockCacheInitializer {
 
     private final TimedealPolicyRepository timedealPolicyRepository;
-    private final ProductCacheService productCacheService;
+    private final ProductCacheLockFacade productCacheLockFacade;
 
     @PostConstruct
     public void initTimedealStockCache() {
@@ -26,12 +27,12 @@ public class TimedealStockCacheInitializer {
         int successCount = 0;
         for (TimedealPolicy policy : validPolicies) {
             try {
-                productCacheService.cacheTimedealStock(
+                productCacheLockFacade.cacheTimedealStock(
                         policy.getId(),
                         policy.getStock(),
                         policy.getEndTime()
                 );
-                productCacheService.updateSingleTimedealCache(policy);
+                productCacheLockFacade.updateSingleTimedealCache(policy);
                 successCount++;
             } catch (Exception e) {
                 log.error("[TimedealStockCacheInitializer] 캐시 등록 실패 - timedealId={}", policy.getId(), e);

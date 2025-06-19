@@ -1,6 +1,7 @@
 package ktb.leafresh.backend.domain.store.product.application.service;
 
 import jakarta.transaction.Transactional;
+import ktb.leafresh.backend.domain.store.order.application.facade.ProductCacheLockFacade;
 import ktb.leafresh.backend.domain.store.product.application.event.ProductUpdatedEvent;
 import ktb.leafresh.backend.domain.store.product.domain.entity.Product;
 import ktb.leafresh.backend.domain.store.product.domain.entity.enums.ProductStatus;
@@ -22,7 +23,7 @@ import java.time.LocalDateTime;
 public class ProductUpdateService {
 
     private final ProductRepository productRepository;
-    private final ProductCacheService productCacheService;
+    private final ProductCacheLockFacade productCacheLockFacade;
     private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
@@ -43,7 +44,7 @@ public class ProductUpdateService {
             if (dto.stock() != null) {
                 if (dto.stock() < 0) throw new CustomException(ProductErrorCode.INVALID_STOCK);
                 product.updateStock(dto.stock());
-                productCacheService.cacheProductStock(product.getId(), dto.stock());
+                productCacheLockFacade.cacheProductStock(product.getId(), dto.stock());
             }
             if (dto.status() != null) {
                 try {
@@ -54,7 +55,7 @@ public class ProductUpdateService {
                 }
             }
 
-            productCacheService.evictCacheByProduct(product);
+            productCacheLockFacade.evictCacheByProduct(product);
 
             boolean hasActiveTimedeal = product.getActiveTimedealPolicy(LocalDateTime.now()).isPresent();
             eventPublisher.publishEvent(new ProductUpdatedEvent(productId, hasActiveTimedeal));

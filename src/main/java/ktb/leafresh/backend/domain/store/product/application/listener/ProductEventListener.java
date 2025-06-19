@@ -1,5 +1,6 @@
 package ktb.leafresh.backend.domain.store.product.application.listener;
 
+import ktb.leafresh.backend.domain.store.order.application.facade.ProductCacheLockFacade;
 import ktb.leafresh.backend.domain.store.product.application.event.ProductUpdatedEvent;
 import ktb.leafresh.backend.domain.store.product.infrastructure.cache.ProductCacheService;
 import ktb.leafresh.backend.domain.store.product.infrastructure.repository.ProductRepository;
@@ -14,7 +15,7 @@ import org.springframework.transaction.event.TransactionPhase;
 @RequiredArgsConstructor
 public class ProductEventListener {
 
-    private final ProductCacheService productCacheService;
+    private final ProductCacheLockFacade productCacheLockFacade;
     private final ProductRepository productRepository;
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
@@ -27,7 +28,7 @@ public class ProductEventListener {
         }
 
         productRepository.findById(productId).ifPresent(product -> {
-            productCacheService.updateSingleProductCache(product);
+            productCacheLockFacade.updateSingleProductCache(product);
             log.info("[ProductEventListener] 개별 상품 캐시 갱신 완료 - productId={}, isTimeDeal={}", productId, event.isTimeDeal());
         });
     }

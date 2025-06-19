@@ -1,6 +1,7 @@
 package ktb.leafresh.backend.domain.store.product.application.service;
 
 import jakarta.transaction.Transactional;
+import ktb.leafresh.backend.domain.store.order.application.facade.ProductCacheLockFacade;
 import ktb.leafresh.backend.domain.store.product.application.event.ProductUpdatedEvent;
 import ktb.leafresh.backend.domain.store.product.domain.entity.Product;
 import ktb.leafresh.backend.domain.store.product.domain.entity.TimedealPolicy;
@@ -23,7 +24,7 @@ public class TimedealCreateService {
     private final ProductRepository productRepository;
     private final TimedealPolicyRepository timedealPolicyRepository;
     private final ApplicationEventPublisher eventPublisher;
-    private final ProductCacheService productCacheService;
+    private final ProductCacheLockFacade productCacheLockFacade;
 
     @Transactional
     public TimedealCreateResponseDto create(TimedealCreateRequestDto dto) {
@@ -59,16 +60,15 @@ public class TimedealCreateService {
             log.info("[TimedealCreateService] 타임딜 재고 캐시 시도 - policyId={}, stock={}, endTime={}",
                     savedPolicy.getId(), savedPolicy.getStock(), savedPolicy.getEndTime());
 
-            productCacheService.cacheTimedealStock(savedPolicy.getId(), savedPolicy.getStock(), savedPolicy.getEndTime());
-
-            timedealPolicyRepository.save(policy);
+            productCacheLockFacade.cacheTimedealStock(savedPolicy.getId(), savedPolicy.getStock(), savedPolicy.getEndTime());
 
             log.info("[TimedealCreateService] 타임딜 재고 캐시 완료 - policyId={}", policy.getId());
 
             Product updatedProduct = productRepository.findById(dto.productId())
                     .orElseThrow(() -> new CustomException(TimedealErrorCode.PRODUCT_NOT_FOUND));
 
-            productCacheService.updateSingleTimedealCache(policy);
+            productCacheLockFacade.updateSingleTimedealCache(policy);
+
             eventPublisher.publishEvent(new ProductUpdatedEvent(updatedProduct.getId(), true));
             log.info("타임딜 저장 및 캐시 반영 완료 - productId={}", product.getId());
 

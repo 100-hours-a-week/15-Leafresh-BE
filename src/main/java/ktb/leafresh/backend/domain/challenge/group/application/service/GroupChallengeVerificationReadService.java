@@ -5,10 +5,12 @@ import ktb.leafresh.backend.domain.challenge.group.infrastructure.repository.*;
 import ktb.leafresh.backend.domain.challenge.group.presentation.dto.response.*;
 import ktb.leafresh.backend.domain.verification.domain.entity.GroupChallengeVerification;
 import ktb.leafresh.backend.domain.verification.infrastructure.cache.VerificationStatCacheService;
+import ktb.leafresh.backend.domain.verification.infrastructure.repository.GroupChallengeVerificationRepository;
 import ktb.leafresh.backend.domain.verification.infrastructure.repository.LikeRepository;
 import ktb.leafresh.backend.global.exception.ChallengeErrorCode;
 import ktb.leafresh.backend.global.exception.CustomException;
 import ktb.leafresh.backend.global.exception.VerificationErrorCode;
+import ktb.leafresh.backend.global.lock.annotation.DistributedLock;
 import ktb.leafresh.backend.global.util.pagination.CursorPaginationHelper;
 import ktb.leafresh.backend.global.util.pagination.CursorPaginationResult;
 import ktb.leafresh.backend.global.util.redis.VerificationStatRedisLuaService;
@@ -29,6 +31,7 @@ import java.util.stream.Collectors;
 public class GroupChallengeVerificationReadService {
 
     private final GroupChallengeRepository groupChallengeRepository;
+    private final GroupChallengeVerificationRepository groupChallengeVerificationRepository;
     private final GroupChallengeVerificationQueryRepository groupChallengeVerificationQueryRepository;
     private final VerificationStatCacheService verificationStatCacheService;
     private final LikeRepository likeRepository;
@@ -99,6 +102,11 @@ public class GroupChallengeVerificationReadService {
         // 캐싱된 통계 조회
         Map<Object, Object> stats = verificationStatCacheService.getStats(verificationId);
 
+        if (stats == null || stats.isEmpty()) {
+            recoverVerificationStatWithLock(verificationId);
+            stats = verificationStatCacheService.getStats(verificationId);
+        }
+
         // 조회수 증가 (비회원 포함)
         verificationStatRedisLuaService.increaseVerificationViewCount(verificationId);
 
@@ -110,5 +118,25 @@ public class GroupChallengeVerificationReadService {
         boolean isLiked = likedIds.contains(verificationId);
 
         return GroupChallengeVerificationDetailResponseDto.from(verification, stats, isLiked);
+    }
+
+    @DistributedLock(key = "'verification:stat:' + #verificationId")
+    public void recoverVerificationStatWithLock(Long verificationId) {
+        Map<Object, Object> current = verificationStatCacheService.getStats(verificationId);
+        if (current != null && !current.isEmpty()) {
+            return; // 다른 쓰레드에서 이미 복구했으면 종료
+        }
+
+        var stat = groupChallengeVerificationRepository.findStatById(verificationId)
+                .orElseThrow(() -> new CustomException(VerificationErrorCode.VERIFICATION_DETAIL_NOT_FOUND));
+
+        verificationStatCacheService.initializeVerificationStats(
+                verificationId,
+                stat.getViewCount(),
+                stat.getLikeCount(),
+                stat.getCommentCount()
+        );
+
+        log.info("[Redis 복구] 인증 통계 캐시 누락으로 인해 Redis 재초기화 - verificationId={}", verificationId);
     }
 }

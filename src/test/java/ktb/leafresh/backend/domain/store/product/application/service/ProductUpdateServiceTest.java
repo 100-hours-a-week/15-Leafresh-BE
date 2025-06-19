@@ -1,9 +1,9 @@
 package ktb.leafresh.backend.domain.store.product.application.service;
 
+import ktb.leafresh.backend.domain.store.order.application.facade.ProductCacheLockFacade;
 import ktb.leafresh.backend.domain.store.product.application.event.ProductUpdatedEvent;
 import ktb.leafresh.backend.domain.store.product.domain.entity.Product;
 import ktb.leafresh.backend.domain.store.product.domain.entity.enums.ProductStatus;
-import ktb.leafresh.backend.domain.store.product.infrastructure.cache.ProductCacheService;
 import ktb.leafresh.backend.domain.store.product.infrastructure.repository.ProductRepository;
 import ktb.leafresh.backend.domain.store.product.presentation.dto.request.ProductUpdateRequestDto;
 import ktb.leafresh.backend.global.exception.CustomException;
@@ -23,16 +23,16 @@ import static org.mockito.Mockito.*;
 class ProductUpdateServiceTest {
 
     private ProductRepository productRepository;
-    private ProductCacheService productCacheService;
+    private ProductCacheLockFacade productCacheLockFacade;
     private ApplicationEventPublisher eventPublisher;
     private ProductUpdateService productUpdateService;
 
     @BeforeEach
     void setUp() {
         productRepository = mock(ProductRepository.class);
-        productCacheService = mock(ProductCacheService.class);
+        productCacheLockFacade = mock(ProductCacheLockFacade.class);
         eventPublisher = mock(ApplicationEventPublisher.class);
-        productUpdateService = new ProductUpdateService(productRepository, productCacheService, eventPublisher);
+        productUpdateService = new ProductUpdateService(productRepository, productCacheLockFacade, eventPublisher);
     }
 
     @Test
@@ -57,8 +57,8 @@ class ProductUpdateServiceTest {
         assertThat(product.getStock()).isEqualTo(15);
         assertThat(product.getStatus()).isEqualTo(ProductStatus.INACTIVE);
 
-        verify(productCacheService).cacheProductStock(1L, 15);
-        verify(productCacheService).evictCacheByProduct(product);
+        verify(productCacheLockFacade).cacheProductStock(1L, 15);
+        verify(productCacheLockFacade).evictCacheByProduct(product);
 
         ArgumentCaptor<ProductUpdatedEvent> eventCaptor = ArgumentCaptor.forClass(ProductUpdatedEvent.class);
         verify(eventPublisher).publishEvent(eventCaptor.capture());

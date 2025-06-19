@@ -1,5 +1,6 @@
 package ktb.leafresh.backend.domain.store.product.application.service;
 
+import ktb.leafresh.backend.domain.store.order.application.facade.ProductCacheLockFacade;
 import ktb.leafresh.backend.domain.store.product.application.event.ProductUpdatedEvent;
 import ktb.leafresh.backend.domain.store.product.domain.entity.Product;
 import ktb.leafresh.backend.domain.store.product.domain.factory.ProductFactory;
@@ -23,7 +24,7 @@ public class ProductCreateService {
     private final ProductRepository productRepository;
     private final ProductFactory productFactory;
     private final ApplicationEventPublisher eventPublisher;
-    private final ProductCacheService productCacheService;
+    private final ProductCacheLockFacade productCacheLockFacade;
 
     @Transactional
     public ProductCreateResponseDto createProduct(ProductCreateRequestDto dto) {
@@ -32,7 +33,7 @@ public class ProductCreateService {
             Product product = productFactory.create(dto);
             productRepository.save(product);
 
-            productCacheService.cacheProductStock(product.getId(), product.getStock());
+            productCacheLockFacade.cacheProductStock(product.getId(), product.getStock());
 
             eventPublisher.publishEvent(new ProductUpdatedEvent(product.getId(), false));
 
