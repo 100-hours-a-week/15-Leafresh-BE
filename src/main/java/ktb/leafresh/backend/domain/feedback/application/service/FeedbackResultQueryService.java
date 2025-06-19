@@ -38,17 +38,7 @@ public class FeedbackResultQueryService {
         log.info("[피드백 롱폴링 시작] memberId={}", memberId);
 
         try {
-            FeedbackResponseDto response = feedbackPollingExecutor.poll(() -> getLatestFeedback(member));
-
-            if (response.getContent() == null) {
-                log.info("[피드백 결과 없음] memberId={}", memberId);
-                throw new CustomException(FeedbackErrorCode.FEEDBACK_NOT_READY);
-            }
-
-            return response;
-
-        } catch (CustomException e) {
-            throw e;
+            return feedbackPollingExecutor.poll(() -> getLatestFeedback(member));
         } catch (Exception e) {
             log.error("[피드백 롱폴링 실패] memberId={}, error={}", memberId, e.getMessage(), e);
             throw new CustomException(FeedbackErrorCode.FEEDBACK_SERVER_ERROR);
