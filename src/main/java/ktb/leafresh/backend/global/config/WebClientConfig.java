@@ -26,4 +26,11 @@ public class WebClientConfig {
                 .baseUrl(imageAiBaseUrl)
                 .build();
     }
+
+    @Bean(name = "makeChallengeAiWebClient")
+    public WebClient makeChallengeAiWebClient(@Value("${ai-server.make-challenge-base-url}") String makeChallengeBaseUrl) {
+        return WebClient.builder()
+                .baseUrl(makeChallengeBaseUrl)
+                .build();
+    }
 }
