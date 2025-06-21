@@ -1,5 +1,6 @@
 package ktb.leafresh.backend.domain.chatbot.application.handler;
 
+import org.springframework.context.annotation.Profile;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 /**
@@ -8,6 +9,7 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
  * - ServerSentEvent<String> 형식으로 수신
  * - 받은 SSE 메시지를 포맷 유지한 채 SseEmitter를 통해 FE로 전송
  */
+@Profile("docker-local")
 public interface ChatbotSseStreamHandler {
     void streamToEmitter(SseEmitter emitter, String uriWithQueryParams);
 }
