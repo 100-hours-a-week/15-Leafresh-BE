@@ -10,6 +10,14 @@ spring:
       host: ${docker_prod_cache_host}
       port: ${docker_prod_cache_port}
 
+redis:
+  redisson:
+    address: redis://${SPRING_DATA_REDIS_HOST}:${SPRING_DATA_REDIS_PORT}
+
+  bloom:
+    host: ${docker_prod_cache_host}
+    port: ${docker_prod_cache_port}
+
 cookie:
   secure: true
   samesite: ${docker_prod_cookie_samesite:Strict}
