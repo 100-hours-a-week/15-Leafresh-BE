@@ -9,6 +9,7 @@ import ktb.leafresh.backend.domain.store.order.application.service.ProductPurcha
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Profile;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
 import jakarta.annotation.PostConstruct;
@@ -19,13 +20,16 @@ import jakarta.annotation.PostConstruct;
 @RequiredArgsConstructor
 public class PurchaseMessageSubscriber {
 
+    private final Environment environment;
     private final ProductPurchaseProcessingService processingService;
     private final ObjectMapper objectMapper;
 
     @PostConstruct
     public void subscribe() {
-        ProjectSubscriptionName subscriptionName =
-                ProjectSubscriptionName.of("leafresh2", "leafresh-order-topic-sub");
+        String projectId = environment.getProperty("gcp.project-id");
+        String subscriptionId = environment.getProperty("gcp.pubsub.subscriptions.order");
+
+        ProjectSubscriptionName subscriptionName = ProjectSubscriptionName.of(projectId, subscriptionId);
 
         MessageReceiver receiver = (message, consumer) -> {
             String rawData = message.getData().toStringUtf8();
