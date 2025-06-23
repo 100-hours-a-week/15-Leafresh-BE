@@ -33,3 +33,6 @@ gcp:
     topics:
       order: ${gcp_pubsub_topic_order}
       image-verification: ${gcp_pubsub_topic_image_verification}
+    subscriptions:
+      order: ${gcp_pubsub_subscription_order}
+      dlq: ${gcp_pubsub_subscription_order_dlq}
