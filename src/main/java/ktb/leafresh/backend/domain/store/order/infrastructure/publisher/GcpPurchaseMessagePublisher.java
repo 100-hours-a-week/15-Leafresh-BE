@@ -8,7 +8,6 @@ import com.google.pubsub.v1.PubsubMessage;
 import ktb.leafresh.backend.domain.store.order.application.dto.PurchaseCommand;
 import ktb.leafresh.backend.global.exception.CustomException;
 import ktb.leafresh.backend.global.exception.PurchaseErrorCode;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Profile;
@@ -16,14 +15,19 @@ import org.springframework.stereotype.Component;
 
 @Component
 @Profile("!local")
-@RequiredArgsConstructor
 @Slf4j
 public class GcpPurchaseMessagePublisher implements PurchaseMessagePublisher {
 
-    @Qualifier("purchasePubSubPublisher")
     private final Publisher publisher;
-
     private final ObjectMapper objectMapper;
+
+    public GcpPurchaseMessagePublisher(
+            @Qualifier("purchasePubSubPublisher") Publisher publisher,
+            ObjectMapper objectMapper
+    ) {
+        this.publisher = publisher;
+        this.objectMapper = objectMapper;
+    }
 
     @Override
     public void publish(PurchaseCommand command) {

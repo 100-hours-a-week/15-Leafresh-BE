@@ -24,7 +24,19 @@ public class PubSubPublisherConfig {
     @Bean(name = "purchasePubSubPublisher")
     public Publisher purchasePubSubPublisher() throws IOException {
         String projectId = environment.getProperty("gcp.project-id");
-        String topicId = "leafresh-order-topic";
+        String topicId = environment.getProperty("gcp.pubsub.topics.order");
+
+        TopicName topicName = TopicName.of(projectId, topicId);
+
+        return Publisher.newBuilder(topicName)
+                .setCredentialsProvider(() -> GoogleCredentials.getApplicationDefault())
+                .build();
+    }
+
+    @Bean(name = "imageVerificationPubSubPublisher")
+    public Publisher imageVerificationPublisher() throws IOException {
+        String projectId = environment.getProperty("gcp.project-id");
+        String topicId = environment.getProperty("gcp.pubsub.topics.image-verification");
 
         TopicName topicName = TopicName.of(projectId, topicId);
 

@@ -29,3 +29,7 @@ gcp:
     location: classpath:${gcp_credentials_location}
   storage:
     bucket: ${gcp_storage_bucket}
+  pubsub:
+    topics:
+      order: ${gcp_pubsub_topic_order}
+      image-verification: ${gcp_pubsub_topic_image_verification}
