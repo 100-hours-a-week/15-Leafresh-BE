@@ -16,6 +16,7 @@ import ktb.leafresh.backend.domain.store.product.domain.entity.Product;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Profile;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
@@ -26,13 +27,17 @@ import java.time.LocalDateTime;
 @Slf4j
 public class PurchaseDlqMessageSubscriber {
 
+    private final Environment environment;
     private final ObjectMapper objectMapper;
     private final PurchaseFailureLogRepository purchaseFailureLogRepository;
     private final PurchaseProcessingLogRepository purchaseProcessingLogRepository;
 
     @PostConstruct
     public void subscribe() {
-        ProjectSubscriptionName dlqSubscription = ProjectSubscriptionName.of("leafresh2", "leafresh-order-dlq-topic-sub");
+        String projectId = environment.getProperty("gcp.project-id");
+        String subscriptionId = environment.getProperty("gcp.pubsub.subscriptions.dlq");
+
+        ProjectSubscriptionName dlqSubscription = ProjectSubscriptionName.of(projectId, subscriptionId);
 
         MessageReceiver receiver = (message, consumer) -> {
             String rawData = message.getData().toStringUtf8();
