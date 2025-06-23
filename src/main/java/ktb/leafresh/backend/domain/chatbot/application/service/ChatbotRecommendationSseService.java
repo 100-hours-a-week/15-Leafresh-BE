@@ -16,7 +16,7 @@ import java.util.Map;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-@Profile("docker-local")
+@Profile("unused")
 public class ChatbotRecommendationSseService {
 
     @Value("${ai-server.text-base-url}")

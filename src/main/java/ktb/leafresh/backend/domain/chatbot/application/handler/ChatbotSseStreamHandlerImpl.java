@@ -15,7 +15,7 @@ import java.io.IOException;
 
 @Slf4j
 @Component
-@Profile("docker-local")
+@Profile("unused")
 public class ChatbotSseStreamHandlerImpl implements ChatbotSseStreamHandler {
 
     private final WebClient textAiWebClient;
