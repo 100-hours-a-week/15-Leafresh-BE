@@ -20,7 +20,7 @@ redis:
 
 cookie:
   secure: true
-  samesite: ${docker_prod_cookie_samesite:Strict}
+  samesite: ${docker_prod_cookie_samesite:None}
   domain: ${docker_prod_cookie_domain:.leafresh.app}
 
 gcp:
