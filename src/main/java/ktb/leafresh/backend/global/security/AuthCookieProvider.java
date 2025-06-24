@@ -23,7 +23,7 @@ public class AuthCookieProvider {
 
     @PostConstruct
     public void init() {
-        log.info("[쿠키설정] secure={}, sameSite={}", secure, sameSite);
+        log.info("[쿠키설정] secure={}, sameSite={}, domain={}", secure, sameSite, domain);
     }
 
     public ResponseCookie createCookie(String name, String value, Duration maxAge) {
