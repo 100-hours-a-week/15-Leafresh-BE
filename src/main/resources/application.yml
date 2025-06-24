@@ -27,6 +27,15 @@ spring:
       max-file-size: 10MB
       max-request-size: 50MB
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "health,info,prometheus"
+  endpoint:
+    prometheus:
+      access: unrestricted
+
 springdoc:
   api-docs:
     enabled: true
