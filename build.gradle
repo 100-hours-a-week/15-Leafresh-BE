@@ -105,6 +105,9 @@ dependencies {
 
 	// Micrometer Prometheus
 	implementation 'io.micrometer:micrometer-registry-prometheus'
+
+	// p6spy for SQL profiling
+	implementation 'com.github.gavlyukovskiy:p6spy-spring-boot-starter:1.8.0'
 }
 
 dependencyManagement {
