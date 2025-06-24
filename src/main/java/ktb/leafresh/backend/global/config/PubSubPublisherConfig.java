@@ -1,21 +1,16 @@
 package ktb.leafresh.backend.global.config;
 
-import com.google.api.gax.core.CredentialsProvider;
-import com.google.api.gax.core.NoCredentialsProvider;
-import com.google.api.gax.rpc.FixedTransportChannelProvider;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.cloud.pubsub.v1.Publisher;
 import com.google.pubsub.v1.TopicName;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Profile;
 import org.springframework.core.env.Environment;
 
 import java.io.IOException;
 
 @Configuration
-@Profile("!local")
 @RequiredArgsConstructor
 public class PubSubPublisherConfig {
 
