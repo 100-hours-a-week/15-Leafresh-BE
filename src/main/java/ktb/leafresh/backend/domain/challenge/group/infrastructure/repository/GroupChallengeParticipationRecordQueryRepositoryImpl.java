@@ -22,6 +22,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 
 import static ktb.leafresh.backend.global.common.entity.enums.ParticipantStatus.*;
@@ -36,37 +37,30 @@ public class GroupChallengeParticipationRecordQueryRepositoryImpl implements Gro
     private final QGroupChallengeVerification verification = QGroupChallengeVerification.groupChallengeVerification;
 
     @Override
-    public GroupChallengeParticipationCountSummaryDto countParticipationByStatus(Long memberId, LocalDateTime now) {
-        List<GroupChallengeParticipantRecord> records = queryFactory
-                .selectFrom(record)
-                .join(record.groupChallenge, challenge).fetchJoin()
+    public GroupChallengeParticipationCountSummaryDto countParticipationByStatus(Long memberId) {
+        int notStarted = countByStatus(memberId, "not_started");
+        int ongoing = countByStatus(memberId, "ongoing");
+        int completed = countByStatus(memberId, "completed");
+
+        return new GroupChallengeParticipationCountSummaryDto(notStarted, ongoing, completed);
+    }
+
+    private int countByStatus(Long memberId, String status) {
+        LocalDateTime utcNow = LocalDateTime.now(ZoneOffset.UTC);
+        Long count = queryFactory
+                .select(record.count())
+                .from(record)
+                .join(record.groupChallenge, challenge)
                 .where(
                         record.member.id.eq(memberId),
                         record.status.in(ACTIVE, FINISHED, WAITING),
                         record.deletedAt.isNull(),
-                        challenge.deletedAt.isNull()
+                        challenge.deletedAt.isNull(),
+                        applyStatusFilter(status, utcNow)
                 )
-                .fetch();
+                .fetchOne();
 
-        int notStarted = 0;
-        int ongoing = 0;
-        int completed = 0;
-
-        for (GroupChallengeParticipantRecord r : records) {
-            GroupChallenge c = r.getGroupChallenge();
-            ParticipantStatus status = r.getStatus();
-            boolean hasNoVerification = r.getVerifications().stream().noneMatch(v -> v.getDeletedAt() == null);
-
-            if (status == FINISHED || now.isAfter(c.getEndDate())) {
-                completed++;
-            } else if (hasNoVerification) {
-                notStarted++;
-            } else {
-                ongoing++;
-            }
-        }
-
-        return new GroupChallengeParticipationCountSummaryDto(notStarted, ongoing, completed);
+        return count != null ? count.intValue() : 0;
     }
 
     @Override
@@ -110,7 +104,7 @@ public class GroupChallengeParticipationRecordQueryRepositoryImpl implements Gro
                         record.member.id.eq(memberId),
                         record.deletedAt.isNull(),
                         challenge.deletedAt.isNull(),
-                        applyStatusFilter(status, LocalDateTime.now()),
+                        applyStatusFilter(status, LocalDateTime.now(ZoneOffset.UTC)),
                         CursorConditionUtils.ltCursorWithTimestamp(challenge.createdAt, challenge.id, ts, cursorId)
                 )
                 .orderBy(challenge.createdAt.desc(), challenge.id.desc())
@@ -119,26 +113,32 @@ public class GroupChallengeParticipationRecordQueryRepositoryImpl implements Gro
     }
 
     private BooleanExpression applyStatusFilter(String status, LocalDateTime now) {
+        BooleanExpression hasAnyVerification = record.id.in(
+                JPAExpressions.select(verification.participantRecord.id)
+                        .from(verification)
+                        .where(
+                                verification.participantRecord.id.eq(record.id),
+                                verification.deletedAt.isNull(),
+                                verification.status.in(
+                                        ChallengeStatus.PENDING_APPROVAL,
+                                        ChallengeStatus.SUCCESS,
+                                        ChallengeStatus.FAILURE
+                                )
+                        )
+        );
+
         return switch (status.toLowerCase()) {
-            case "not_started" -> record.id.notIn(
-                    JPAExpressions.select(verification.participantRecord.id)
-                            .from(verification)
-                            .where(
-                                    verification.participantRecord.id.eq(record.id),
-                                    verification.deletedAt.isNull()
-                            )
-            );
+            case "not_started" -> challenge.startDate.loe(now)
+                    .and(challenge.endDate.goe(now))      // 기간 중
+                    .and(hasAnyVerification.not());       // 인증 이력 없음
+
             case "ongoing" -> challenge.startDate.loe(now)
-                    .and(challenge.endDate.goe(now))
-                    .and(record.id.in(
-                            JPAExpressions.select(verification.participantRecord.id)
-                                    .from(verification)
-                                    .where(
-                                            verification.participantRecord.id.eq(record.id),
-                                            verification.deletedAt.isNull()
-                                    )
-                    ));
-            case "completed" -> challenge.endDate.lt(now).or(record.status.eq(FINISHED));
+                    .and(challenge.endDate.goe(now))      // 기간 중
+                    .and(hasAnyVerification);             // 인증 이력 존재
+
+            case "completed" -> challenge.endDate.lt(now) // 기간 종료
+                    .or(record.status.eq(FINISHED));      // 수동 종료
+
             default -> throw new CustomException(GlobalErrorCode.INVALID_REQUEST);
         };
     }
