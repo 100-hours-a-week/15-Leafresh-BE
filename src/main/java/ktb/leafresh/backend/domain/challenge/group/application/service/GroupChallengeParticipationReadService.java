@@ -27,7 +27,7 @@ public class GroupChallengeParticipationReadService {
 
     public GroupChallengeParticipationCountResponseDto getParticipationCounts(Long memberId) {
         GroupChallengeParticipationCountSummaryDto summary =
-                groupChallengeParticipationRecordQueryRepository.countParticipationByStatus(memberId, LocalDateTime.now());
+                groupChallengeParticipationRecordQueryRepository.countParticipationByStatus(memberId);
 
         return GroupChallengeParticipationCountResponseDto.from(summary);
     }
