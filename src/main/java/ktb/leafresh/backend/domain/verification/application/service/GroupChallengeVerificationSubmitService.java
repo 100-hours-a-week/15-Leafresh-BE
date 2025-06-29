@@ -5,9 +5,9 @@ import ktb.leafresh.backend.domain.challenge.group.domain.entity.GroupChallengeP
 import ktb.leafresh.backend.domain.challenge.group.infrastructure.repository.GroupChallengeParticipantRecordRepository;
 import ktb.leafresh.backend.domain.challenge.group.infrastructure.repository.GroupChallengeRepository;
 import ktb.leafresh.backend.domain.verification.domain.entity.GroupChallengeVerification;
-import ktb.leafresh.backend.domain.verification.domain.event.VerificationCreatedEvent;
 import ktb.leafresh.backend.domain.verification.domain.support.validator.VerificationSubmitValidator;
 import ktb.leafresh.backend.domain.verification.infrastructure.dto.request.AiVerificationRequestDto;
+import ktb.leafresh.backend.domain.verification.infrastructure.publisher.GcpAiVerificationPubSubPublisher;
 import ktb.leafresh.backend.domain.verification.infrastructure.repository.GroupChallengeVerificationRepository;
 import ktb.leafresh.backend.domain.verification.presentation.dto.request.GroupChallengeVerificationRequestDto;
 import ktb.leafresh.backend.global.common.entity.enums.ChallengeStatus;
@@ -17,7 +17,6 @@ import ktb.leafresh.backend.global.exception.CustomException;
 import ktb.leafresh.backend.global.exception.VerificationErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,8 +33,8 @@ public class GroupChallengeVerificationSubmitService {
     private final GroupChallengeParticipantRecordRepository recordRepository;
     private final GroupChallengeVerificationRepository verificationRepository;
     private final VerificationSubmitValidator validator;
-    private final ApplicationEventPublisher eventPublisher;
     private final StringRedisTemplate redisTemplate;
+    private final GcpAiVerificationPubSubPublisher pubSubPublisher;
 
     private static final String TOTAL_VERIFICATION_COUNT_KEY = "leafresh:totalVerifications:count";
 
@@ -70,23 +69,19 @@ public class GroupChallengeVerificationSubmitService {
 
         verificationRepository.save(verification);
 
-        try {
-            AiVerificationRequestDto aiRequest = AiVerificationRequestDto.builder()
-                    .verificationId(verification.getId())
-                    .type(ChallengeType.GROUP)
-                    .imageUrl(dto.imageUrl())
-                    .memberId(memberId)
-                    .challengeId(challengeId)
-                    .date(now.format(DateTimeFormatter.ISO_LOCAL_DATE))
-                    .challengeName(challenge.getTitle())
-                    .challengeInfo(challenge.getDescription())
-                    .build();
+        AiVerificationRequestDto aiRequest = AiVerificationRequestDto.builder()
+                .verificationId(verification.getId())
+                .type(ChallengeType.GROUP)
+                .imageUrl(dto.imageUrl())
+                .memberId(memberId)
+                .challengeId(challengeId)
+                .date(now.format(DateTimeFormatter.ISO_LOCAL_DATE))
+                .challengeName(challenge.getTitle())
+                .challengeInfo(challenge.getDescription())
+                .build();
 
-            eventPublisher.publishEvent(new VerificationCreatedEvent(aiRequest));
-
-        } catch (Exception e) {
-            throw new CustomException(VerificationErrorCode.AI_SERVER_ERROR);
-        }
+        // 비동기 발행 (재시도 내장)
+        pubSubPublisher.publishAsyncWithRetry(aiRequest);
 
         try {
             redisTemplate.opsForValue().increment(TOTAL_VERIFICATION_COUNT_KEY);
