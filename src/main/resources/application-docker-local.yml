@@ -36,3 +36,4 @@ gcp:
     subscriptions:
       order: ${gcp_pubsub_subscription_order}
       dlq: ${gcp_pubsub_subscription_order_dlq}
+      image-verification-result: ${gcp_pubsub_subscription_image_verification_result}
