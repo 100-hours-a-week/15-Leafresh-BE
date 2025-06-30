@@ -66,23 +66,7 @@ public class TokenProvider {
 
         Authentication authentication = new UsernamePasswordAuthenticationToken(userDetails, "", userDetails.getAuthorities());
 
-        TokenDto tokenDto = generateTokenDto(authentication, memberId);
-
         return generateTokenDto(authentication, memberId);
-    }
-
-    public long getTokenExpiration(String token) {
-        try {
-            return Jwts.parserBuilder()
-                    .setSigningKey(key)
-                    .build()
-                    .parseClaimsJws(token)
-                    .getBody()
-                    .getExpiration()
-                    .getTime();
-        } catch (ExpiredJwtException e) {
-            return e.getClaims().getExpiration().getTime();
-        }
     }
 
     public TokenDto generateTokenDto(Authentication authentication, Long memberId) {
