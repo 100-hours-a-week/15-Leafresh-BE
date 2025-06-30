@@ -20,17 +20,17 @@ class GroupChallengeVerificationResultSaveServiceTest {
     }
 
     @Test
-    @DisplayName("단체 인증 결과를 VerificationResultProcessor에 위임한다")
-    void saveResult_DelegatesToProcessor() {
+    @DisplayName("result가 true/false일 경우 VerificationResultProcessor에 위임한다")
+    void saveResult_DelegatesToProcessor_WhenResultIsTrueOrFalse() {
         // given
         Long verificationId = 1L;
-
         VerificationResultRequestDto dto = VerificationResultRequestDto.builder()
                 .type(ChallengeType.GROUP)
                 .memberId(10L)
                 .challengeId(123L)
+                .verificationId(verificationId)
                 .date("2025-06-08")
-                .result(true)
+                .result("true")
                 .build();
 
         // when
@@ -38,5 +38,27 @@ class GroupChallengeVerificationResultSaveServiceTest {
 
         // then
         verify(verificationResultProcessor, times(1)).process(verificationId, dto);
+    }
+
+    @Test
+    @DisplayName("result가 HTTP 오류 코드일 경우 VerificationResultProcessor가 무시한다")
+    void saveResult_DoesNotDelegate_WhenResultIsHttpErrorCode() {
+        // given
+        Long verificationId = 2L;
+        VerificationResultRequestDto dto = VerificationResultRequestDto.builder()
+                .type(ChallengeType.GROUP)
+                .memberId(20L)
+                .challengeId(456L)
+                .verificationId(verificationId)
+                .date("2025-06-08")
+                .result("422")
+                .build();
+
+        // when
+        service.saveResult(verificationId, dto);
+
+        // then
+        verify(verificationResultProcessor, times(1)).process(verificationId, dto);
+        // 내부적으로 무시되더라도 서비스 단에서는 위임이 이뤄짐 (→ VerificationResultProcessor의 동작 테스트는 별도로 분리됨)
     }
 }

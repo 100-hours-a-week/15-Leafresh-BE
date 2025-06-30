@@ -1,24 +1,22 @@
 package ktb.leafresh.backend.domain.verification.application.service;
 
-import ktb.leafresh.backend.domain.challenge.group.domain.entity.GroupChallenge;
-import ktb.leafresh.backend.domain.challenge.group.domain.entity.GroupChallengeParticipantRecord;
 import ktb.leafresh.backend.domain.challenge.group.infrastructure.repository.GroupChallengeParticipantRecordRepository;
 import ktb.leafresh.backend.domain.challenge.group.infrastructure.repository.GroupChallengeRepository;
 import ktb.leafresh.backend.domain.verification.domain.entity.GroupChallengeVerification;
-import ktb.leafresh.backend.domain.verification.domain.event.VerificationCreatedEvent;
-import ktb.leafresh.backend.domain.verification.infrastructure.dto.request.AiVerificationRequestDto;
+import ktb.leafresh.backend.domain.verification.domain.support.validator.VerificationSubmitValidator;
+import ktb.leafresh.backend.domain.verification.infrastructure.publisher.GcpAiVerificationPubSubPublisher;
 import ktb.leafresh.backend.domain.verification.infrastructure.repository.GroupChallengeVerificationRepository;
 import ktb.leafresh.backend.domain.verification.presentation.dto.request.GroupChallengeVerificationRequestDto;
-import ktb.leafresh.backend.domain.verification.domain.support.validator.VerificationSubmitValidator;
 import ktb.leafresh.backend.global.exception.CustomException;
 import ktb.leafresh.backend.global.exception.VerificationErrorCode;
 import ktb.leafresh.backend.support.fixture.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.ValueOperations;
 
+import java.lang.reflect.Field;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -32,8 +30,8 @@ class GroupChallengeVerificationSubmitServiceTest {
     private GroupChallengeParticipantRecordRepository recordRepository;
     private GroupChallengeVerificationRepository verificationRepository;
     private VerificationSubmitValidator validator;
-    private ApplicationEventPublisher eventPublisher;
     private StringRedisTemplate redisTemplate;
+    private GcpAiVerificationPubSubPublisher pubSubPublisher;
     private GroupChallengeVerificationSubmitService service;
 
     @BeforeEach
@@ -42,17 +40,21 @@ class GroupChallengeVerificationSubmitServiceTest {
         recordRepository = mock(GroupChallengeParticipantRecordRepository.class);
         verificationRepository = mock(GroupChallengeVerificationRepository.class);
         validator = mock(VerificationSubmitValidator.class);
-        eventPublisher = mock(ApplicationEventPublisher.class);
         redisTemplate = mock(StringRedisTemplate.class);
+        pubSubPublisher = mock(GcpAiVerificationPubSubPublisher.class);
 
         service = new GroupChallengeVerificationSubmitService(
-                groupChallengeRepository, recordRepository, verificationRepository,
-                validator, eventPublisher, redisTemplate
+                groupChallengeRepository,
+                recordRepository,
+                verificationRepository,
+                validator,
+                redisTemplate,
+                pubSubPublisher
         );
     }
 
     @Test
-    @DisplayName("단체 챌린지 인증 제출에 성공하면 검증 저장 및 이벤트 발행이 수행된다")
+    @DisplayName("단체 챌린지 인증 제출에 성공하면 저장 및 Pub/Sub 발행, Redis 증가가 수행된다")
     void submit_Success() {
         // Given
         Long memberId = 1L;
@@ -78,17 +80,26 @@ class GroupChallengeVerificationSubmitServiceTest {
         when(verificationRepository.save(any(GroupChallengeVerification.class)))
                 .thenAnswer(invocation -> {
                     GroupChallengeVerification saved = invocation.getArgument(0);
+
+                    // 리플렉션으로 id 필드에 직접 값 주입
+                    Field idField = GroupChallengeVerification.class.getDeclaredField("id");
+                    idField.setAccessible(true);
+                    idField.set(saved, 100L);
+
                     return saved;
                 });
+
+        ValueOperations<String, String> valueOps = mock(ValueOperations.class);
+        when(redisTemplate.opsForValue()).thenReturn(valueOps);
 
         // When
         service.submit(memberId, challengeId, dto);
 
         // Then
-        verify(validator, times(1)).validate(dto.content());
-        verify(verificationRepository, times(1)).save(any());
-        verify(eventPublisher, times(1)).publishEvent(any(VerificationCreatedEvent.class));
-        verify(redisTemplate, times(1)).opsForValue();
+        verify(validator).validate(dto.content());
+        verify(verificationRepository).save(any(GroupChallengeVerification.class));
+        verify(pubSubPublisher).publishAsyncWithRetry(any());
+        verify(redisTemplate.opsForValue()).increment("leafresh:totalVerifications:count");
     }
 
     @Test
@@ -126,6 +137,6 @@ class GroupChallengeVerificationSubmitServiceTest {
                 });
 
         verify(verificationRepository, never()).save(any());
-        verify(eventPublisher, never()).publishEvent(any());
+        verify(pubSubPublisher, never()).publishAsyncWithRetry(any());
     }
 }
