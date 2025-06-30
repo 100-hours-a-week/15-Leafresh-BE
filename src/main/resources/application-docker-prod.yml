@@ -4,7 +4,6 @@ spring:
     username: ${DOCKER_PROD_DB_USER}
     password: ${DOCKER_PROD_DB_PASSWORD}
     driver-class-name: com.mysql.cj.jdbc.Driver
-
   data:
     redis:
       host: ${DOCKER_PROD_CACHE_HOST}
@@ -13,7 +12,6 @@ spring:
 redis:
   redisson:
     address: redis://${SPRING_DATA_REDIS_HOST}:${SPRING_DATA_REDIS_PORT}
-
   bloom:
     host: ${DOCKER_PROD_CACHE_HOST}
     port: ${DOCKER_PROD_CACHE_PORT}
