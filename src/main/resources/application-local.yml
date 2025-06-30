@@ -4,12 +4,10 @@ spring:
     username: ${LOCAL_DB_USER}
     password: ${LOCAL_DB_PASSWORD}
     driver-class-name: com.mysql.cj.jdbc.Driver
-
   data:
     redis:
       host: ${LOCAL_CACHE_HOST}
       port: ${LOCAL_CACHE_PORT}
-
   jpa:
     show-sql: false
     properties:

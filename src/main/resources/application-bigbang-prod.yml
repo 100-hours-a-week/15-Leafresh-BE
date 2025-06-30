@@ -4,7 +4,6 @@ spring:
     username: ${BIGBANG_PROD_DB_USER}
     password: ${BIGBANG_PROD_DB_PASSWORD}
     driver-class-name: com.mysql.cj.jdbc.Driver
-
   data:
     redis:
       host: ${BIGBANG_PROD_CACHE_HOST}

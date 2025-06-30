@@ -4,7 +4,6 @@ spring:
     username: ${eks_local_db_user}
     password: ${eks_local_db_password}
     driver-class-name: com.mysql.cj.jdbc.Driver
-
   data:
     redis:
       host: ${eks_local_cache_host}
