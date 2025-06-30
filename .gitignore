@@ -46,7 +46,8 @@ out/
 .env.eks-local
 .env.eks-prod
 
-### Google Cloud Storage ###
+### GCP ###
 leafresh-gcs.json
 leafresh-prod2-wren.json
 leafresh-prod3-be.json
+leafresh-dev2.json
