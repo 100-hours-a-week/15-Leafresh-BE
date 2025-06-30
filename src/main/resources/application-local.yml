@@ -1,14 +1,14 @@
 spring:
   datasource:
-    url: jdbc:mysql://${local_db_host}:${db_port}/${local_db_name}
-    username: ${local_db_user}
-    password: ${local_db_password}
+    url: jdbc:mysql://${LOCAL_DB_HOST}:${DB_PORT}/${LOCAL_DB_NAME}
+    username: ${LOCAL_DB_USER}
+    password: ${LOCAL_DB_PASSWORD}
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   data:
     redis:
-      host: ${local_cache_host}
-      port: ${local_cache_port}
+      host: ${LOCAL_CACHE_HOST}
+      port: ${LOCAL_CACHE_PORT}
 
   jpa:
     show-sql: false
@@ -28,27 +28,27 @@ redis:
   redisson:
     address: redis://${SPRING_DATA_REDIS_HOST}:${SPRING_DATA_REDIS_PORT}
   bloom:
-    host: ${local_cache_host}
-    port: ${local_cache_port}
+    host: ${LOCAL_CACHE_HOST}
+    port: ${LOCAL_CACHE_PORT}
 
 cookie:
   secure: false
-  samesite: ${local_cookie_samesite:Strict}
-  domain: ${local_cookie_domain:localhost}
+  samesite: ${LOCAL_COOKIE_SAMESITE:Strict}
+  domain: ${LOCAL_COOKIE_DOMAIN:localhost}
 
 gcp:
-  project-id: ${gcp_project_id}
+  project-id: ${GCP_PROJECT_ID}
   credentials:
-    location: classpath:${gcp_credentials_location}
+    location: classpath:${GCP_CREDENTIALS_LOCATION}
   storage:
-    bucket: ${gcp_storage_bucket}
+    bucket: ${GCP_STORAGE_BUCKET}
   pubsub:
     topics:
-      order: ${gcp_pubsub_topic_order}
-      image-verification: ${gcp_pubsub_topic_image_verification}
+      order: ${GCP_PUBSUB_TOPIC_ORDER}
+      image-verification: ${GCP_PUBSUB_TOPIC_IMAGE_VERIFICATION}
     subscriptions:
-      order: ${gcp_pubsub_subscription_order}
-      dlq: $gcp_pubsub_subscription_order_dlq}
+      order: ${GCP_PUBSUB_SUBSCRIPTION_ORDER}
+      dlq: ${GCP_PUBSUB_SUBSCRIPTION_ORDER_DLQ}
 
 logging:
   level:
