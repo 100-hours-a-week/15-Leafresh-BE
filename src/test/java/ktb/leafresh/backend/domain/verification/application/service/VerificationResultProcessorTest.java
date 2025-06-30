@@ -44,14 +44,13 @@ class VerificationResultProcessorTest {
     @Test
     @DisplayName("단체 인증 성공 → 상태 업데이트 + 알림 + 보상 + 뱃지 지급")
     void processGroupSuccess_ShouldGrantRewardAndBadge() {
-        // Given
         Long verificationId = 1L;
         VerificationResultRequestDto dto = VerificationResultRequestDto.builder()
                 .type(ChallengeType.GROUP)
                 .memberId(1L)
                 .challengeId(1L)
                 .date("2025-05-28")
-                .result(true)
+                .result("true")
                 .build();
 
         Member member = mock(Member.class);
@@ -73,10 +72,8 @@ class VerificationResultProcessorTest {
         when(record.getGroupChallenge()).thenReturn(challenge);
         when(record.isAllSuccess()).thenReturn(false);
 
-        // When
         processor.process(verificationId, dto);
 
-        // Then
         verify(verification).markVerified(ChallengeStatus.SUCCESS);
         verify(rewardGrantService).grantLeafPoints(member, 10);
         verify(verification).markRewarded();
@@ -87,14 +84,13 @@ class VerificationResultProcessorTest {
     @Test
     @DisplayName("개인 인증 실패 → 상태만 업데이트 + 알림")
     void processPersonalFail_ShouldUpdateStatusOnly() {
-        // Given
         Long verificationId = 2L;
         VerificationResultRequestDto dto = VerificationResultRequestDto.builder()
                 .type(ChallengeType.PERSONAL)
                 .memberId(1L)
                 .challengeId(1L)
                 .date("2025-05-28")
-                .result(false)
+                .result("false")
                 .build();
 
         Member member = mock(Member.class);
@@ -110,15 +106,30 @@ class VerificationResultProcessorTest {
         when(verification.getPersonalChallenge()).thenReturn(challenge);
         when(personalRepo.findById(verificationId)).thenReturn(Optional.of(verification));
 
-        // When
         processor.process(verificationId, dto);
 
-        // Then
         verify(verification).markVerified(ChallengeStatus.FAILURE);
         verify(notificationService).createChallengeVerificationResultNotification(
                 eq(member), eq("텀블러 사용"), eq(false), eq(NotificationType.PERSONAL), eq("img"), eq(99L)
         );
         verifyNoInteractions(rewardGrantService);
         verify(badgeGrantManager).evaluateAllAndGrant(member);
+    }
+
+    @Test
+    @DisplayName("result가 null이거나 유효하지 않은 문자열이면 처리하지 않고 무시한다")
+    void process_invalidResult_shouldBeIgnored() {
+        Long verificationId = 3L;
+        VerificationResultRequestDto dto = VerificationResultRequestDto.builder()
+                .type(ChallengeType.PERSONAL)
+                .memberId(1L)
+                .challengeId(1L)
+                .date("2025-05-28")
+                .result("maybe") // 유효하지 않은 값
+                .build();
+
+        processor.process(verificationId, dto);
+
+        verifyNoInteractions(groupRepo, personalRepo, rewardGrantService, notificationService, badgeGrantManager);
     }
 }
