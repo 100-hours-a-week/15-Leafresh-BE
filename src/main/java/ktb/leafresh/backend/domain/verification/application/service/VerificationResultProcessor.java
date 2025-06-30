@@ -56,6 +56,11 @@ public class VerificationResultProcessor {
     }
 
     public void process(Long verificationId, VerificationResultRequestDto dto) {
+        if (!dto.isSuccessResult()) {
+            log.warn("[Processor 인증 결과 무시] 정상적인 true/false 값이 아님: result={}, type={}", dto.result(), dto.type());
+            return;
+        }
+
         if (dto.type() == ChallengeType.GROUP) {
             processGroup(verificationId, dto);
         } else {
@@ -64,7 +69,8 @@ public class VerificationResultProcessor {
     }
 
     private void processGroup(Long verificationId, VerificationResultRequestDto dto) {
-        log.info("[Processor 단체 인증 결과 수신] verificationId={}, result={}", verificationId, dto.result());
+        boolean isSuccess = dto.resultAsBoolean();
+        log.info("[Processor 단체 인증 결과 수신] verificationId={}, result={}", verificationId, isSuccess);
 
         GroupChallengeVerification verification = groupChallengeVerificationRepository.findById(verificationId)
                 .orElseThrow(() -> {
@@ -72,7 +78,7 @@ public class VerificationResultProcessor {
                     throw new CustomException(VerificationErrorCode.VERIFICATION_NOT_FOUND);
                 });
 
-        ChallengeStatus newStatus = dto.result() ? ChallengeStatus.SUCCESS : ChallengeStatus.FAILURE;
+        ChallengeStatus newStatus = isSuccess ? ChallengeStatus.SUCCESS : ChallengeStatus.FAILURE;
         verification.markVerified(newStatus);
         log.info("[Processor 상태 업데이트 완료] verificationId={}, newStatus={}", verificationId, newStatus);
 
@@ -83,22 +89,20 @@ public class VerificationResultProcessor {
         notificationCreateService.createChallengeVerificationResultNotification(
                 member,
                 challenge.getTitle(),
-                dto.result(),
+                isSuccess,
                 NotificationType.GROUP,
                 verification.getImageUrl(),
                 challenge.getId()
         );
         log.info("[Processor 알림 생성 완료] memberId={}, challengeTitle={}", member.getId(), challenge.getTitle());
 
-        // 1차 보상: 인증 성공 + 미보상 시 지급
-        if (dto.result() && !verification.isRewarded()) {
+        if (isSuccess && !verification.isRewarded()) {
             int reward = challenge.getLeafReward();
             rewardGrantService.grantLeafPoints(member, reward);
             verification.markRewarded();
             log.info("[Processor 1차 보상 지급 완료] memberId={}, reward={}", member.getId(), reward);
         }
 
-        // 2차 보상: 전체 성공 + 기간 일수만큼 인증 존재 + 미지급 시 지급
         if (record.isAllSuccess()
                 && record.getVerifications().size() == challenge.getDurationInDays()
                 && !record.hasReceivedParticipationBonus()) {
@@ -112,7 +116,8 @@ public class VerificationResultProcessor {
     }
 
     private void processPersonal(Long verificationId, VerificationResultRequestDto dto) {
-        log.info("[Processor 개인 인증 결과 수신] verificationId={}, type={}, result={}", verificationId, dto.type(), dto.result());
+        boolean isSuccess = dto.resultAsBoolean();
+        log.info("[Processor 개인 인증 결과 수신] verificationId={}, type={}, result={}", verificationId, dto.type(), isSuccess);
 
         PersonalChallengeVerification verification = personalChallengeVerificationRepository.findById(verificationId)
                 .orElseThrow(() -> {
@@ -120,35 +125,31 @@ public class VerificationResultProcessor {
                     return new CustomException(VerificationErrorCode.VERIFICATION_NOT_FOUND);
                 });
 
-        ChallengeStatus newStatus = dto.result() ? ChallengeStatus.SUCCESS : ChallengeStatus.FAILURE;
+        ChallengeStatus newStatus = isSuccess ? ChallengeStatus.SUCCESS : ChallengeStatus.FAILURE;
         verification.markVerified(newStatus);
         log.info("[Processor 인증 상태 업데이트 완료] verificationId={}, newStatus={}", verificationId, newStatus);
 
         Member member = verification.getMember();
         String challengeTitle = verification.getPersonalChallenge().getTitle();
 
-        log.info("[Processor 알림 생성 시작] memberId={}, challengeTitle={}", member.getId(), challengeTitle);
         notificationCreateService.createChallengeVerificationResultNotification(
                 member,
                 challengeTitle,
-                dto.result(),
+                isSuccess,
                 NotificationType.PERSONAL,
                 verification.getImageUrl(),
                 verification.getPersonalChallenge().getId()
         );
-        log.info("[Processor 알림 생성 완료]");
+        log.info("[Processor 알림 생성 완료] memberId={}, challengeTitle={}", member.getId(), challengeTitle);
 
-        // 1차 보상: 성공 + 미보상 상태에서만 지급
-        if (dto.result()) {
+        if (isSuccess) {
             if (verification.isRewarded()) {
                 log.warn("[Processor 보상 스킵] 이미 보상된 인증입니다. verificationId={}, memberId={}", verificationId, member.getId());
             } else {
                 int reward = verification.getPersonalChallenge().getLeafReward();
-                log.info("[Processor 보상 지급 시작] reward={}, memberId={}", reward, member.getId());
-
                 rewardGrantService.grantLeafPoints(member, reward);
-                verification.markRewarded();  // 보상 완료 처리
-                log.info("[Processor 보상 지급 완료 및 상태 플래그 업데이트] verificationId={}, memberId={}", verificationId, member.getId());
+                verification.markRewarded();
+                log.info("[Processor 보상 지급 완료] verificationId={}, memberId={}, reward={}", verificationId, member.getId(), reward);
             }
         }
 

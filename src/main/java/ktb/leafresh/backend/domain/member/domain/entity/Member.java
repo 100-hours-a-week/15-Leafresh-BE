@@ -15,6 +15,7 @@ import ktb.leafresh.backend.domain.auth.domain.entity.OAuth;
 import ktb.leafresh.backend.domain.notification.domain.entity.Notification;
 import ktb.leafresh.backend.domain.store.order.domain.entity.ProductPurchase;
 import ktb.leafresh.backend.domain.verification.domain.entity.PersonalChallengeVerification;
+import ktb.leafresh.backend.domain.verification.domain.entity.VerificationFailureLog;
 import ktb.leafresh.backend.global.common.entity.BaseEntity;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -81,6 +82,9 @@ public class Member extends BaseEntity {
 
     @OneToMany(mappedBy = "member", cascade = CascadeType.ALL)
     private List<Feedback> feedbacks = new ArrayList<>();
+
+    @OneToMany(mappedBy = "member", cascade = CascadeType.ALL)
+    private List<VerificationFailureLog> verificationFailureLogs = new ArrayList<>();
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
