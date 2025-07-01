@@ -6,7 +6,6 @@ import ktb.leafresh.backend.domain.feedback.application.service.FeedbackResultSe
 import ktb.leafresh.backend.domain.feedback.presentation.dto.request.FeedbackResultRequestDto;
 import ktb.leafresh.backend.domain.feedback.presentation.dto.response.FeedbackResponseDto;
 import ktb.leafresh.backend.global.exception.CustomException;
-import ktb.leafresh.backend.global.exception.FeedbackErrorCode;
 import ktb.leafresh.backend.global.exception.GlobalErrorCode;
 import ktb.leafresh.backend.global.response.ApiResponse;
 import ktb.leafresh.backend.global.security.CustomUserDetails;
@@ -46,7 +45,8 @@ public class FeedbackResultController {
         Long memberId = userDetails.getMemberId();
         log.info("[피드백 결과 조회 요청] memberId={}", memberId);
 
-        FeedbackResponseDto response = feedbackResultQueryService.waitForFeedback(memberId);
+//        FeedbackResponseDto response = feedbackResultQueryService.waitForFeedback(memberId);
+        FeedbackResponseDto response = feedbackResultQueryService.getFeedbackResult(memberId);
 
         if (response.getContent() == null) {
             log.info("[피드백 결과 없음] memberId={}", memberId);
