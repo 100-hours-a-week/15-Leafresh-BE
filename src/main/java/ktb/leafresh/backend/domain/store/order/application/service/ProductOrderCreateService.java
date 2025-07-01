@@ -11,7 +11,7 @@ import ktb.leafresh.backend.domain.store.product.infrastructure.repository.Produ
 import ktb.leafresh.backend.domain.store.product.infrastructure.cache.ProductCacheKeys;
 import ktb.leafresh.backend.global.exception.*;
 import ktb.leafresh.backend.global.lock.annotation.DistributedLock;
-import ktb.leafresh.backend.global.util.redis.RedisLuaService;
+import ktb.leafresh.backend.global.util.redis.StockRedisLuaService;
 import ktb.leafresh.backend.domain.store.order.application.dto.PurchaseCommand;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,7 +29,7 @@ public class ProductOrderCreateService {
     private final MemberRepository memberRepository;
     private final ProductRepository productRepository;
     private final PurchaseIdempotencyKeyRepository idempotencyRepository;
-    private final RedisLuaService redisLuaService;
+    private final StockRedisLuaService stockRedisLuaService;
     private final PurchaseMessagePublisher purchaseMessagePublisher;
     private final ProductCacheLockFacade productCacheLockFacade;
 
@@ -56,7 +56,7 @@ public class ProductOrderCreateService {
 
         // 4. Redis 재고 선점
         String redisKey = ProductCacheKeys.productStock(productId);
-        Long result = redisLuaService.decreaseStock(redisKey, quantity);
+        Long result = stockRedisLuaService.decreaseStock(redisKey, quantity);
 
         if (result == -1) throw new CustomException(ProductErrorCode.PRODUCT_NOT_FOUND);
         if (result == -2) throw new CustomException(ProductErrorCode.OUT_OF_STOCK);

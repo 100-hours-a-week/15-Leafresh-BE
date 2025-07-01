@@ -10,7 +10,7 @@ import ktb.leafresh.backend.domain.store.product.domain.entity.Product;
 import ktb.leafresh.backend.domain.store.product.domain.entity.TimedealPolicy;
 import ktb.leafresh.backend.domain.store.product.infrastructure.repository.TimedealPolicyRepository;
 import ktb.leafresh.backend.global.exception.*;
-import ktb.leafresh.backend.global.util.redis.RedisLuaService;
+import ktb.leafresh.backend.global.util.redis.StockRedisLuaService;
 import ktb.leafresh.backend.support.fixture.MemberFixture;
 import ktb.leafresh.backend.support.fixture.ProductFixture;
 import ktb.leafresh.backend.support.fixture.TimedealPolicyFixture;
@@ -30,7 +30,7 @@ class TimedealOrderCreateServiceTest {
     private MemberRepository memberRepository;
     private TimedealPolicyRepository timedealPolicyRepository;
     private PurchaseIdempotencyKeyRepository idempotencyKeyRepository;
-    private RedisLuaService redisLuaService;
+    private StockRedisLuaService stockRedisLuaService;
     private PurchaseMessagePublisher purchaseMessagePublisher;
 
     private final Long memberId = 1L;
@@ -47,14 +47,14 @@ class TimedealOrderCreateServiceTest {
         memberRepository = mock(MemberRepository.class);
         timedealPolicyRepository = mock(TimedealPolicyRepository.class);
         idempotencyKeyRepository = mock(PurchaseIdempotencyKeyRepository.class);
-        redisLuaService = mock(RedisLuaService.class);
+        stockRedisLuaService = mock(StockRedisLuaService.class);
         purchaseMessagePublisher = mock(PurchaseMessagePublisher.class);
 
         service = new TimedealOrderCreateService(
                 memberRepository,
                 timedealPolicyRepository,
                 idempotencyKeyRepository,
-                redisLuaService,
+                stockRedisLuaService,
                 purchaseMessagePublisher
         );
 
@@ -69,7 +69,7 @@ class TimedealOrderCreateServiceTest {
         // given
         when(memberRepository.findById(memberId)).thenReturn(Optional.of(member));
         when(timedealPolicyRepository.findById(dealId)).thenReturn(Optional.of(policy));
-        when(redisLuaService.decreaseStock(anyString(), eq(quantity))).thenReturn(1L);
+        when(stockRedisLuaService.decreaseStock(anyString(), eq(quantity))).thenReturn(1L);
 
         // when
         service.create(memberId, dealId, quantity, idempotencyKey);
@@ -145,7 +145,7 @@ class TimedealOrderCreateServiceTest {
         when(memberRepository.findById(memberId)).thenReturn(Optional.of(member));
         when(idempotencyKeyRepository.save(any())).thenReturn(mock(PurchaseIdempotencyKey.class));
         when(timedealPolicyRepository.findById(dealId)).thenReturn(Optional.of(policy));
-        when(redisLuaService.decreaseStock(anyString(), eq(quantity))).thenReturn(-2L);
+        when(stockRedisLuaService.decreaseStock(anyString(), eq(quantity))).thenReturn(-2L);
 
         CustomException ex = catchThrowableOfType(
                 () -> service.create(memberId, dealId, quantity, idempotencyKey),

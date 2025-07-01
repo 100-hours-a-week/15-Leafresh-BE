@@ -7,13 +7,12 @@ import ktb.leafresh.backend.domain.store.order.domain.entity.PurchaseIdempotency
 import ktb.leafresh.backend.domain.store.order.infrastructure.publisher.PurchaseMessagePublisher;
 import ktb.leafresh.backend.domain.store.order.infrastructure.repository.PurchaseIdempotencyKeyRepository;
 import ktb.leafresh.backend.domain.store.product.domain.entity.Product;
-import ktb.leafresh.backend.domain.store.product.infrastructure.cache.ProductCacheService;
 import ktb.leafresh.backend.domain.store.product.infrastructure.repository.ProductRepository;
 import ktb.leafresh.backend.global.exception.CustomException;
 import ktb.leafresh.backend.global.exception.MemberErrorCode;
 import ktb.leafresh.backend.global.exception.ProductErrorCode;
 import ktb.leafresh.backend.global.exception.PurchaseErrorCode;
-import ktb.leafresh.backend.global.util.redis.RedisLuaService;
+import ktb.leafresh.backend.global.util.redis.StockRedisLuaService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -31,7 +30,7 @@ class ProductOrderCreateServiceTest {
     private ProductOrderCreateService service;
     private ProductRepository productRepository;
     private PurchaseIdempotencyKeyRepository idempotencyRepository;
-    private RedisLuaService redisLuaService;
+    private StockRedisLuaService stockRedisLuaService;
     private PurchaseMessagePublisher purchaseMessagePublisher;
     private ktb.leafresh.backend.domain.member.infrastructure.repository.MemberRepository memberRepository;
     private ProductCacheLockFacade productCacheLockFacade;
@@ -40,7 +39,7 @@ class ProductOrderCreateServiceTest {
     void setUp() {
         productRepository = mock(ProductRepository.class);
         idempotencyRepository = mock(PurchaseIdempotencyKeyRepository.class);
-        redisLuaService = mock(RedisLuaService.class);
+        stockRedisLuaService = mock(StockRedisLuaService.class);
         purchaseMessagePublisher = mock(PurchaseMessagePublisher.class);
         memberRepository = mock(ktb.leafresh.backend.domain.member.infrastructure.repository.MemberRepository.class);
         productCacheLockFacade = mock(ProductCacheLockFacade.class);
@@ -49,7 +48,7 @@ class ProductOrderCreateServiceTest {
                 memberRepository,
                 productRepository,
                 idempotencyRepository,
-                redisLuaService,
+                stockRedisLuaService,
                 purchaseMessagePublisher,
                 productCacheLockFacade
         );
@@ -62,7 +61,7 @@ class ProductOrderCreateServiceTest {
         Product product = of("비누", 3000, 50);
         when(memberRepository.findById(1L)).thenReturn(Optional.of(member));
         when(productRepository.findById(1L)).thenReturn(Optional.of(product));
-        when(redisLuaService.decreaseStock(any(), anyInt())).thenReturn(1L);
+        when(stockRedisLuaService.decreaseStock(any(), anyInt())).thenReturn(1L);
 
         service.create(1L, 1L, 2, "unique-key");
 
@@ -120,7 +119,7 @@ class ProductOrderCreateServiceTest {
         Product product = of("샴푸", 5000, 0);
         when(memberRepository.findById(1L)).thenReturn(Optional.of(member));
         when(productRepository.findById(1L)).thenReturn(Optional.of(product));
-        when(redisLuaService.decreaseStock(any(), anyInt())).thenReturn(-2L);
+        when(stockRedisLuaService.decreaseStock(any(), anyInt())).thenReturn(-2L);
 
         CustomException ex = catchThrowableOfType(
                 () -> service.create(1L, 1L, 1, "unique-key"),
