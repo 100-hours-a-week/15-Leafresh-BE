@@ -24,7 +24,7 @@ cookie:
 gcp:
   project-id: ${GCP_PROJECT_ID}
   credentials:
-    location: classpath:${GCP_CREDENTIALS_LOCATION}
+    location: file:${GCP_CREDENTIALS_LOCATION}
   storage:
     bucket: ${GCP_STORAGE_BUCKET}
   pubsub:
