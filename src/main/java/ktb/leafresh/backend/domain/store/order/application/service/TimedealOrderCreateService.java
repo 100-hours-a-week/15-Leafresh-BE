@@ -11,7 +11,7 @@ import ktb.leafresh.backend.domain.store.product.infrastructure.cache.ProductCac
 import ktb.leafresh.backend.domain.store.product.infrastructure.repository.TimedealPolicyRepository;
 import ktb.leafresh.backend.global.exception.*;
 import ktb.leafresh.backend.global.lock.annotation.DistributedLock;
-import ktb.leafresh.backend.global.util.redis.RedisLuaService;
+import ktb.leafresh.backend.global.util.redis.StockRedisLuaService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -28,7 +28,7 @@ public class TimedealOrderCreateService {
     private final MemberRepository memberRepository;
     private final TimedealPolicyRepository timedealPolicyRepository;
     private final PurchaseIdempotencyKeyRepository idempotencyRepository;
-    private final RedisLuaService redisLuaService;
+    private final StockRedisLuaService stockRedisLuaService;
     private final PurchaseMessagePublisher purchaseMessagePublisher;
 
     @DistributedLock(key = "'timedeal:stock:' + #dealId", waitTime = 0, leaseTime = 3)
@@ -57,7 +57,7 @@ public class TimedealOrderCreateService {
 
         // 5. 재고 선점 (Redis Lua)
         String redisKey = ProductCacheKeys.timedealStock(dealId);
-        Long result = redisLuaService.decreaseStock(redisKey, quantity);
+        Long result = stockRedisLuaService.decreaseStock(redisKey, quantity);
 
         if (result == -1) throw new CustomException(ProductErrorCode.PRODUCT_NOT_FOUND);
         if (result == -2) throw new CustomException(ProductErrorCode.OUT_OF_STOCK);

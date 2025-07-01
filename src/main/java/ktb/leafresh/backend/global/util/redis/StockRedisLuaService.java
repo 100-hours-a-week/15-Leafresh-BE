@@ -2,7 +2,6 @@ package ktb.leafresh.backend.global.util.redis;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.stereotype.Service;
@@ -12,7 +11,7 @@ import java.util.Collections;
 @RequiredArgsConstructor
 @Slf4j
 @Service
-public class RedisLuaService {
+public class StockRedisLuaService {
 
     private final StringRedisTemplate stringRedisTemplate;
 
