@@ -14,9 +14,11 @@ import ktb.leafresh.backend.global.util.redis.StockRedisLuaService;
 import ktb.leafresh.backend.support.fixture.MemberFixture;
 import ktb.leafresh.backend.support.fixture.ProductFixture;
 import ktb.leafresh.backend.support.fixture.TimedealPolicyFixture;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.*;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.DataIntegrityViolationException;
 
 import java.util.Optional;
@@ -24,57 +26,47 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+@ExtendWith(MockitoExtension.class)
+@DisplayName("TimedealOrderCreateService 테스트")
 class TimedealOrderCreateServiceTest {
 
-    private TimedealOrderCreateService service;
+    @Mock
     private MemberRepository memberRepository;
+
+    @Mock
     private TimedealPolicyRepository timedealPolicyRepository;
+
+    @Mock
     private PurchaseIdempotencyKeyRepository idempotencyKeyRepository;
+
+    @Mock
     private StockRedisLuaService stockRedisLuaService;
+
+    @Mock
     private PurchaseMessagePublisher purchaseMessagePublisher;
+
+    @InjectMocks
+    private TimedealOrderCreateService service;
 
     private final Long memberId = 1L;
     private final Long dealId = 10L;
     private final String idempotencyKey = "unique-key";
     private final int quantity = 2;
 
-    private Member member;
-    private Product product;
-    private TimedealPolicy policy;
-
-    @BeforeEach
-    void setUp() {
-        memberRepository = mock(MemberRepository.class);
-        timedealPolicyRepository = mock(TimedealPolicyRepository.class);
-        idempotencyKeyRepository = mock(PurchaseIdempotencyKeyRepository.class);
-        stockRedisLuaService = mock(StockRedisLuaService.class);
-        purchaseMessagePublisher = mock(PurchaseMessagePublisher.class);
-
-        service = new TimedealOrderCreateService(
-                memberRepository,
-                timedealPolicyRepository,
-                idempotencyKeyRepository,
-                stockRedisLuaService,
-                purchaseMessagePublisher
-        );
-
-        member = MemberFixture.of(memberId, "user@leafresh.com", "테스터");
-        product = ProductFixture.of("타임딜상품", 3000, 10);
-        policy = TimedealPolicyFixture.of(product);
-    }
+    private final Member member = MemberFixture.of(memberId, "user@leafresh.com", "테스터");
+    private final Product product = ProductFixture.createDefaultProduct();
 
     @Test
     @DisplayName("타임딜 주문 성공")
     void create_success() {
-        // given
+        TimedealPolicy policy = TimedealPolicyFixture.createOngoingTimedeal(product);
+
         when(memberRepository.findById(memberId)).thenReturn(Optional.of(member));
         when(timedealPolicyRepository.findById(dealId)).thenReturn(Optional.of(policy));
         when(stockRedisLuaService.decreaseStock(anyString(), eq(quantity))).thenReturn(1L);
 
-        // when
         service.create(memberId, dealId, quantity, idempotencyKey);
 
-        // then
         verify(idempotencyKeyRepository).save(any(PurchaseIdempotencyKey.class));
         verify(purchaseMessagePublisher).publish(any(PurchaseCommand.class));
     }
@@ -96,7 +88,7 @@ class TimedealOrderCreateServiceTest {
     @DisplayName("중복 구매 요청")
     void create_fail_duplicateRequest() {
         when(memberRepository.findById(memberId)).thenReturn(Optional.of(member));
-        doThrow(new DataIntegrityViolationException("Duplicate")).when(idempotencyKeyRepository)
+        doThrow(new DataIntegrityViolationException("중복")).when(idempotencyKeyRepository)
                 .save(any(PurchaseIdempotencyKey.class));
 
         CustomException ex = catchThrowableOfType(
@@ -125,7 +117,7 @@ class TimedealOrderCreateServiceTest {
     @Test
     @DisplayName("구매 가능 시간이 아님")
     void create_fail_invalidTime() {
-        TimedealPolicy expired = TimedealPolicyFixture.expired(product);
+        TimedealPolicy expired = TimedealPolicyFixture.createExpiredTimedeal(product);
 
         when(memberRepository.findById(memberId)).thenReturn(Optional.of(member));
         when(idempotencyKeyRepository.save(any())).thenReturn(mock(PurchaseIdempotencyKey.class));
@@ -142,6 +134,8 @@ class TimedealOrderCreateServiceTest {
     @Test
     @DisplayName("Redis 재고 없음")
     void create_fail_outOfStock() {
+        TimedealPolicy policy = TimedealPolicyFixture.createOngoingTimedeal(product);
+
         when(memberRepository.findById(memberId)).thenReturn(Optional.of(member));
         when(idempotencyKeyRepository.save(any())).thenReturn(mock(PurchaseIdempotencyKey.class));
         when(timedealPolicyRepository.findById(dealId)).thenReturn(Optional.of(policy));

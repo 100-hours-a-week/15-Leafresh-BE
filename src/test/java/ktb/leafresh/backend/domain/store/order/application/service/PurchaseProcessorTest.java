@@ -3,6 +3,7 @@ package ktb.leafresh.backend.domain.store.order.application.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import ktb.leafresh.backend.domain.member.domain.entity.Member;
 import ktb.leafresh.backend.domain.store.order.application.service.model.PurchaseProcessContext;
+import ktb.leafresh.backend.domain.store.order.domain.entity.enums.PurchaseProcessingStatus;
 import ktb.leafresh.backend.domain.store.order.domain.entity.enums.PurchaseType;
 import ktb.leafresh.backend.domain.store.order.infrastructure.repository.ProductPurchaseRepository;
 import ktb.leafresh.backend.domain.store.order.infrastructure.repository.PurchaseProcessingLogRepository;
@@ -19,45 +20,48 @@ import ktb.leafresh.backend.support.fixture.TimedealPolicyFixture;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+@ExtendWith(MockitoExtension.class)
+@DisplayName("PurchaseProcessor 테스트")
 class PurchaseProcessorTest {
 
+    @Mock
     private ProductPurchaseRepository purchaseRepository;
+
+    @Mock
     private ProductRepository productRepository;
+
+    @Mock
     private TimedealPolicyRepository timedealPolicyRepository;
+
+    @Mock
     private PurchaseProcessingLogRepository logRepository;
+
+    @Mock
     private StringRedisTemplate redisTemplate;
+
+    @Mock
     private ObjectMapper objectMapper;
 
+    @Mock
+    private ValueOperations<String, String> valueOperations;
+
+    @InjectMocks
     private PurchaseProcessor processor;
 
     @BeforeEach
-    void setUp() {
-        purchaseRepository = mock(ProductPurchaseRepository.class);
-        productRepository = mock(ProductRepository.class);
-        timedealPolicyRepository = mock(TimedealPolicyRepository.class);
-        logRepository = mock(PurchaseProcessingLogRepository.class);
-        redisTemplate = mock(StringRedisTemplate.class);
-        objectMapper = mock(ObjectMapper.class);
-
-        ValueOperations<String, String> valueOperations = mock(ValueOperations.class);
-        when(redisTemplate.opsForValue()).thenReturn(valueOperations);
-
-        processor = new PurchaseProcessor(
-                purchaseRepository,
-                productRepository,
-                timedealPolicyRepository,
-                logRepository,
-                redisTemplate,
-                objectMapper
-        );
+    void init() {
+        lenient().when(redisTemplate.opsForValue()).thenReturn(valueOperations);
     }
-
 
     @Test
     @DisplayName("일반 상품 구매 성공")
@@ -66,7 +70,7 @@ class PurchaseProcessorTest {
         Member member = MemberFixture.of(1L, "user@leafresh.com", "테스터");
         member.updateCurrentLeafPoints(10_000);
 
-        Product product = ProductFixture.of("일반상품", 3000, 10);
+        Product product = ProductFixture.createDefaultProduct();
         int quantity = 2;
 
         PurchaseProcessContext context = new PurchaseProcessContext(
@@ -82,7 +86,9 @@ class PurchaseProcessorTest {
 
         verify(productRepository).save(product);
         verify(purchaseRepository).save(any());
-        verify(logRepository).save(any());
+        verify(logRepository).save(argThat(log ->
+                log.getStatus() == PurchaseProcessingStatus.SUCCESS
+        ));
     }
 
     @Test
@@ -92,9 +98,9 @@ class PurchaseProcessorTest {
         Member member = MemberFixture.of(1L, "user@leafresh.com", "테스터");
         member.updateCurrentLeafPoints(5000);
 
-        Product product = ProductFixture.of("타임딜상품", 3000, 10);
-        TimedealPolicy validPolicy = TimedealPolicyFixture.of(product);
-        product.getTimedealPolicies().add(validPolicy);
+        Product product = ProductFixture.createDefaultProduct();
+        TimedealPolicy policy = TimedealPolicyFixture.createOngoingTimedeal(product);
+        product.getTimedealPolicies().add(policy);
 
         when(objectMapper.writeValueAsString(any())).thenReturn("{}");
 
@@ -107,11 +113,12 @@ class PurchaseProcessorTest {
 
         // then
         assertThat(member.getCurrentLeafPoints()).isEqualTo(2500);
-        assertThat(validPolicy.getStock()).isEqualTo(9);
+        assertThat(policy.getStock()).isEqualTo(9);
 
-        verify(timedealPolicyRepository).save(validPolicy);
+        verify(timedealPolicyRepository).save(policy);
         verify(purchaseRepository).save(any());
         verify(logRepository).save(any());
+        verify(valueOperations).set(contains("timedeal:item"), eq("{}"));
     }
 
     @Test
@@ -121,7 +128,7 @@ class PurchaseProcessorTest {
         Member member = MemberFixture.of(1L, "user@leafresh.com", "테스터");
         member.updateCurrentLeafPoints(10_000);
 
-        Product product = ProductFixture.of("타임딜상품", 3000, 10);  // 정책 없이 생성
+        Product product = ProductFixture.createDefaultProduct(); // 타임딜 정책 없음
 
         PurchaseProcessContext context = new PurchaseProcessContext(
                 member, product, 1, 2500, PurchaseType.TIMEDEAL
@@ -130,8 +137,11 @@ class PurchaseProcessorTest {
         // when & then
         assertThatThrownBy(() -> processor.process(context))
                 .isInstanceOf(CustomException.class)
-                .extracting("errorCode")
-                .isEqualTo(ProductErrorCode.PRODUCT_NOT_FOUND);
+                .satisfies(e -> {
+                    CustomException ex = (CustomException) e;
+                    assertThat(ex.getErrorCode()).isEqualTo(ProductErrorCode.PRODUCT_NOT_FOUND);
+                    assertThat(ex.getMessage()).isEqualTo(ProductErrorCode.PRODUCT_NOT_FOUND.getMessage());
+                });
     }
 
     @Test
@@ -141,7 +151,7 @@ class PurchaseProcessorTest {
         Member member = MemberFixture.of(1L, "user@leafresh.com", "테스터");
         member.updateCurrentLeafPoints(1000);
 
-        Product product = ProductFixture.of("일반상품", 3000, 10);
+        Product product = ProductFixture.createDefaultProduct();
 
         PurchaseProcessContext context = new PurchaseProcessContext(
                 member, product, 1, 3000, PurchaseType.NORMAL
@@ -150,7 +160,10 @@ class PurchaseProcessorTest {
         // when & then
         assertThatThrownBy(() -> processor.process(context))
                 .isInstanceOf(CustomException.class)
-                .extracting("errorCode")
-                .isEqualTo(PurchaseErrorCode.INSUFFICIENT_POINTS);
+                .satisfies(e -> {
+                    CustomException ex = (CustomException) e;
+                    assertThat(ex.getErrorCode()).isEqualTo(PurchaseErrorCode.INSUFFICIENT_POINTS);
+                    assertThat(ex.getMessage()).isEqualTo(PurchaseErrorCode.INSUFFICIENT_POINTS.getMessage());
+                });
     }
 }
