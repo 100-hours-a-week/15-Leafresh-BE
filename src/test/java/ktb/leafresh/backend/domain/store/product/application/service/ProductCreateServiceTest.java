@@ -10,37 +10,36 @@ import ktb.leafresh.backend.domain.store.product.presentation.dto.request.Produc
 import ktb.leafresh.backend.domain.store.product.presentation.dto.response.ProductCreateResponseDto;
 import ktb.leafresh.backend.global.exception.CustomException;
 import ktb.leafresh.backend.global.exception.ProductErrorCode;
-import org.junit.jupiter.api.BeforeEach;
+import ktb.leafresh.backend.support.fixture.ProductFixture;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+@ExtendWith(MockitoExtension.class)
 class ProductCreateServiceTest {
 
+    @Mock
     private ProductRepository productRepository;
+
+    @Mock
     private ProductFactory productFactory;
+
+    @Mock
     private ProductCacheLockFacade productCacheLockFacade;
+
+    @Mock
     private ApplicationEventPublisher eventPublisher;
+
+    @InjectMocks
     private ProductCreateService service;
-
-    @BeforeEach
-    void setUp() {
-        productRepository = mock(ProductRepository.class);
-        productFactory = mock(ProductFactory.class);
-        productCacheLockFacade = mock(ProductCacheLockFacade.class);
-        eventPublisher = mock(ApplicationEventPublisher.class);
-
-        service = new ProductCreateService(
-                productRepository,
-                productFactory,
-                eventPublisher,
-                productCacheLockFacade
-        );
-    }
 
     @Test
     @DisplayName("정상적으로 상품을 생성한다")
@@ -55,33 +54,26 @@ class ProductCreateServiceTest {
                 ProductStatus.ACTIVE
         );
 
-        Product createdProduct = Product.builder()
-                .id(1L)
-                .name("유기농 비누")
-                .description("피부에 좋은 비누")
-                .imageUrl("https://image.test/soap.png")
-                .price(3500)
-                .stock(10)
-                .build();
-
-        when(productFactory.create(dto)).thenReturn(createdProduct);
-        when(productRepository.save(createdProduct)).thenReturn(createdProduct);
+        Product product = ProductFixture.createActiveProduct("유기농 비누", 3500, 10);
+        when(productFactory.create(dto)).thenReturn(product);
+        when(productRepository.save(product)).thenReturn(product);
 
         // when
         ProductCreateResponseDto response = service.createProduct(dto);
 
         // then
-        assertThat(response).isNotNull();
-        assertThat(response.id()).isEqualTo(1L);
+        assertThat(response.id()).isEqualTo(product.getId());
 
         verify(productFactory).create(dto);
-        verify(productRepository).save(createdProduct);
-        verify(productCacheLockFacade).cacheProductStock(1L, 10);
+        verify(productRepository).save(product);
+        verify(productCacheLockFacade).cacheProductStock(product.getId(), product.getStock());
 
         ArgumentCaptor<ProductUpdatedEvent> eventCaptor = ArgumentCaptor.forClass(ProductUpdatedEvent.class);
         verify(eventPublisher).publishEvent(eventCaptor.capture());
-        assertThat(eventCaptor.getValue().productId()).isEqualTo(1L);
-        assertThat(eventCaptor.getValue().isTimeDeal()).isFalse();
+
+        ProductUpdatedEvent event = eventCaptor.getValue();
+        assertThat(event.productId()).isEqualTo(product.getId());
+        assertThat(event.isTimeDeal()).isFalse();
     }
 
     @Test
@@ -97,17 +89,14 @@ class ProductCreateServiceTest {
                 ProductStatus.ACTIVE
         );
 
-        when(productFactory.create(dto)).thenThrow(new RuntimeException("DB error"));
+        when(productFactory.create(dto)).thenThrow(new IllegalStateException("임의 에러"));
 
         // when
-        CustomException exception = catchThrowableOfType(
-                () -> service.createProduct(dto),
-                CustomException.class
-        );
+        CustomException exception = catchThrowableOfType(() -> service.createProduct(dto), CustomException.class);
 
         // then
-        assertThat(exception).isNotNull();
         assertThat(exception.getErrorCode()).isEqualTo(ProductErrorCode.PRODUCT_CREATE_FAILED);
+        assertThat(exception.getMessage()).contains(ProductErrorCode.PRODUCT_CREATE_FAILED.getMessage());
 
         verify(productFactory).create(dto);
         verify(productRepository, never()).save(any());
