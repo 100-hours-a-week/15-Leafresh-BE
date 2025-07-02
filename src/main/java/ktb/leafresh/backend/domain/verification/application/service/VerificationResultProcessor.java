@@ -1,6 +1,5 @@
 package ktb.leafresh.backend.domain.verification.application.service;
 
-import jakarta.transaction.Transactional;
 import ktb.leafresh.backend.domain.challenge.group.domain.entity.GroupChallenge;
 import ktb.leafresh.backend.domain.challenge.group.domain.entity.GroupChallengeParticipantRecord;
 import ktb.leafresh.backend.domain.member.application.service.BadgeGrantManager;
@@ -20,6 +19,7 @@ import ktb.leafresh.backend.global.exception.VerificationErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 
