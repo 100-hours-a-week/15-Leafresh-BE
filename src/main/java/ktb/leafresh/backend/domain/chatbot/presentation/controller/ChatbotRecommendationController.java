@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/chatbot/recommendation")
 @RequiredArgsConstructor
-@Profile({"bigbang-prod", "docker-local", "docker-prod"})
+@Profile({"bigbang-prod", "docker-prod"})
 public class ChatbotRecommendationController {
 
     private final ChatbotRecommendationService recommendationService;
