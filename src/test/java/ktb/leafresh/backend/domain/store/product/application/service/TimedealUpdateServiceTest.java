@@ -27,6 +27,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
+@DisplayName("TimedealUpdateService 테스트")
 class TimedealUpdateServiceTest {
 
     @Mock
@@ -46,26 +47,21 @@ class TimedealUpdateServiceTest {
     @Test
     @DisplayName("타임딜 수정 성공 - 재고, 시간 변경 포함")
     void updateTimedeal_success() {
-        // given
         Product product = ProductFixture.createActiveProduct("주방세제", 3000, 100);
         TimedealPolicy policy = TimedealPolicyFixture.createDefaultTimedeal(product);
 
         OffsetDateTime newStart = FIXED_NOW.plusHours(1);
         OffsetDateTime newEnd = FIXED_NOW.plusHours(2);
 
-        TimedealUpdateRequestDto dto = new TimedealUpdateRequestDto(
-                newStart, newEnd, 2100, 15, 20
-        );
+        TimedealUpdateRequestDto dto = new TimedealUpdateRequestDto(newStart, newEnd, 2100, 15, 20);
 
         when(policyRepository.findById(policy.getId())).thenReturn(Optional.of(policy));
         when(policyRepository.existsByProductIdAndTimeOverlapExceptSelf(
                 product.getId(), newStart.toLocalDateTime(), newEnd.toLocalDateTime(), policy.getId())
         ).thenReturn(false);
 
-        // when
         service.update(policy.getId(), dto);
 
-        // then
         assertThat(policy.getDiscountedPrice()).isEqualTo(dto.discountedPrice());
         assertThat(policy.getDiscountedPercentage()).isEqualTo(dto.discountedPercentage());
         assertThat(policy.getStock()).isEqualTo(dto.stock());
@@ -81,15 +77,12 @@ class TimedealUpdateServiceTest {
     @Test
     @DisplayName("타임딜 수정 실패 - 존재하지 않는 정책")
     void updateTimedeal_fail_notFound() {
-        // given
         Long invalidId = 999L;
         TimedealUpdateRequestDto dto = new TimedealUpdateRequestDto(null, null, null, null, 10);
         when(policyRepository.findById(invalidId)).thenReturn(Optional.empty());
 
-        // when
         CustomException exception = catchThrowableOfType(() -> service.update(invalidId, dto), CustomException.class);
 
-        // then
         assertThat(exception.getErrorCode()).isEqualTo(TimedealErrorCode.PRODUCT_NOT_FOUND);
         assertThat(exception.getMessage()).isEqualTo(TimedealErrorCode.PRODUCT_NOT_FOUND.getMessage());
     }
@@ -97,7 +90,6 @@ class TimedealUpdateServiceTest {
     @Test
     @DisplayName("타임딜 수정 실패 - 시작 시간이 종료 시간보다 늦음")
     void updateTimedeal_fail_invalidTime() {
-        // given
         Product product = ProductFixture.createDefaultProduct();
         TimedealPolicy policy = TimedealPolicyFixture.createDefaultTimedeal(product);
 
@@ -108,10 +100,8 @@ class TimedealUpdateServiceTest {
 
         when(policyRepository.findById(policy.getId())).thenReturn(Optional.of(policy));
 
-        // when
         CustomException exception = catchThrowableOfType(() -> service.update(policy.getId(), dto), CustomException.class);
 
-        // then
         assertThat(exception.getErrorCode()).isEqualTo(TimedealErrorCode.INVALID_TIME);
         assertThat(exception.getMessage()).isEqualTo(TimedealErrorCode.INVALID_TIME.getMessage());
     }
@@ -119,7 +109,6 @@ class TimedealUpdateServiceTest {
     @Test
     @DisplayName("타임딜 수정 실패 - 시간 중복")
     void updateTimedeal_fail_overlapTime() {
-        // given
         Product product = ProductFixture.createDefaultProduct();
         TimedealPolicy policy = TimedealPolicyFixture.createDefaultTimedeal(product);
 
@@ -133,10 +122,8 @@ class TimedealUpdateServiceTest {
                 product.getId(), start.toLocalDateTime(), end.toLocalDateTime(), policy.getId())
         ).thenReturn(true);
 
-        // when
         CustomException exception = catchThrowableOfType(() -> service.update(policy.getId(), dto), CustomException.class);
 
-        // then
         assertThat(exception.getErrorCode()).isEqualTo(TimedealErrorCode.OVERLAPPING_TIME);
         assertThat(exception.getMessage()).isEqualTo(TimedealErrorCode.OVERLAPPING_TIME.getMessage());
     }
@@ -144,25 +131,21 @@ class TimedealUpdateServiceTest {
     @Test
     @DisplayName("타임딜 수정 실패 - 할인율, 가격, 재고 유효성 실패")
     void updateTimedeal_fail_invalidFields() {
-        // given
         Product product = ProductFixture.createDefaultProduct();
         TimedealPolicy policy = TimedealPolicyFixture.createDefaultTimedeal(product);
 
         when(policyRepository.findById(policy.getId())).thenReturn(Optional.of(policy));
 
-        // invalid percentage
         TimedealUpdateRequestDto dto1 = new TimedealUpdateRequestDto(null, null, null, 0, 10);
         CustomException ex1 = catchThrowableOfType(() -> service.update(policy.getId(), dto1), CustomException.class);
         assertThat(ex1.getErrorCode()).isEqualTo(TimedealErrorCode.INVALID_PERCENT);
         assertThat(ex1.getMessage()).isEqualTo(TimedealErrorCode.INVALID_PERCENT.getMessage());
 
-        // invalid price
         TimedealUpdateRequestDto dto2 = new TimedealUpdateRequestDto(null, null, 0, null, 10);
         CustomException ex2 = catchThrowableOfType(() -> service.update(policy.getId(), dto2), CustomException.class);
         assertThat(ex2.getErrorCode()).isEqualTo(TimedealErrorCode.INVALID_PRICE);
         assertThat(ex2.getMessage()).isEqualTo(TimedealErrorCode.INVALID_PRICE.getMessage());
 
-        // invalid stock
         TimedealUpdateRequestDto dto3 = new TimedealUpdateRequestDto(null, null, null, null, -1);
         CustomException ex3 = catchThrowableOfType(() -> service.update(policy.getId(), dto3), CustomException.class);
         assertThat(ex3.getErrorCode()).isEqualTo(TimedealErrorCode.INVALID_STOCK);
