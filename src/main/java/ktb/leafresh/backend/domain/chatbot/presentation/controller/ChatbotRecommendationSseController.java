@@ -15,7 +15,7 @@ import jakarta.servlet.http.HttpServletResponse;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/chatbot/recommendation")
-@Profile("unused")
+@Profile("docker-local")
 public class ChatbotRecommendationSseController {
 
     private final ChatbotRecommendationSseService chatbotRecommendationSseService;

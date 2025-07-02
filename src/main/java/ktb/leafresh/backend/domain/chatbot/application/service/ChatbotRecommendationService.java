@@ -20,7 +20,7 @@ import java.util.Optional;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-@Profile({"bigbang-prod", "docker-local", "docker-prod"})
+@Profile({"bigbang-prod", "docker-prod"})
 public class ChatbotRecommendationService {
 
     private final AiChatbotBaseInfoClient aiChatbotBaseInfoClientClient;
