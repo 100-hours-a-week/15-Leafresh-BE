@@ -23,6 +23,8 @@ spring:
       max-request-size: 50MB
 
 management:
+  server:
+    port: 9102
   endpoints:
     web:
       exposure:
