@@ -3,6 +3,8 @@ package ktb.leafresh.backend.support.fixture;
 import ktb.leafresh.backend.domain.store.product.domain.entity.Product;
 import ktb.leafresh.backend.domain.store.product.domain.entity.enums.ProductStatus;
 
+import java.util.ArrayList;
+
 public class ProductFixture {
 
     private static final String DEFAULT_DESCRIPTION = "테스트 상품 설명";
@@ -16,6 +18,7 @@ public class ProductFixture {
                 .price(price)
                 .stock(stock)
                 .status(status)
+                .timedealPolicies(new ArrayList<>())
                 .build();
     }
 
