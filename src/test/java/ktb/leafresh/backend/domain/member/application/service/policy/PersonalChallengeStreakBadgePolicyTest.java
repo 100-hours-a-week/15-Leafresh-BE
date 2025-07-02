@@ -2,12 +2,12 @@ package ktb.leafresh.backend.domain.member.application.service.policy;
 
 import ktb.leafresh.backend.domain.member.domain.entity.Badge;
 import ktb.leafresh.backend.domain.member.domain.entity.Member;
-import ktb.leafresh.backend.domain.member.domain.entity.enums.BadgeType;
 import ktb.leafresh.backend.domain.member.infrastructure.repository.BadgeRepository;
 import ktb.leafresh.backend.domain.member.infrastructure.repository.MemberBadgeRepository;
 import ktb.leafresh.backend.domain.verification.infrastructure.repository.PersonalChallengeVerificationRepository;
 import ktb.leafresh.backend.support.fixture.BadgeFixture;
 import ktb.leafresh.backend.support.fixture.MemberFixture;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -19,14 +19,13 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.when;
+import static org.mockito.BDDMockito.*;
 
 @ExtendWith(MockitoExtension.class)
-@DisplayName("PersonalChallengeStreakBadgePolicy 테스트")
 class PersonalChallengeStreakBadgePolicyTest {
 
     @Mock
-    private PersonalChallengeVerificationRepository verificationRepository;
+    private PersonalChallengeVerificationRepository personalVerificationRepository;
 
     @Mock
     private BadgeRepository badgeRepository;
@@ -35,72 +34,100 @@ class PersonalChallengeStreakBadgePolicyTest {
     private MemberBadgeRepository memberBadgeRepository;
 
     @InjectMocks
-    private PersonalChallengeStreakBadgePolicy policy;
+    private PersonalChallengeStreakBadgePolicy badgePolicy;
 
-    @Test
-    @DisplayName("연속 인증 일수에 따라 여러 뱃지가 지급된다")
-    void evaluateAndGetNewBadges_given30DaysStreak_thenMultipleBadgesGranted() {
-        // given
-        Member member = MemberFixture.of();
-        when(verificationRepository.countConsecutiveSuccessDays(member.getId()))
-                .thenReturn(30);
+    private Member member;
 
-        Badge badge1 = BadgeFixture.of("새싹 실천러", BadgeType.PERSONAL);
-        Badge badge2 = BadgeFixture.of("일주일의 습관", BadgeType.PERSONAL);
-        Badge badge3 = BadgeFixture.of("반달 에코러", BadgeType.PERSONAL);
-        Badge badge4 = BadgeFixture.of("한 달 챌린지 완주자", BadgeType.PERSONAL);
-
-        when(badgeRepository.findByName("새싹 실천러")).thenReturn(Optional.of(badge1));
-        when(badgeRepository.findByName("일주일의 습관")).thenReturn(Optional.of(badge2));
-        when(badgeRepository.findByName("반달 에코러")).thenReturn(Optional.of(badge3));
-        when(badgeRepository.findByName("한 달 챌린지 완주자")).thenReturn(Optional.of(badge4));
-
-        when(memberBadgeRepository.existsByMemberAndBadge(member, badge1)).thenReturn(false);
-        when(memberBadgeRepository.existsByMemberAndBadge(member, badge2)).thenReturn(false);
-        when(memberBadgeRepository.existsByMemberAndBadge(member, badge3)).thenReturn(false);
-        when(memberBadgeRepository.existsByMemberAndBadge(member, badge4)).thenReturn(false);
-
-        // when
-        List<Badge> result = policy.evaluateAndGetNewBadges(member);
-
-        // then
-        assertThat(result).containsExactlyInAnyOrder(badge1, badge2, badge3, badge4);
+    @BeforeEach
+    void setUp() {
+        member = MemberFixture.of();
     }
 
     @Test
-    @DisplayName("이미 보유한 뱃지는 지급되지 않는다")
-    void evaluateAndGetNewBadges_alreadyOwned_thenSkip() {
+    @DisplayName("연속 인증이 30일 이상이면 4개 뱃지 모두 지급")
+    void evaluateAndGetNewBadges_with30Streak_grantsAllBadges() {
         // given
-        Member member = MemberFixture.of();
-        when(verificationRepository.countConsecutiveSuccessDays(member.getId()))
-                .thenReturn(14);
+        int streak = 30;
 
-        Badge ownedBadge = BadgeFixture.of("반달 에코러", BadgeType.PERSONAL);
+        given(personalVerificationRepository.countConsecutiveSuccessDays(member.getId())).willReturn(streak);
 
-        when(badgeRepository.findByName("새싹 실천러")).thenReturn(Optional.empty());
-        when(badgeRepository.findByName("일주일의 습관")).thenReturn(Optional.empty());
-        when(badgeRepository.findByName("반달 에코러")).thenReturn(Optional.of(ownedBadge));
-        when(memberBadgeRepository.existsByMemberAndBadge(member, ownedBadge)).thenReturn(true);
+        Badge badge3 = BadgeFixture.of("새싹 실천러");
+        Badge badge7 = BadgeFixture.of("일주일의 습관");
+        Badge badge14 = BadgeFixture.of("반달 에코러");
+        Badge badge30 = BadgeFixture.of("한 달 챌린지 완주자");
+
+        given(badgeRepository.findByName("새싹 실천러")).willReturn(Optional.of(badge3));
+        given(badgeRepository.findByName("일주일의 습관")).willReturn(Optional.of(badge7));
+        given(badgeRepository.findByName("반달 에코러")).willReturn(Optional.of(badge14));
+        given(badgeRepository.findByName("한 달 챌린지 완주자")).willReturn(Optional.of(badge30));
+
+        given(memberBadgeRepository.existsByMemberAndBadge(member, badge3)).willReturn(false);
+        given(memberBadgeRepository.existsByMemberAndBadge(member, badge7)).willReturn(false);
+        given(memberBadgeRepository.existsByMemberAndBadge(member, badge14)).willReturn(false);
+        given(memberBadgeRepository.existsByMemberAndBadge(member, badge30)).willReturn(false);
 
         // when
-        List<Badge> result = policy.evaluateAndGetNewBadges(member);
+        List<Badge> result = badgePolicy.evaluateAndGetNewBadges(member);
+
+        // then
+        assertThat(result).containsExactlyInAnyOrder(badge3, badge7, badge14, badge30);
+    }
+
+    @Test
+    @DisplayName("연속 인증이 7일이면 3개 뱃지 지급 (3, 7)")
+    void evaluateAndGetNewBadges_with7Streak_grantsThreeBadges() {
+        // given
+        int streak = 7;
+
+        given(personalVerificationRepository.countConsecutiveSuccessDays(member.getId())).willReturn(streak);
+
+        Badge badge3 = BadgeFixture.of("새싹 실천러");
+        Badge badge7 = BadgeFixture.of("일주일의 습관");
+
+        given(badgeRepository.findByName("새싹 실천러")).willReturn(Optional.of(badge3));
+        given(badgeRepository.findByName("일주일의 습관")).willReturn(Optional.of(badge7));
+
+        given(memberBadgeRepository.existsByMemberAndBadge(member, badge3)).willReturn(false);
+        given(memberBadgeRepository.existsByMemberAndBadge(member, badge7)).willReturn(false);
+
+        // when
+        List<Badge> result = badgePolicy.evaluateAndGetNewBadges(member);
+
+        // then
+        assertThat(result).containsExactlyInAnyOrder(badge3, badge7);
+    }
+
+    @Test
+    @DisplayName("연속 인증이 3일인데 이미 뱃지를 보유한 경우 부여하지 않음")
+    void evaluateAndGetNewBadges_alreadyHasBadge_doesNotGrant() {
+        // given
+        int streak = 3;
+
+        Badge badge = BadgeFixture.of("새싹 실천러");
+
+        given(personalVerificationRepository.countConsecutiveSuccessDays(member.getId())).willReturn(streak);
+        given(badgeRepository.findByName("새싹 실천러")).willReturn(Optional.of(badge));
+        given(memberBadgeRepository.existsByMemberAndBadge(member, badge)).willReturn(true);
+
+        // when
+        List<Badge> result = badgePolicy.evaluateAndGetNewBadges(member);
 
         // then
         assertThat(result).isEmpty();
     }
 
     @Test
-    @DisplayName("연속 인증 일수가 부족하면 뱃지를 지급하지 않는다")
-    void evaluateAndGetNewBadges_streakTooShort_thenNoBadge() {
+    @DisplayName("연속 인증이 2일이면 뱃지 지급되지 않음")
+    void evaluateAndGetNewBadges_with2Streak_grantsNothing() {
         // given
-        Member member = MemberFixture.of();
-        when(verificationRepository.countConsecutiveSuccessDays(member.getId()))
-                .thenReturn(1);
+        given(personalVerificationRepository.countConsecutiveSuccessDays(member.getId())).willReturn(2);
 
         // when
-        List<Badge> result = policy.evaluateAndGetNewBadges(member);
+        List<Badge> result = badgePolicy.evaluateAndGetNewBadges(member);
 
         // then
         assertThat(result).isEmpty();
+        then(badgeRepository).shouldHaveNoInteractions();
+        then(memberBadgeRepository).shouldHaveNoInteractions();
     }
 }
