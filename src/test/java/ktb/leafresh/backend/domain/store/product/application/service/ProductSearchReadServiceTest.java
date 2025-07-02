@@ -3,6 +3,7 @@ package ktb.leafresh.backend.domain.store.product.application.service;
 import ktb.leafresh.backend.domain.store.product.domain.entity.Product;
 import ktb.leafresh.backend.domain.store.product.infrastructure.repository.ProductSearchQueryRepository;
 import ktb.leafresh.backend.domain.store.product.presentation.dto.response.ProductListResponseDto;
+import ktb.leafresh.backend.domain.store.product.presentation.dto.response.ProductSummaryResponseDto;
 import ktb.leafresh.backend.support.fixture.ProductFixture;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -31,22 +32,22 @@ class ProductSearchReadServiceTest {
     private static final LocalDateTime FIXED_TIME = LocalDateTime.of(2025, 1, 1, 12, 0);
 
     @Test
-    @DisplayName("상품 검색 결과를 정상적으로 반환한다")
-    void search_success() {
+    @DisplayName("상품 검색 시 필터 조건에 맞는 상품 목록을 반환한다")
+    void search_whenProductsFound_returnsProductList() {
         // given
         String keyword = "비누";
         Long cursorId = null;
         String cursorTimestamp = null;
         int size = 2;
 
-        Product p1 = ProductFixture.createActiveProduct("유기농 비누", 3500, 10);
-        Product p2 = ProductFixture.createActiveProduct("수제 비누", 4000, 8);
+        Product product1 = ProductFixture.createActiveProduct("유기농 비누", 3500, 10);
+        Product product2 = ProductFixture.createActiveProduct("수제 비누", 4000, 8);
 
-        ReflectionTestUtils.setField(p1, "createdAt", FIXED_TIME);
-        ReflectionTestUtils.setField(p2, "createdAt", FIXED_TIME.minusMinutes(1));
+        ReflectionTestUtils.setField(product1, "createdAt", FIXED_TIME);
+        ReflectionTestUtils.setField(product2, "createdAt", FIXED_TIME.minusMinutes(1));
 
         when(productSearchQueryRepository.findWithFilter(keyword, cursorId, cursorTimestamp, size))
-                .thenReturn(List.of(p1, p2));
+                .thenReturn(List.of(product1, product2));
 
         // when
         ProductListResponseDto result = productSearchReadService.search(keyword, cursorId, cursorTimestamp, size);
@@ -55,24 +56,14 @@ class ProductSearchReadServiceTest {
         assertThat(result).isNotNull();
         assertThat(result.getProducts()).hasSize(2);
 
-        var response1 = result.getProducts().get(0);
-        assertThat(response1.getTitle()).isEqualTo(p1.getName());
-        assertThat(response1.getPrice()).isEqualTo(p1.getPrice());
-        assertThat(response1.getStock()).isEqualTo(p1.getStock());
-        assertThat(response1.getImageUrl()).isEqualTo(p1.getImageUrl());
-        assertThat(response1.getStatus()).isEqualTo(p1.getStatus().name());
-
-        var response2 = result.getProducts().get(1);
-        assertThat(response2.getTitle()).isEqualTo(p2.getName());
-        assertThat(response2.getPrice()).isEqualTo(p2.getPrice());
-        assertThat(response2.getStock()).isEqualTo(p2.getStock());
-        assertThat(response2.getImageUrl()).isEqualTo(p2.getImageUrl());
-        assertThat(response2.getStatus()).isEqualTo(p2.getStatus().name());
+        var resultProducts = result.getProducts();
+        assertProductSummary(resultProducts.get(0), product1);
+        assertProductSummary(resultProducts.get(1), product2);
     }
 
     @Test
-    @DisplayName("검색 결과가 비어 있으면 빈 목록을 반환한다")
-    void search_emptyResult() {
+    @DisplayName("상품 검색 결과가 없을 경우 빈 목록을 반환한다")
+    void search_whenNoProducts_returnsEmptyList() {
         // given
         when(productSearchQueryRepository.findWithFilter(any(), any(), any(), anyInt()))
                 .thenReturn(List.of());
@@ -84,5 +75,13 @@ class ProductSearchReadServiceTest {
         assertThat(result).isNotNull();
         assertThat(result.getProducts()).isEmpty();
         assertThat(result.isHasNext()).isFalse();
+    }
+
+    private void assertProductSummary(ProductSummaryResponseDto actual, Product expected) {
+        assertThat(actual.getTitle()).isEqualTo(expected.getName());
+        assertThat(actual.getPrice()).isEqualTo(expected.getPrice());
+        assertThat(actual.getStock()).isEqualTo(expected.getStock());
+        assertThat(actual.getImageUrl()).isEqualTo(expected.getImageUrl());
+        assertThat(actual.getStatus()).isEqualTo(expected.getStatus().name());
     }
 }

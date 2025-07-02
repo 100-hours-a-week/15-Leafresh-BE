@@ -7,17 +7,17 @@ import ktb.leafresh.backend.global.common.entity.enums.ParticipantStatus;
 
 public class GroupChallengeParticipantRecordFixture {
 
+    /**
+     * 기본 참여 상태인 ACTIVE 상태의 참가 기록 생성
+     */
     public static GroupChallengeParticipantRecord of(GroupChallenge challenge, Member member) {
         return of(challenge, member, ParticipantStatus.ACTIVE);
     }
 
+    /**
+     * 전달받은 status로 참가 기록 생성
+     */
     public static GroupChallengeParticipantRecord of(GroupChallenge challenge, Member member, ParticipantStatus status) {
-        return GroupChallengeParticipantRecord.builder()
-                .id(1L)
-                .groupChallenge(challenge)
-                .member(member)
-                .status(status)
-                .bonusRewarded(false)
-                .build();
+        return GroupChallengeParticipantRecord.create(member, challenge, status);
     }
 }

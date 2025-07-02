@@ -6,10 +6,6 @@ import ktb.leafresh.backend.domain.store.order.domain.entity.PurchaseIdempotency
 public class PurchaseIdempotencyKeyFixture {
 
     public static PurchaseIdempotencyKey of(Member member) {
-        return PurchaseIdempotencyKey.builder()
-                .id(1L)
-                .member(member)
-                .idempotencyKey("test-idempotency-key")
-                .build();
+        return new PurchaseIdempotencyKey(member, "test-idempotency-key");
     }
 }

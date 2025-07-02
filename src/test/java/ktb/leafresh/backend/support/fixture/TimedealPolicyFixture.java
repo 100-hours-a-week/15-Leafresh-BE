@@ -7,6 +7,8 @@ import java.time.LocalDateTime;
 
 public class TimedealPolicyFixture {
 
+    private static final LocalDateTime FIXED_NOW = LocalDateTime.of(2025, 7, 1, 12, 0);
+
     public static TimedealPolicy createTimedeal(Product product, int price, int percentage, int stock,
                                                 LocalDateTime start, LocalDateTime end) {
         return TimedealPolicy.builder()
@@ -20,36 +22,21 @@ public class TimedealPolicyFixture {
     }
 
     public static TimedealPolicy createOngoingTimedeal(Product product) {
-        return createTimedeal(
-                product,
-                2500,
-                30,
-                10,
-                LocalDateTime.now().minusHours(1),
-                LocalDateTime.now().plusHours(1)
-        );
+        LocalDateTime start = FIXED_NOW.minusHours(1);
+        LocalDateTime end = FIXED_NOW.plusHours(1);
+        return createTimedeal(product, 2500, 30, 10, start, end);
     }
 
     public static TimedealPolicy createExpiredTimedeal(Product product) {
-        return createTimedeal(
-                product,
-                2900,
-                20,
-                5,
-                LocalDateTime.now().minusDays(2),
-                LocalDateTime.now().minusDays(1)
-        );
+        LocalDateTime start = FIXED_NOW.minusDays(2);
+        LocalDateTime end = FIXED_NOW.minusDays(1);
+        return createTimedeal(product, 2900, 20, 5, start, end);
     }
 
     public static TimedealPolicy createUpcomingTimedeal(Product product) {
-        return createTimedeal(
-                product,
-                2700,
-                25,
-                20,
-                LocalDateTime.now().plusDays(1),
-                LocalDateTime.now().plusDays(2)
-        );
+        LocalDateTime start = FIXED_NOW.plusDays(1);
+        LocalDateTime end = FIXED_NOW.plusDays(2);
+        return createTimedeal(product, 2700, 25, 20, start, end);
     }
 
     public static TimedealPolicy createDefaultTimedeal(Product product) {
@@ -58,14 +45,8 @@ public class TimedealPolicyFixture {
 
     public static TimedealPolicy createCustomTimedeal(Product product, int price, int percentage, int stock,
                                                       int startOffsetMinutes, int endOffsetMinutes) {
-        LocalDateTime now = LocalDateTime.now();
-        return createTimedeal(
-                product,
-                price,
-                percentage,
-                stock,
-                now.plusMinutes(startOffsetMinutes),
-                now.plusMinutes(endOffsetMinutes)
-        );
+        LocalDateTime start = FIXED_NOW.plusMinutes(startOffsetMinutes);
+        LocalDateTime end = FIXED_NOW.plusMinutes(endOffsetMinutes);
+        return createTimedeal(product, price, percentage, stock, start, end);
     }
 }

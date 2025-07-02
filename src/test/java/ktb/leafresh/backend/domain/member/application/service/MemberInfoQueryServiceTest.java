@@ -6,57 +6,56 @@ import ktb.leafresh.backend.domain.member.infrastructure.repository.MemberReposi
 import ktb.leafresh.backend.domain.member.presentation.dto.response.MemberInfoResponseDto;
 import ktb.leafresh.backend.global.exception.CustomException;
 import ktb.leafresh.backend.global.exception.MemberErrorCode;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.Optional;
 
 import static ktb.leafresh.backend.support.fixture.MemberFixture.of;
-import static ktb.leafresh.backend.support.fixture.TreeLevelFixture.defaultLevel;
 import static org.assertj.core.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.BDDMockito.given;
 
+@ExtendWith(MockitoExtension.class)
 class MemberInfoQueryServiceTest {
 
+    @Mock
     private MemberRepository memberRepository;
-    private MemberInfoQueryService service;
 
-    @BeforeEach
-    void setUp() {
-        memberRepository = mock(MemberRepository.class);
-        service = new MemberInfoQueryService(memberRepository);
-    }
+    @InjectMocks
+    private MemberInfoQueryService service;
 
     @Test
     @DisplayName("회원 정보 조회 성공")
-    void getMemberInfo_success() {
+    void getMemberInfo_정상입력_회원정보조회성공() {
         // given
-        Long memberId = 1L;
-        TreeLevel treeLevel = defaultLevel();
-        Member member = of(memberId, "test@leafresh.com", "테스터", treeLevel); // treeLevel 주입
-
-        when(memberRepository.findById(memberId)).thenReturn(Optional.of(member));
+        Member member = of("tester@leafresh.com", "테스터");
+        TreeLevel treeLevel = member.getTreeLevel();
+        given(memberRepository.findById(any())).willReturn(Optional.of(member));
 
         // when
-        MemberInfoResponseDto result = service.getMemberInfo(memberId);
+        MemberInfoResponseDto result = service.getMemberInfo(1L);
 
         // then
-        assertThat(result.getNickname()).isEqualTo("테스터");
-        assertThat(result.getEmail()).isEqualTo("test@leafresh.com");
+        assertThat(result.getEmail()).isEqualTo(member.getEmail());
+        assertThat(result.getNickname()).isEqualTo(member.getNickname());
         assertThat(result.getTreeLevelId()).isEqualTo(treeLevel.getId());
     }
 
     @Test
     @DisplayName("존재하지 않는 회원 ID는 예외 발생")
-    void getMemberInfo_memberNotFound() {
+    void getMemberInfo_회원없음_MemberNotFound예외발생() {
         // given
-        Long memberId = 1L;
-        when(memberRepository.findById(memberId)).thenReturn(Optional.empty());
+        given(memberRepository.findById(any())).willReturn(Optional.empty());
 
         // when
         CustomException exception = catchThrowableOfType(
-                () -> service.getMemberInfo(memberId),
+                () -> service.getMemberInfo(1L),
                 CustomException.class
         );
 
@@ -64,18 +63,18 @@ class MemberInfoQueryServiceTest {
         assertThat(exception.getErrorCode()).isEqualTo(MemberErrorCode.MEMBER_NOT_FOUND);
     }
 
-    @Test
-    @DisplayName("회원에 트리 레벨이 없으면 예외 발생")
-    void getMemberInfo_noTreeLevel() {
-        // given
-        Long memberId = 1L;
-        Member member = of(memberId, "test@leafresh.com", "테스터", null); // null 전달
 
-        when(memberRepository.findById(memberId)).thenReturn(Optional.of(member));
+    @Test
+    @DisplayName("트리 레벨이 없는 회원은 예외 발생")
+    void getMemberInfo_트리레벨없음_TreeLevelNotFound예외발생() {
+        // given
+        Member member = of("tester@leafresh.com", "테스터");
+        ReflectionTestUtils.setField(member, "treeLevel", null);
+        given(memberRepository.findById(any())).willReturn(Optional.of(member));
 
         // when
         CustomException exception = catchThrowableOfType(
-                () -> service.getMemberInfo(memberId),
+                () -> service.getMemberInfo(1L),
                 CustomException.class
         );
 
@@ -84,15 +83,14 @@ class MemberInfoQueryServiceTest {
     }
 
     @Test
-    @DisplayName("알 수 없는 예외가 발생하면 MEMBER_INFO_QUERY_FAILED 반환")
-    void getMemberInfo_internalError() {
+    @DisplayName("서비스 내부 오류 발생 시 MEMBER_INFO_QUERY_FAILED 예외 발생")
+    void getMemberInfo_예상치못한예외_INTERNAL_SERVER_ERROR() {
         // given
-        Long memberId = 1L;
-        when(memberRepository.findById(memberId)).thenThrow(new RuntimeException("DB 오류"));
+        given(memberRepository.findById(any())).willThrow(new RuntimeException("DB 오류"));
 
         // when
         CustomException exception = catchThrowableOfType(
-                () -> service.getMemberInfo(memberId),
+                () -> service.getMemberInfo(1L),
                 CustomException.class
         );
 

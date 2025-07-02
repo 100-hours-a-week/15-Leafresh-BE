@@ -10,17 +10,12 @@ import java.util.ArrayList;
 public class MemberFixture {
 
     public static Member of() {
-        return of(1L, "test@leafresh.com", "테스터");
+        return of("test@leafresh.com", "테스터");
     }
 
-    public static Member of(Long id, String email, String nickname) {
-        return of(id, email, nickname, TreeLevelFixture.defaultLevel());
-    }
-
-    public static Member of(Long id, String email, String nickname, TreeLevel treeLevel) {
+    public static Member of(String email, String nickname) {
         return Member.builder()
-                .id(id)
-                .treeLevel(treeLevel)
+                .treeLevel(TreeLevelFixture.defaultLevel())
                 .loginType(LoginType.SOCIAL)
                 .email(email)
                 .password(null)
@@ -30,7 +25,6 @@ public class MemberFixture {
                 .activated(true)
                 .totalLeafPoints(0)
                 .currentLeafPoints(0)
-
                 .memberBadges(new ArrayList<>())
                 .auths(new ArrayList<>())
                 .groupChallenges(new ArrayList<>())
@@ -43,7 +37,6 @@ public class MemberFixture {
                 .purchaseIdempotencyKeys(new ArrayList<>())
                 .purchaseFailureLogs(new ArrayList<>())
                 .feedbacks(new ArrayList<>())
-
                 .build();
     }
 }

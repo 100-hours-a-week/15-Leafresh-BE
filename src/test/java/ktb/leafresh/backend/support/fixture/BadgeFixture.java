@@ -3,28 +3,25 @@ package ktb.leafresh.backend.support.fixture;
 import ktb.leafresh.backend.domain.member.domain.entity.Badge;
 import ktb.leafresh.backend.domain.member.domain.entity.enums.BadgeType;
 
-import java.util.ArrayList;
-
 public class BadgeFixture {
 
-    // 기본 EVENT 타입 사용
-    public static Badge of(Long id, String name) {
-        return of(id, name, BadgeType.EVENT);
+    public static final String DEFAULT_IMAGE_URL = "https://dummy.image/badge/";
+
+    // BadgeType.EVENT 타입 기본 뱃지
+    public static Badge of(String name) {
+        return of(name, BadgeType.EVENT);
     }
 
-    // BadgeType을 명시적으로 지정하는 오버로드 메서드
-    public static Badge of(Long id, String name, BadgeType type) {
+    // BadgeType 지정 가능
+    public static Badge of(String name, BadgeType type) {
         return Badge.builder()
-                .id(id)
-                .memberBadges(new ArrayList<>())
                 .type(type)
                 .name(name)
                 .condition(getConditionByType(type, name))
-                .imageUrl("https://dummy.image/badge/" + name + ".png")
+                .imageUrl(DEFAULT_IMAGE_URL + name + ".png")
                 .build();
     }
 
-    // 조건 문구는 테스트용으로 대략적인 구분만 해둡니다
     private static String getConditionByType(BadgeType type, String name) {
         return switch (type) {
             case GROUP -> name + " 카테고리 챌린지 10회 인증 시 지급";
