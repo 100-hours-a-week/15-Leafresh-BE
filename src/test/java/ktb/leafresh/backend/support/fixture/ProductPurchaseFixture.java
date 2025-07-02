@@ -9,15 +9,27 @@ import java.time.LocalDateTime;
 
 public class ProductPurchaseFixture {
 
-    public static ProductPurchase of(Member member, Product product) {
+    private static final LocalDateTime FIXED_PURCHASED_AT = LocalDateTime.of(2024, 1, 1, 0, 0);
+
+    public static ProductPurchase create(Member member, Product product) {
         return ProductPurchase.builder()
-                .id(1L)
                 .member(member)
                 .product(product)
                 .type(PurchaseType.NORMAL)
                 .price(product.getPrice())
                 .quantity(1)
-                .purchasedAt(LocalDateTime.now())
+                .purchasedAt(FIXED_PURCHASED_AT)
+                .build();
+    }
+
+    public static ProductPurchase createWithType(Member member, Product product, PurchaseType type) {
+        return ProductPurchase.builder()
+                .member(member)
+                .product(product)
+                .type(type)
+                .price(product.getPrice())
+                .quantity(1)
+                .purchasedAt(FIXED_PURCHASED_AT)
                 .build();
     }
 }

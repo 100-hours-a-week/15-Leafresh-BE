@@ -8,7 +8,6 @@ public class PurchaseProcessingLogFixture {
 
     public static PurchaseProcessingLog of(Product product, PurchaseProcessingStatus status, String message) {
         return PurchaseProcessingLog.builder()
-                .id(1L)
                 .product(product)
                 .status(status)
                 .message(message)

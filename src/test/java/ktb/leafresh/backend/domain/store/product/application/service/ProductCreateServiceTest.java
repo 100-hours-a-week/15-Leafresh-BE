@@ -41,20 +41,22 @@ class ProductCreateServiceTest {
     @InjectMocks
     private ProductCreateService service;
 
+    private static final String PRODUCT_NAME = "유기농 비누";
+    private static final String PRODUCT_DESC = "피부에 좋은 비누";
+    private static final String PRODUCT_IMAGE = "https://image.test/soap.png";
+    private static final int PRICE = 3500;
+    private static final int STOCK = 10;
+
     @Test
     @DisplayName("정상적으로 상품을 생성한다")
     void createProduct_success() {
         // given
         ProductCreateRequestDto dto = new ProductCreateRequestDto(
-                "유기농 비누",
-                "피부에 좋은 비누",
-                "https://image.test/soap.png",
-                3500,
-                10,
-                ProductStatus.ACTIVE
+                PRODUCT_NAME, PRODUCT_DESC, PRODUCT_IMAGE, PRICE, STOCK, ProductStatus.ACTIVE
         );
 
-        Product product = ProductFixture.createActiveProduct("유기농 비누", 3500, 10);
+        Product product = ProductFixture.create(PRODUCT_NAME, PRICE, STOCK, ProductStatus.ACTIVE);
+
         when(productFactory.create(dto)).thenReturn(product);
         when(productRepository.save(product)).thenReturn(product);
 
@@ -71,9 +73,9 @@ class ProductCreateServiceTest {
         ArgumentCaptor<ProductUpdatedEvent> eventCaptor = ArgumentCaptor.forClass(ProductUpdatedEvent.class);
         verify(eventPublisher).publishEvent(eventCaptor.capture());
 
-        ProductUpdatedEvent event = eventCaptor.getValue();
-        assertThat(event.productId()).isEqualTo(product.getId());
-        assertThat(event.isTimeDeal()).isFalse();
+        ProductUpdatedEvent capturedEvent = eventCaptor.getValue();
+        assertThat(capturedEvent.productId()).isEqualTo(product.getId());
+        assertThat(capturedEvent.isTimeDeal()).isFalse();
     }
 
     @Test
@@ -89,9 +91,9 @@ class ProductCreateServiceTest {
                 ProductStatus.ACTIVE
         );
 
-        when(productFactory.create(dto)).thenThrow(new IllegalStateException("임의 에러"));
-
         // when
+        when(productFactory.create(dto)).thenThrow(new IllegalStateException("DB 에러 발생"));
+
         CustomException exception = catchThrowableOfType(() -> service.createProduct(dto), CustomException.class);
 
         // then
