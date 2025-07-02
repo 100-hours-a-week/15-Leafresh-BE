@@ -1,51 +1,56 @@
 package ktb.leafresh.backend.domain.member.application.service;
 
 import ktb.leafresh.backend.domain.member.infrastructure.repository.MemberRepository;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.BDDMockito.*;
 
+@ExtendWith(MockitoExtension.class)
 class MemberNicknameCheckServiceTest {
 
+    @Mock
     private MemberRepository memberRepository;
-    private MemberNicknameCheckService service;
 
-    @BeforeEach
-    void setUp() {
-        memberRepository = mock(MemberRepository.class);
-        service = new MemberNicknameCheckService(memberRepository);
-    }
+    @InjectMocks
+    private MemberNicknameCheckService memberNicknameCheckService;
 
-    @Test
-    @DisplayName("중복된 닉네임이 존재하면 true 반환")
-    void isDuplicated_true() {
-        // given
-        String nickname = "leafresh_유저";
-        when(memberRepository.existsByNickname(nickname)).thenReturn(true);
+    @Nested
+    @DisplayName("isDuplicated")
+    class IsDuplicated {
 
-        // when
-        boolean result = service.isDuplicated(nickname);
+        @Test
+        @DisplayName("닉네임이 중복된 경우 true를 반환한다.")
+        void isDuplicated_withExistingNickname_returnsTrue() {
+            // given
+            String nickname = "테스터";
+            given(memberRepository.existsByNickname(nickname)).willReturn(true);
 
-        // then
-        assertThat(result).isTrue();
-        verify(memberRepository, times(1)).existsByNickname(nickname);
-    }
+            // when
+            boolean result = memberNicknameCheckService.isDuplicated(nickname);
 
-    @Test
-    @DisplayName("중복되지 않은 닉네임이면 false 반환")
-    void isDuplicated_false() {
-        // given
-        String nickname = "새로운닉네임";
-        when(memberRepository.existsByNickname(nickname)).thenReturn(false);
+            // then
+            assertThat(result).isTrue();
+        }
 
-        // when
-        boolean result = service.isDuplicated(nickname);
+        @Test
+        @DisplayName("닉네임이 중복되지 않은 경우 false를 반환한다.")
+        void isDuplicated_withUniqueNickname_returnsFalse() {
+            // given
+            String nickname = "신규닉네임";
+            given(memberRepository.existsByNickname(nickname)).willReturn(false);
 
-        // then
-        assertThat(result).isFalse();
-        verify(memberRepository, times(1)).existsByNickname(nickname);
+            // when
+            boolean result = memberNicknameCheckService.isDuplicated(nickname);
+
+            // then
+            assertThat(result).isFalse();
+        }
     }
 }

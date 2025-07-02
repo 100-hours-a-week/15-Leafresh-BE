@@ -28,9 +28,14 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class RecentBadgeReadServiceTest {
 
-    @Mock private MemberRepository memberRepository;
-    @Mock private MemberBadgeRepository memberBadgeRepository;
-    @InjectMocks private RecentBadgeReadService service;
+    @Mock
+    private MemberRepository memberRepository;
+
+    @Mock
+    private MemberBadgeRepository memberBadgeRepository;
+
+    @InjectMocks
+    private RecentBadgeReadService service;
 
     @Test
     @DisplayName("최근 뱃지 조회 - 유효한 회원 ID일 경우 - 뱃지 리스트를 반환한다")
