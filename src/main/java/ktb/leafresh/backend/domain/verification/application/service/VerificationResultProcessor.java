@@ -1,5 +1,6 @@
 package ktb.leafresh.backend.domain.verification.application.service;
 
+import jakarta.transaction.Transactional;
 import ktb.leafresh.backend.domain.challenge.group.domain.entity.GroupChallenge;
 import ktb.leafresh.backend.domain.challenge.group.domain.entity.GroupChallengeParticipantRecord;
 import ktb.leafresh.backend.domain.member.application.service.BadgeGrantManager;
@@ -55,6 +56,7 @@ public class VerificationResultProcessor {
         };
     }
 
+    @Transactional
     public void process(Long verificationId, VerificationResultRequestDto dto) {
         if (!dto.isSuccessResult()) {
             log.warn("[Processor 인증 결과 무시] 정상적인 true/false 값이 아님: result={}, type={}", dto.result(), dto.type());
