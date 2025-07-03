@@ -38,7 +38,7 @@ class PersonalChallengeVerificationResultQueryServiceTest {
     @BeforeEach
     void setUp() {
         ZoneId kst = ZoneId.of("Asia/Seoul");
-        LocalDate today = LocalDate.of(2025, 7, 3);
+        LocalDate today = LocalDate.now(kst);
 
         fixedKstStart = today.atStartOfDay();
         fixedKstEnd = today.atTime(23, 59, 59);
