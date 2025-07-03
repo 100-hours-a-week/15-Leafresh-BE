@@ -6,62 +6,79 @@ import ktb.leafresh.backend.global.common.entity.enums.ChallengeStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
-import java.time.LocalDateTime;
+import java.time.*;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.*;
+import static org.mockito.BDDMockito.given;
 
+@ExtendWith(MockitoExtension.class)
 class PersonalChallengeVerificationResultQueryServiceTest {
 
+    @Mock
     private PersonalChallengeVerificationRepository verificationRepository;
-    private PersonalChallengeVerificationResultQueryService service;
+
+    @InjectMocks
+    private PersonalChallengeVerificationResultQueryService queryService;
+
+    private final Long memberId = 1L;
+    private final Long challengeId = 2L;
+
+    private LocalDateTime fixedKstStart;
+    private LocalDateTime fixedKstEnd;
+    private LocalDateTime fixedUtcStart;
+    private LocalDateTime fixedUtcEnd;
 
     @BeforeEach
     void setUp() {
-        verificationRepository = mock(PersonalChallengeVerificationRepository.class);
-        service = new PersonalChallengeVerificationResultQueryService(verificationRepository);
+        ZoneId kst = ZoneId.of("Asia/Seoul");
+        LocalDate today = LocalDate.of(2025, 7, 3);
+
+        fixedKstStart = today.atStartOfDay();
+        fixedKstEnd = today.atTime(23, 59, 59);
+
+        fixedUtcStart = fixedKstStart.atZone(kst).withZoneSameInstant(ZoneOffset.UTC).toLocalDateTime();
+        fixedUtcEnd = fixedKstEnd.atZone(kst).withZoneSameInstant(ZoneOffset.UTC).toLocalDateTime();
     }
 
     @Test
-    @DisplayName("오늘 인증 내역이 없으면 NOT_SUBMITTED를 반환한다")
-    void getLatestStatus_noSubmissionToday() {
+    @DisplayName("오늘 인증 기록이 있는 경우 - 해당 인증의 상태 반환")
+    void getLatestStatus_withVerification_returnsStatus() {
         // given
-        Long memberId = 1L;
-        Long challengeId = 10L;
+        PersonalChallengeVerification verification = PersonalChallengeVerification.builder()
+                .status(ChallengeStatus.SUCCESS)
+                .build();
+        ReflectionTestUtils.setField(verification, "createdAt", fixedUtcStart.plusHours(2));
 
-        when(verificationRepository.findTopByMemberIdAndPersonalChallengeIdAndCreatedAtBetween(
-                eq(memberId), eq(challengeId),
-                any(LocalDateTime.class), any(LocalDateTime.class)
-        )).thenReturn(Optional.empty());
+        given(verificationRepository.findTopByMemberIdAndPersonalChallengeIdAndCreatedAtBetween(
+                memberId, challengeId, fixedUtcStart, fixedUtcEnd
+        )).willReturn(Optional.of(verification));
 
         // when
-        ChallengeStatus status = service.getLatestStatus(memberId, challengeId);
+        ChallengeStatus result = queryService.getLatestStatus(memberId, challengeId);
 
         // then
-        assertThat(status).isEqualTo(ChallengeStatus.NOT_SUBMITTED);
+        assertThat(result).isEqualTo(ChallengeStatus.SUCCESS);
     }
 
     @Test
-    @DisplayName("오늘 인증 내역이 있으면 해당 status를 반환한다")
-    void getLatestStatus_submissionFound() {
+    @DisplayName("오늘 인증 기록이 없는 경우 - NOT_SUBMITTED 반환")
+    void getLatestStatus_noVerification_returnsNotSubmitted() {
         // given
-        Long memberId = 1L;
-        Long challengeId = 10L;
-
-        var verification = mock(PersonalChallengeVerification.class);
-        when(verification.getStatus()).thenReturn(ChallengeStatus.FAILURE);
-
-        when(verificationRepository.findTopByMemberIdAndPersonalChallengeIdAndCreatedAtBetween(
-                eq(memberId), eq(challengeId),
-                any(LocalDateTime.class), any(LocalDateTime.class)
-        )).thenReturn(Optional.of(verification));
+        given(verificationRepository.findTopByMemberIdAndPersonalChallengeIdAndCreatedAtBetween(
+                memberId, challengeId, fixedUtcStart, fixedUtcEnd
+        )).willReturn(Optional.empty());
 
         // when
-        ChallengeStatus status = service.getLatestStatus(memberId, challengeId);
+        ChallengeStatus result = queryService.getLatestStatus(memberId, challengeId);
 
         // then
-        assertThat(status).isEqualTo(ChallengeStatus.FAILURE);
+        assertThat(result).isEqualTo(ChallengeStatus.NOT_SUBMITTED);
     }
 }

@@ -2,6 +2,7 @@ package ktb.leafresh.backend.domain.verification.application.service;
 
 import ktb.leafresh.backend.domain.challenge.group.domain.entity.GroupChallenge;
 import ktb.leafresh.backend.domain.challenge.group.domain.entity.GroupChallengeParticipantRecord;
+import ktb.leafresh.backend.domain.challenge.personal.domain.entity.PersonalChallenge;
 import ktb.leafresh.backend.domain.member.application.service.BadgeGrantManager;
 import ktb.leafresh.backend.domain.member.application.service.RewardGrantService;
 import ktb.leafresh.backend.domain.member.domain.entity.Member;
@@ -14,122 +15,185 @@ import ktb.leafresh.backend.domain.verification.infrastructure.repository.Person
 import ktb.leafresh.backend.domain.verification.presentation.dto.request.VerificationResultRequestDto;
 import ktb.leafresh.backend.global.common.entity.enums.ChallengeStatus;
 import ktb.leafresh.backend.global.common.entity.enums.ChallengeType;
-import org.junit.jupiter.api.BeforeEach;
+import ktb.leafresh.backend.global.exception.CustomException;
+import ktb.leafresh.backend.global.exception.VerificationErrorCode;
+import ktb.leafresh.backend.support.fixture.GroupChallengeVerificationFixture;
+import ktb.leafresh.backend.support.fixture.PersonalChallengeVerificationFixture;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
+import java.util.List;
 import java.util.Optional;
 
-import static org.mockito.Mockito.*;
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.BDDMockito.*;
 
+@DisplayName("VerificationResultProcessor 테스트")
+@ExtendWith(MockitoExtension.class)
 class VerificationResultProcessorTest {
 
-    private GroupChallengeVerificationRepository groupRepo;
-    private PersonalChallengeVerificationRepository personalRepo;
-    private NotificationCreateService notificationService;
-    private RewardGrantService rewardGrantService;
-    private BadgeGrantManager badgeGrantManager;
-    private VerificationResultProcessor processor;
+    @Mock
+    private GroupChallengeVerificationRepository groupChallengeVerificationRepository;
 
-    @BeforeEach
-    void setUp() {
-        groupRepo = mock(GroupChallengeVerificationRepository.class);
-        personalRepo = mock(PersonalChallengeVerificationRepository.class);
-        notificationService = mock(NotificationCreateService.class);
-        rewardGrantService = mock(RewardGrantService.class);
-        badgeGrantManager = mock(BadgeGrantManager.class);
-        processor = new VerificationResultProcessor(groupRepo, personalRepo, notificationService, rewardGrantService, badgeGrantManager);
-    }
+    @Mock
+    private PersonalChallengeVerificationRepository personalChallengeVerificationRepository;
+
+    @Mock
+    private NotificationCreateService notificationCreateService;
+
+    @Mock
+    private RewardGrantService rewardGrantService;
+
+    @Mock
+    private BadgeGrantManager badgeGrantManager;
+
+    @Mock
+    private GroupChallengeParticipantRecord participantRecord;
+
+    @Mock
+    private GroupChallenge groupChallenge;
+
+    @Mock
+    private Member member;
+
+    @Mock
+    private PersonalChallenge personalChallenge;
+
+    @InjectMocks
+    private VerificationResultProcessor verificationResultProcessor;
 
     @Test
-    @DisplayName("단체 인증 성공 → 상태 업데이트 + 알림 + 보상 + 뱃지 지급")
-    void processGroupSuccess_ShouldGrantRewardAndBadge() {
+    @DisplayName("단체 인증 결과 처리 - 성공 케이스")
+    void processGroup_withSuccessResult_updatesStatusAndGrantsReward() {
+        // given
         Long verificationId = 1L;
+        GroupChallengeVerification verification = GroupChallengeVerificationFixture.of(participantRecord, ChallengeStatus.PENDING_APPROVAL);
+        ReflectionTestUtils.setField(verification, "rewarded", false);
+
+        given(groupChallengeVerificationRepository.findById(verificationId)).willReturn(Optional.of(verification));
+        given(participantRecord.getMember()).willReturn(member);
+        given(participantRecord.getGroupChallenge()).willReturn(groupChallenge);
+        given(groupChallenge.getTitle()).willReturn("제로웨이스트 5일 챌린지");
+        given(groupChallenge.getId()).willReturn(123L);
+        given(groupChallenge.getLeafReward()).willReturn(10);
+        given(participantRecord.getVerifications()).willReturn(List.of(verification));
+        given(participantRecord.isAllSuccess()).willReturn(true);
+        given(groupChallenge.getDurationInDays()).willReturn(1);
+        given(participantRecord.hasReceivedParticipationBonus()).willReturn(false);
+
         VerificationResultRequestDto dto = VerificationResultRequestDto.builder()
                 .type(ChallengeType.GROUP)
                 .memberId(1L)
-                .challengeId(1L)
-                .date("2025-05-28")
+                .challengeId(123L)
+                .verificationId(verificationId)
+                .date("2024-01-01")
                 .result("true")
                 .build();
 
-        Member member = mock(Member.class);
-        when(member.getId()).thenReturn(1L);
+        // when
+        verificationResultProcessor.process(verificationId, dto);
 
-        GroupChallenge challenge = mock(GroupChallenge.class);
-        when(challenge.getTitle()).thenReturn("제로 챌린지");
-        when(challenge.getLeafReward()).thenReturn(10);
-        when(challenge.getDurationInDays()).thenReturn(3);
-
-        GroupChallengeVerification verification = mock(GroupChallengeVerification.class);
-        GroupChallengeParticipantRecord record = mock(GroupChallengeParticipantRecord.class);
-
-        when(groupRepo.findById(verificationId)).thenReturn(Optional.of(verification));
-        when(verification.getParticipantRecord()).thenReturn(record);
-        when(verification.getImageUrl()).thenReturn("url");
-        when(verification.isRewarded()).thenReturn(false);
-        when(record.getMember()).thenReturn(member);
-        when(record.getGroupChallenge()).thenReturn(challenge);
-        when(record.isAllSuccess()).thenReturn(false);
-
-        processor.process(verificationId, dto);
-
-        verify(verification).markVerified(ChallengeStatus.SUCCESS);
+        // then
+        assertThat(verification.getStatus()).isEqualTo(ChallengeStatus.SUCCESS);
+        verify(notificationCreateService).createChallengeVerificationResultNotification(
+                member,
+                "제로웨이스트 5일 챌린지",
+                true,
+                NotificationType.GROUP,
+                verification.getImageUrl(),
+                123L
+        );
         verify(rewardGrantService).grantLeafPoints(member, 10);
-        verify(verification).markRewarded();
-        verify(notificationService).createChallengeVerificationResultNotification(eq(member), eq("제로 챌린지"), eq(true), eq(NotificationType.GROUP), eq("url"), any());
+        verify(rewardGrantService).grantParticipationBonus(member, participantRecord);
         verify(badgeGrantManager).evaluateAllAndGrant(member);
     }
 
     @Test
-    @DisplayName("개인 인증 실패 → 상태만 업데이트 + 알림")
-    void processPersonalFail_ShouldUpdateStatusOnly() {
+    @DisplayName("개인 인증 결과 처리 - 실패 케이스")
+    void processPersonal_withFailResult_updatesStatusAndSkipsReward() {
+        // given
         Long verificationId = 2L;
+        PersonalChallengeVerification verification = PersonalChallengeVerificationFixture.of(member, personalChallenge);
+        ReflectionTestUtils.setField(verification, "status", ChallengeStatus.PENDING_APPROVAL);
+        ReflectionTestUtils.setField(verification, "rewarded", false);
+
+        given(personalChallengeVerificationRepository.findById(verificationId)).willReturn(Optional.of(verification));
+        given(personalChallenge.getTitle()).willReturn("텀블러 사용 챌린지");
+        given(personalChallenge.getId()).willReturn(321L);
+
         VerificationResultRequestDto dto = VerificationResultRequestDto.builder()
                 .type(ChallengeType.PERSONAL)
                 .memberId(1L)
-                .challengeId(1L)
-                .date("2025-05-28")
+                .challengeId(321L)
+                .verificationId(verificationId)
+                .date("2025-07-01")
                 .result("false")
                 .build();
 
-        Member member = mock(Member.class);
-        when(member.getId()).thenReturn(2L);
+        // when
+        verificationResultProcessor.process(verificationId, dto);
 
-        var challenge = mock(ktb.leafresh.backend.domain.challenge.personal.domain.entity.PersonalChallenge.class);
-        when(challenge.getTitle()).thenReturn("텀블러 사용");
-        when(challenge.getId()).thenReturn(99L);
-
-        PersonalChallengeVerification verification = mock(PersonalChallengeVerification.class);
-        when(verification.getMember()).thenReturn(member);
-        when(verification.getImageUrl()).thenReturn("img");
-        when(verification.getPersonalChallenge()).thenReturn(challenge);
-        when(personalRepo.findById(verificationId)).thenReturn(Optional.of(verification));
-
-        processor.process(verificationId, dto);
-
-        verify(verification).markVerified(ChallengeStatus.FAILURE);
-        verify(notificationService).createChallengeVerificationResultNotification(
-                eq(member), eq("텀블러 사용"), eq(false), eq(NotificationType.PERSONAL), eq("img"), eq(99L)
+        // then
+        assertThat(verification.getStatus()).isEqualTo(ChallengeStatus.FAILURE);
+        verify(notificationCreateService).createChallengeVerificationResultNotification(
+                member,
+                "텀블러 사용 챌린지",
+                false,
+                NotificationType.PERSONAL,
+                verification.getImageUrl(),
+                321L
         );
-        verifyNoInteractions(rewardGrantService);
+        verify(rewardGrantService, never()).grantLeafPoints(any(), anyInt());
         verify(badgeGrantManager).evaluateAllAndGrant(member);
     }
 
     @Test
-    @DisplayName("result가 null이거나 유효하지 않은 문자열이면 처리하지 않고 무시한다")
-    void process_invalidResult_shouldBeIgnored() {
-        Long verificationId = 3L;
+    @DisplayName("단체 인증 결과 처리 - 인증 ID 없음 → 예외 발생")
+    void processGroup_withInvalidVerificationId_throwsException() {
+        // given
+        Long invalidId = 999L;
+        given(groupChallengeVerificationRepository.findById(invalidId)).willReturn(Optional.empty());
+
         VerificationResultRequestDto dto = VerificationResultRequestDto.builder()
-                .type(ChallengeType.PERSONAL)
+                .type(ChallengeType.GROUP)
                 .memberId(1L)
-                .challengeId(1L)
-                .date("2025-05-28")
-                .result("maybe") // 유효하지 않은 값
+                .challengeId(123L)
+                .verificationId(invalidId)
+                .date("2025-07-03")
+                .result("true")
                 .build();
 
-        processor.process(verificationId, dto);
+        // when & then
+        assertThatThrownBy(() -> verificationResultProcessor.process(invalidId, dto))
+                .isInstanceOf(CustomException.class)
+                .hasMessageContaining(VerificationErrorCode.VERIFICATION_NOT_FOUND.getMessage());
+    }
 
-        verifyNoInteractions(groupRepo, personalRepo, rewardGrantService, notificationService, badgeGrantManager);
+    @Test
+    @DisplayName("result 값이 true/false가 아닌 경우 인증 무시")
+    void process_withInvalidResultValue_doesNothing() {
+        // given
+        VerificationResultRequestDto dto = VerificationResultRequestDto.builder()
+                .type(ChallengeType.GROUP)
+                .memberId(1L)
+                .challengeId(123L)
+                .verificationId(1L)
+                .date("2025-07-03")
+                .result("not_a_boolean")
+                .build();
+
+        // when
+        verificationResultProcessor.process(1L, dto);
+
+        // then
+        verifyNoInteractions(groupChallengeVerificationRepository);
+        verifyNoInteractions(notificationCreateService);
+        verifyNoInteractions(rewardGrantService);
+        verifyNoInteractions(badgeGrantManager);
     }
 }
