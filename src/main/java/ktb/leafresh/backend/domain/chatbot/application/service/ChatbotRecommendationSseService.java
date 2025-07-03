@@ -2,7 +2,6 @@ package ktb.leafresh.backend.domain.chatbot.application.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import ktb.leafresh.backend.domain.chatbot.application.handler.ChatbotSseStreamHandler;
-import ktb.leafresh.backend.global.util.sse.SseStreamExecutor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -22,7 +21,6 @@ public class ChatbotRecommendationSseService {
     @Value("${ai-server.text-base-url}")
     private String aiServerBaseUrl;
     private final ChatbotSseStreamHandler streamHandler;
-    private final SseStreamExecutor sseStreamExecutor;
     private final ObjectMapper objectMapper;
 
     public SseEmitter stream(String aiUri, Object dto) {
