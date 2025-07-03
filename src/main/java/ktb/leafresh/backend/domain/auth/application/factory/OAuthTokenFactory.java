@@ -18,7 +18,7 @@ public class OAuthTokenFactory {
                 .orElse(null);
 
         return OAuthTokenResponseDto.builder()
-                .grantType(tokenDto.getGrantType())
+//                .grantType(tokenDto.getGrantType())
                 .accessToken(tokenDto.getAccessToken())
                 .accessTokenExpiresIn(tokenDto.getAccessTokenExpiresIn())
                 .refreshToken(tokenDto.getRefreshToken())
