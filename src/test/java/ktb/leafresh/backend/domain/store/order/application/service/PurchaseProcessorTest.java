@@ -24,10 +24,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.LocalDateTime;
-import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.BDDMockito.*;
@@ -35,14 +35,29 @@ import static org.mockito.BDDMockito.*;
 @ExtendWith(MockitoExtension.class)
 class PurchaseProcessorTest {
 
-    @Mock private ProductPurchaseRepository purchaseRepository;
-    @Mock private ProductRepository productRepository;
-    @Mock private TimedealPolicyRepository timedealPolicyRepository;
-    @Mock private PurchaseProcessingLogRepository processingLogRepository;
-    @Mock private StringRedisTemplate redisTemplate;
-    @Mock private ObjectMapper objectMapper;
+    @Mock
+    private ProductPurchaseRepository purchaseRepository;
 
-    @InjectMocks private PurchaseProcessor purchaseProcessor;
+    @Mock
+    private ProductRepository productRepository;
+
+    @Mock
+    private TimedealPolicyRepository timedealPolicyRepository;
+
+    @Mock
+    private PurchaseProcessingLogRepository processingLogRepository;
+
+    @Mock
+    private StringRedisTemplate redisTemplate;
+
+    @Mock
+    private ObjectMapper objectMapper;
+
+    @Mock
+    private ValueOperations<String, String> valueOperations;
+
+    @InjectMocks
+    private PurchaseProcessor purchaseProcessor;
 
     private Member member;
     private Product product;
@@ -74,39 +89,40 @@ class PurchaseProcessorTest {
         verify(processingLogRepository).save(any(PurchaseProcessingLog.class));
     }
 
-//    @Test
-//    void process_timedealPurchase_success() throws Exception {
-//        // given
-//        LocalDateTime now = LocalDateTime.now();
-//        TimedealPolicy timedealPolicy = TimedealPolicyFixture.createTimedeal(
-//                product, 2500, 30, 10,
-//                now.minusMinutes(1),
-//                now.plusMinutes(1)
-//        );
-//        ReflectionTestUtils.setField(timedealPolicy, "deletedAt", null);
-//        product.getTimedealPolicies().add(timedealPolicy);
-//        ReflectionTestUtils.setField(product, "id", 1L);
-//        given(productRepository.findById(1L)).willReturn(Optional.of(product));
-//
-//        int quantity = 1;
-//        int unitPrice = timedealPolicy.getDiscountedPrice();
-//        PurchaseProcessContext context = new PurchaseProcessContext(
-//                member, product, quantity, unitPrice, PurchaseType.TIMEDEAL
-//        );
-//
-//        given(objectMapper.writeValueAsString(any())).willReturn("{\"stock\":9}");
-//
-//        // when
-//        purchaseProcessor.process(context);
-//
-//        // then
-//        assertThat(timedealPolicy.getStock()).isEqualTo(9);
-//        assertThat(member.getCurrentLeafPoints()).isEqualTo(10_000 - unitPrice);
-//        verify(timedealPolicyRepository).save(timedealPolicy);
-//        verify(purchaseRepository).save(any());
-//        verify(processingLogRepository).save(any());
-//        verify(redisTemplate.opsForValue()).set(anyString(), eq("{\"stock\":9}"));
-//    }
+    @Test
+    void process_timedealPurchase_success() throws Exception {
+        // given
+        LocalDateTime now = LocalDateTime.now();
+        TimedealPolicy timedealPolicy = TimedealPolicyFixture.createTimedeal(
+                product, 2500, 30, 10,
+                now.minusHours(1),
+                now.plusHours(1)
+        );
+        ReflectionTestUtils.setField(timedealPolicy, "deletedAt", null);
+        product.getTimedealPolicies().add(timedealPolicy);
+        ReflectionTestUtils.setField(product, "id", 1L);
+
+        given(objectMapper.writeValueAsString(any())).willReturn("{\"stock\":9}");
+        given(redisTemplate.opsForValue()).willReturn(valueOperations);
+        doNothing().when(valueOperations).set(anyString(), anyString());
+
+        int quantity = 1;
+        int unitPrice = timedealPolicy.getDiscountedPrice();
+        PurchaseProcessContext context = new PurchaseProcessContext(
+                member, product, quantity, unitPrice, PurchaseType.TIMEDEAL
+        );
+
+        // when
+        purchaseProcessor.process(context);
+
+        // then
+        assertThat(timedealPolicy.getStock()).isEqualTo(9);
+        assertThat(member.getCurrentLeafPoints()).isEqualTo(10_000 - unitPrice);
+        verify(timedealPolicyRepository).save(timedealPolicy);
+        verify(purchaseRepository).save(any());
+        verify(processingLogRepository).save(any());
+        verify(valueOperations).set(contains("store:products:timedeal:item:"), eq("{\"stock\":9}"));
+    }
 
     @Test
     void process_withInsufficientStock_throwsException() {
