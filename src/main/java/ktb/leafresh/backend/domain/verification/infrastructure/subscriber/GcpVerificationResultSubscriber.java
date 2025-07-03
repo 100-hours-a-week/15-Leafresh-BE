@@ -12,6 +12,8 @@ import ktb.leafresh.backend.domain.verification.infrastructure.dto.request.AiVer
 import ktb.leafresh.backend.domain.verification.infrastructure.publisher.GcpAiVerificationPubSubPublisher;
 import ktb.leafresh.backend.domain.verification.infrastructure.repository.GroupChallengeVerificationRepository;
 import ktb.leafresh.backend.domain.verification.presentation.dto.request.VerificationResultRequestDto;
+import ktb.leafresh.backend.global.exception.CustomException;
+import ktb.leafresh.backend.global.exception.VerificationErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.env.Environment;
@@ -75,9 +77,17 @@ public class GcpVerificationResultSubscriber {
 
                 consumer.ack();
 
+            } catch (CustomException e) {
+                if (e.getErrorCode() == VerificationErrorCode.VERIFICATION_NOT_FOUND) {
+                    log.warn("[인증 결과 무시] 존재하지 않는 verificationId={} → ack 처리", e.getMessage());
+                    consumer.ack(); // 무시하고 ack 처리 (테스트 용도로 AI 서버에서 id가 보낼 수 있기 때문)
+                } else {
+                    log.error("[인증 결과 메시지 처리 실패 - CustomException] {}", e.getMessage(), e);
+                    consumer.nack(); // 다른 에러는 nack
+                }
             } catch (Exception e) {
-                log.error("[인증 결과 메시지 처리 실패] {}", e.getMessage(), e);
-                consumer.nack(); // 실패 시 재시도
+                log.error("[인증 결과 메시지 처리 실패 - 기타 Exception] {}", e.getMessage(), e);
+                consumer.nack();
             }
         };
 
