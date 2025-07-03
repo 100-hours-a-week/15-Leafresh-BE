@@ -59,7 +59,6 @@ public class PersonalChallengeVerificationSubmitController {
         }
 
         Long memberId = userDetails.getMemberId();
-//        ChallengeStatus status = resultQueryService.waitForResult(memberId, challengeId);
         ChallengeStatus status = resultQueryService.getLatestStatus(memberId, challengeId);
 
         Map<String, String> data = Map.of("status", status.name());
