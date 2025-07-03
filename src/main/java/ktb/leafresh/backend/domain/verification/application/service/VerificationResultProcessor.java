@@ -34,28 +34,6 @@ public class VerificationResultProcessor {
     private final RewardGrantService rewardGrantService;
     private final BadgeGrantManager badgeGrantManager;
 
-    public ChallengeStatus getCurrentStatus(Long memberId, Long challengeId, ChallengeType type) {
-        LocalDateTime now = LocalDateTime.now();
-        LocalDateTime startOfDay = now.toLocalDate().atStartOfDay();
-        LocalDateTime endOfDay = startOfDay.plusDays(1).minusNanos(1);
-
-        return switch (type) {
-            case GROUP -> groupChallengeVerificationRepository
-                    .findTopByParticipantRecord_Member_IdAndParticipantRecord_GroupChallenge_IdAndCreatedAtBetween(
-                            memberId, challengeId, startOfDay, endOfDay
-                    )
-                    .map(GroupChallengeVerification::getStatus)
-                    .orElse(ChallengeStatus.NOT_SUBMITTED);
-
-            case PERSONAL -> personalChallengeVerificationRepository
-                    .findTopByMemberIdAndPersonalChallengeIdAndCreatedAtBetween(
-                            memberId, challengeId, startOfDay, endOfDay
-                    )
-                    .map(PersonalChallengeVerification::getStatus)
-                    .orElse(ChallengeStatus.NOT_SUBMITTED);
-        };
-    }
-
     @Transactional
     public void process(Long verificationId, VerificationResultRequestDto dto) {
         if (!dto.isSuccessResult()) {
