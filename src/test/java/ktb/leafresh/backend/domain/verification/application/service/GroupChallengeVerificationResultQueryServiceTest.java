@@ -7,68 +7,90 @@ import ktb.leafresh.backend.domain.member.domain.entity.Member;
 import ktb.leafresh.backend.domain.verification.domain.entity.GroupChallengeVerification;
 import ktb.leafresh.backend.domain.verification.infrastructure.repository.GroupChallengeVerificationRepository;
 import ktb.leafresh.backend.global.common.entity.enums.ChallengeStatus;
-import ktb.leafresh.backend.support.fixture.GroupChallengeCategoryFixture;
-import ktb.leafresh.backend.support.fixture.GroupChallengeFixture;
-import ktb.leafresh.backend.support.fixture.GroupChallengeParticipantRecordFixture;
-import ktb.leafresh.backend.support.fixture.GroupChallengeVerificationFixture;
-import ktb.leafresh.backend.support.fixture.MemberFixture;
+import ktb.leafresh.backend.support.fixture.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.*;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.*;
+import static org.mockito.BDDMockito.given;
 
+@ExtendWith(MockitoExtension.class)
 class GroupChallengeVerificationResultQueryServiceTest {
 
+    @Mock
     private GroupChallengeVerificationRepository verificationRepository;
-    private GroupChallengeVerificationResultQueryService service;
+
+    @InjectMocks
+    private GroupChallengeVerificationResultQueryService resultQueryService;
+
+    private Member member;
+    private GroupChallenge challenge;
+    private GroupChallengeParticipantRecord participantRecord;
 
     @BeforeEach
     void setUp() {
-        verificationRepository = mock(GroupChallengeVerificationRepository.class);
-        service = new GroupChallengeVerificationResultQueryService(verificationRepository);
+        member = MemberFixture.of();
+        GroupChallengeCategory category = GroupChallengeCategoryFixture.defaultCategory();
+        challenge = GroupChallengeFixture.of(member, category);
+        participantRecord = GroupChallengeParticipantRecordFixture.of(challenge, member);
     }
 
     @Test
-    @DisplayName("오늘 인증 상태가 존재하면 해당 상태를 반환한다")
-    void getLatestStatus_GivenTodayVerificationExists_ThenReturnsStatus() {
-        // Given
-        Member member = MemberFixture.of();
-        GroupChallengeCategory category = GroupChallengeCategoryFixture.of("제로웨이스트");
-        GroupChallenge challenge = GroupChallengeFixture.of(member, category);
-        GroupChallengeParticipantRecord record = GroupChallengeParticipantRecordFixture.of(challenge, member);
-        GroupChallengeVerification verification = GroupChallengeVerificationFixture.of(record);
-        verification.markVerified(ChallengeStatus.SUCCESS);
+    @DisplayName("오늘 날짜에 성공 인증이 있으면 SUCCESS 상태를 반환한다")
+    void getLatestStatus_withSuccessVerification_returnsSuccess() {
+        // given
+        GroupChallengeVerification verification = GroupChallengeVerificationFixture.of(participantRecord, ChallengeStatus.SUCCESS);
+        Long memberId = member.getId();
+        Long challengeId = challenge.getId();
 
-        when(verificationRepository.findTopByParticipantRecord_Member_IdAndParticipantRecord_GroupChallenge_IdAndCreatedAtBetween(
-                eq(member.getId()), eq(challenge.getId()), any(), any()))
-                .thenReturn(Optional.of(verification));
+        ZoneId kst = ZoneId.of("Asia/Seoul");
+        LocalDateTime startKst = LocalDate.now(kst).atStartOfDay();
+        LocalDateTime endKst = LocalDate.now(kst).atTime(23, 59, 59);
+        LocalDateTime startUtc = startKst.atZone(kst).withZoneSameInstant(ZoneOffset.UTC).toLocalDateTime();
+        LocalDateTime endUtc = endKst.atZone(kst).withZoneSameInstant(ZoneOffset.UTC).toLocalDateTime();
 
-        // When
-        ChallengeStatus result = service.getLatestStatus(member.getId(), challenge.getId());
+        given(verificationRepository
+                .findTopByParticipantRecord_Member_IdAndParticipantRecord_GroupChallenge_IdAndCreatedAtBetween(
+                        memberId, challengeId, startUtc, endUtc))
+                .willReturn(Optional.of(verification));
 
-        // Then
+        // when
+        ChallengeStatus result = resultQueryService.getLatestStatus(memberId, challengeId);
+
+        // then
         assertThat(result).isEqualTo(ChallengeStatus.SUCCESS);
     }
 
     @Test
-    @DisplayName("오늘 인증 기록이 없으면 NOT_SUBMITTED 상태를 반환한다")
-    void getLatestStatus_GivenNoTodayVerification_ThenReturnsNotSubmitted() {
-        // Given
-        Long memberId = 1L;
-        Long challengeId = 99L;
+    @DisplayName("오늘 날짜에 인증이 없으면 NOT_SUBMITTED 상태를 반환한다")
+    void getLatestStatus_withNoVerification_returnsNotSubmitted() {
+        // given
+        Long memberId = member.getId();
+        Long challengeId = challenge.getId();
 
-        when(verificationRepository.findTopByParticipantRecord_Member_IdAndParticipantRecord_GroupChallenge_IdAndCreatedAtBetween(
-                eq(memberId), eq(challengeId), any(), any()))
-                .thenReturn(Optional.empty());
+        ZoneId kst = ZoneId.of("Asia/Seoul");
+        LocalDateTime startKst = LocalDate.now(kst).atStartOfDay();
+        LocalDateTime endKst = LocalDate.now(kst).atTime(23, 59, 59);
+        LocalDateTime startUtc = startKst.atZone(kst).withZoneSameInstant(ZoneOffset.UTC).toLocalDateTime();
+        LocalDateTime endUtc = endKst.atZone(kst).withZoneSameInstant(ZoneOffset.UTC).toLocalDateTime();
 
-        // When
-        ChallengeStatus result = service.getLatestStatus(memberId, challengeId);
+        given(verificationRepository
+                .findTopByParticipantRecord_Member_IdAndParticipantRecord_GroupChallenge_IdAndCreatedAtBetween(
+                        memberId, challengeId, startUtc, endUtc))
+                .willReturn(Optional.empty());
 
-        // Then
+        // when
+        ChallengeStatus result = resultQueryService.getLatestStatus(memberId, challengeId);
+
+        // then
         assertThat(result).isEqualTo(ChallengeStatus.NOT_SUBMITTED);
     }
 }
