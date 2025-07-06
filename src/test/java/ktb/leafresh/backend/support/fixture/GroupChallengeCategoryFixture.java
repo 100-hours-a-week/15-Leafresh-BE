@@ -19,7 +19,6 @@ public class GroupChallengeCategoryFixture {
      */
     public static GroupChallengeCategory of(GroupChallengeCategoryName categoryName) {
         return GroupChallengeCategory.builder()
-                // ID는 설정하지 않음 (Best Practice #2)
                 .groupChallenges(Collections.emptyList())
                 .name(categoryName.name())
                 .imageUrl(GroupChallengeCategoryName.getImageUrl(categoryName.name()))
@@ -33,7 +32,6 @@ public class GroupChallengeCategoryFixture {
      */
     public static GroupChallengeCategory of(String name) {
         return GroupChallengeCategory.builder()
-                // ID는 설정하지 않음
                 .groupChallenges(Collections.emptyList())
                 .name(name)
                 .imageUrl("https://dummy.image/category/" + name.toLowerCase() + ".png")
