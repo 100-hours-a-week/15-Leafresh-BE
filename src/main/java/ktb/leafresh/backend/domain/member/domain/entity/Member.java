@@ -2,6 +2,7 @@ package ktb.leafresh.backend.domain.member.domain.entity;
 
 import ktb.leafresh.backend.domain.challenge.group.domain.entity.GroupChallenge;
 import ktb.leafresh.backend.domain.challenge.group.domain.entity.GroupChallengeParticipantRecord;
+import ktb.leafresh.backend.domain.feedback.domain.entity.FeedbackFailureLog;
 import ktb.leafresh.backend.domain.store.order.domain.entity.PurchaseFailureLog;
 import ktb.leafresh.backend.domain.store.order.domain.entity.PurchaseIdempotencyKey;
 import ktb.leafresh.backend.domain.verification.domain.entity.Comment;
@@ -85,6 +86,9 @@ public class Member extends BaseEntity {
 
     @OneToMany(mappedBy = "member", cascade = CascadeType.ALL)
     private List<VerificationFailureLog> verificationFailureLogs = new ArrayList<>();
+
+    @OneToMany(mappedBy = "member", cascade = CascadeType.ALL)
+    private List<FeedbackFailureLog> feedbackFailureLogs = new ArrayList<>();
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
