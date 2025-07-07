@@ -4,8 +4,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import ktb.leafresh.backend.domain.feedback.application.assembler.FeedbackDtoAssembler;
-import ktb.leafresh.backend.domain.feedback.infrastructure.client.FeedbackCreationClient;
 import ktb.leafresh.backend.domain.feedback.infrastructure.dto.request.AiFeedbackCreationRequestDto;
+import ktb.leafresh.backend.domain.feedback.infrastructure.publisher.GcpAiFeedbackPubSubPublisher;
 import ktb.leafresh.backend.domain.member.domain.entity.Member;
 import ktb.leafresh.backend.domain.member.infrastructure.repository.MemberRepository;
 import ktb.leafresh.backend.global.exception.CustomException;
@@ -25,12 +25,13 @@ public class FeedbackCommandService {
 
     private final MemberRepository memberRepository;
     private final FeedbackDtoAssembler dtoAssembler;
-    private final FeedbackCreationClient feedbackCreationClient;
+//    private final FeedbackCreationClient feedbackCreationClient;
+    private final GcpAiFeedbackPubSubPublisher feedbackPublisher;
     private final ObjectMapper objectMapper;
 
     public void handleFeedbackCreationRequest(Long memberId) {
         log.info("[피드백 생성 요청 시작] memberId={}", memberId);
-        log.info("주입된 FeedbackCreationClient 구현체 = {}", feedbackCreationClient.getClass().getName());
+//        log.info("주입된 FeedbackCreationClient 구현체 = {}", feedbackCreationClient.getClass().getName());
 
         Member member = validateMember(memberId);
 
@@ -62,7 +63,8 @@ public class FeedbackCommandService {
 
             log.info("[AI 요청 전송 request body]\n{}", prettyJson);
 
-            feedbackCreationClient.requestWeeklyFeedback(requestDto);
+//            feedbackCreationClient.requestWeeklyFeedback(requestDto);
+            feedbackPublisher.publishAsyncWithRetry(requestDto);
             log.info("[피드백 요청 완료] memberId={}", memberId);
         } catch (JsonProcessingException e) {
             log.error("[JSON 변환 실패]", e);
