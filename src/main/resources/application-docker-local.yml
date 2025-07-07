@@ -27,6 +27,7 @@ gcp:
     location: classpath:${GCP_CREDENTIALS_LOCATION}
   storage:
     bucket: ${GCP_STORAGE_BUCKET}
+    lock-image-url: ${LOCK_IMAGE_URL}
   pubsub:
     topics:
       order: ${GCP_PUBSUB_TOPIC_ORDER}
