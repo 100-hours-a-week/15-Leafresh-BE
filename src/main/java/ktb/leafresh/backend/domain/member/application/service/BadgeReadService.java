@@ -12,6 +12,7 @@ import ktb.leafresh.backend.global.exception.MemberErrorCode;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -25,7 +26,8 @@ public class BadgeReadService {
     private final BadgeRepository badgeRepository;
     private final MemberRepository memberRepository;
 
-    private static final String LOCK_IMAGE_URL = "https://storage.googleapis.com/leafresh-images/init/badge/common/%E1%84%8C%E1%85%A1%E1%84%86%E1%85%AE%E1%86%AF%E1%84%89%E1%85%AC.png";
+    @Value("${gcp.storage.lock-image-url}")
+    private String lockImageUrl;
 
     public BadgeListResponseDto getAllBadges(Long memberId) {
         log.debug("[뱃지 목록 조회] 요청 시작 - memberId: {}", memberId);
@@ -51,7 +53,7 @@ public class BadgeReadService {
             for (Badge badge : allBadges) {
                 boolean isLocked = !acquiredBadgeIds.contains(badge.getId());
 
-                BadgeResponseDto dto = BadgeResponseDto.of(badge, isLocked, LOCK_IMAGE_URL);
+                BadgeResponseDto dto = BadgeResponseDto.of(badge, isLocked, lockImageUrl);
                 grouped.computeIfAbsent(badge.getType(), k -> new ArrayList<>()).add(dto);
             }
 
