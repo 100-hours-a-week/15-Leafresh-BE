@@ -24,7 +24,7 @@ public class PubSubPublisherConfig {
         TopicName topicName = TopicName.of(projectId, topicId);
 
         return Publisher.newBuilder(topicName)
-                .setCredentialsProvider(() -> GoogleCredentials.getApplicationDefault())
+                .setCredentialsProvider(GoogleCredentials::getApplicationDefault)
                 .build();
     }
 
@@ -36,7 +36,19 @@ public class PubSubPublisherConfig {
         TopicName topicName = TopicName.of(projectId, topicId);
 
         return Publisher.newBuilder(topicName)
-                .setCredentialsProvider(() -> GoogleCredentials.getApplicationDefault())
+                .setCredentialsProvider(GoogleCredentials::getApplicationDefault)
+                .build();
+    }
+
+    @Bean(name = "feedbackPubSubPublisher")
+    public Publisher feedbackPubSubPublisher() throws IOException {
+        String projectId = environment.getProperty("gcp.project-id");
+        String topicId = environment.getProperty("gcp.pubsub.topics.feedback");
+
+        TopicName topicName = TopicName.of(projectId, topicId);
+
+        return Publisher.newBuilder(topicName)
+                .setCredentialsProvider(GoogleCredentials::getApplicationDefault)
                 .build();
     }
 }
