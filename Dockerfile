@@ -10,7 +10,11 @@ RUN gradle build --no-daemon
 # 2단계: 실행 스테이지
 FROM eclipse-temurin:21-jre-alpine
 
-RUN curl -sSL https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases/latest/download/opentelemetry-javaagent.jar
+# curl 설치 및 OpenTelemetry Java Agent 다운로드
+RUN apk add --no-cache curl && \
+    mkdir -p /opt/otel && \
+    curl -sSL https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases/latest/download/opentelemetry-javaagent.jar \
+         -o /opt/otel/opentelemetry-javaagent.jar
 
 WORKDIR /app
 
