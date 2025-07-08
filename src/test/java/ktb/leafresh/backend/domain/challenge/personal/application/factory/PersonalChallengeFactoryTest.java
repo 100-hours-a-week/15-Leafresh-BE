@@ -48,6 +48,6 @@ class PersonalChallengeFactoryTest {
         assertThat(result.getImageUrl()).isEqualTo(dto.thumbnailImageUrl());
         assertThat(result.getVerificationStartTime()).isEqualTo(dto.verificationStartTime());
         assertThat(result.getVerificationEndTime()).isEqualTo(dto.verificationEndTime());
-        assertThat(result.getLeafReward()).isEqualTo(30);
+        assertThat(result.getLeafReward()).isEqualTo(200);
     }
 }

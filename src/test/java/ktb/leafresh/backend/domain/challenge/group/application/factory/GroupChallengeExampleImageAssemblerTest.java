@@ -55,7 +55,7 @@ class GroupChallengeExampleImageAssemblerTest {
                 "제로웨이스트 챌린지",
                 "일회용품 줄이기",
                 "ZERO_WASTE",
-                30,
+                200,
                 "https://thumbnail.jpg",
                 OffsetDateTime.now(),
                 OffsetDateTime.now().plusDays(7),

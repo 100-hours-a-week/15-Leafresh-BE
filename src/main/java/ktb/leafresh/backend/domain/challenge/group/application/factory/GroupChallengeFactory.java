@@ -32,7 +32,7 @@ public class GroupChallengeFactory {
                 .verificationEndTime(dto.verificationEndTime())
                 .maxParticipantCount(dto.maxParticipantCount())
                 .currentParticipantCount(0)
-                .leafReward(30)
+                .leafReward(200)
                 .build();
     }
 }

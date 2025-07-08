@@ -81,7 +81,7 @@ class GroupChallengeFactoryTest {
         assertThat(result.getVerificationEndTime()).isEqualTo(dto.verificationEndTime());
         assertThat(result.getMaxParticipantCount()).isEqualTo(dto.maxParticipantCount());
         assertThat(result.getCurrentParticipantCount()).isZero(); // 초기값 0
-        assertThat(result.getLeafReward()).isEqualTo(30); // 고정값
+        assertThat(result.getLeafReward()).isEqualTo(200); // 고정값
     }
 
     @Test

@@ -143,7 +143,7 @@ public class PersonalChallengeInitializer implements CommandLineRunner {
                             .title(seed.title())
                             .description(seed.description())
                             .imageUrl(seed.thumbnail())
-                            .leafReward(30)
+                            .leafReward(200)
                             .dayOfWeek(day)
                             .verificationStartTime(LocalTime.of(6, 0))
                             .verificationEndTime(LocalTime.of(23, 0))
