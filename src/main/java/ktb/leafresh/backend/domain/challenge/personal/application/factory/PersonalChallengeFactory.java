@@ -18,7 +18,7 @@ public class PersonalChallengeFactory {
                 .imageUrl(dto.thumbnailImageUrl())
                 .verificationStartTime(dto.verificationStartTime())
                 .verificationEndTime(dto.verificationEndTime())
-                .leafReward(30)
+                .leafReward(200)
                 .build();
     }
 }

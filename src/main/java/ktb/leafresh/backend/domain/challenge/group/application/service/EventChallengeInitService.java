@@ -79,7 +79,7 @@ public class EventChallengeInitService {
                             .imageUrl(seed.thumbnail())
                             .title(titleWithYear)
                             .description(seed.description())
-                            .leafReward(30)
+                            .leafReward(200)
                             .startDate(start.atStartOfDay())
                             .endDate(end.atTime(23, 59, 59))
                             .verificationStartTime(LocalTime.of(6, 0))
