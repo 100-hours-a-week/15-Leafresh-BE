@@ -300,6 +300,9 @@ jobs:
               exit 1
             fi
             
+            # signoz 키 전달
+            echo "SIGNOZ_INGESTION_KEY=${{ secrets.SIGNOZ_INGESTION_KEY}}" >> ~/env-be-dev.tmp
+            
             # 권한 수정 후 앱 디렉토리로 이동
             sudo mv ~/env-be-dev.tmp /home/ubuntu/backend/app/.env
             sudo chown ubuntu:ubuntu /home/ubuntu/backend/app/.env
