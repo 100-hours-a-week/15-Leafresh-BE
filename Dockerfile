@@ -10,7 +10,7 @@ RUN gradle build --no-daemon
 # 2단계: 실행 스테이지
 FROM eclipse-temurin:21-jre-alpine
 
-RUN curl -sSL wget https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases/latest/download/opentelemetry-javaagent.jar
+RUN curl -sSL https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases/latest/download/opentelemetry-javaagent.jar
 
 WORKDIR /app
 
