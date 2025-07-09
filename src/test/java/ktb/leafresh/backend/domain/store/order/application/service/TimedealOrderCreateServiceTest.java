@@ -50,6 +50,9 @@ class TimedealOrderCreateServiceTest {
     @Mock
     private ProductCacheLockFacade productCacheLockFacade;
 
+    @Mock
+    private PointService pointService;
+
     @InjectMocks
     private TimedealOrderCreateService service;
 
@@ -88,6 +91,7 @@ class TimedealOrderCreateServiceTest {
 
         given(memberRepository.findById(memberId)).willReturn(Optional.of(member));
         given(timedealPolicyRepository.findById(dealId)).willReturn(Optional.of(policy));
+        given(pointService.hasEnoughPoints(eq(memberId), anyInt())).willReturn(true);
         given(stockRedisLuaService.decreaseStock(anyString(), eq(quantity))).willReturn(1L);
         willDoNothing().given(productCacheLockFacade).updateSingleTimedealCache(policy);
 
@@ -136,6 +140,7 @@ class TimedealOrderCreateServiceTest {
         given(memberRepository.findById(anyLong())).willReturn(Optional.of(member));
         given(idempotencyRepository.save(any())).willReturn(null);
         given(timedealPolicyRepository.findById(anyLong())).willReturn(Optional.of(policy));
+        given(pointService.hasEnoughPoints(eq(1L), anyInt())).willReturn(true);
         given(stockRedisLuaService.decreaseStock(anyString(), anyInt())).willReturn(-2L);
 
         // when & then
@@ -174,6 +179,7 @@ class TimedealOrderCreateServiceTest {
         given(memberRepository.findById(anyLong())).willReturn(Optional.of(member));
         given(idempotencyRepository.save(any())).willReturn(null);
         given(timedealPolicyRepository.findById(anyLong())).willReturn(Optional.of(policy));
+        given(pointService.hasEnoughPoints(eq(1L), anyInt())).willReturn(true);
         given(stockRedisLuaService.decreaseStock(anyString(), anyInt())).willReturn(-1L);
 
         // when & then
