@@ -32,6 +32,7 @@ public class TimedealOrderCreateService {
     private final StockRedisLuaService stockRedisLuaService;
     private final PurchaseMessagePublisher purchaseMessagePublisher;
     private final ProductCacheLockFacade productCacheLockFacade;
+    private final PointService pointService;
 
     @DistributedLock(key = "'timedeal:stock:' + #dealId", waitTime = 0, leaseTime = 3)
     @Transactional
@@ -54,10 +55,17 @@ public class TimedealOrderCreateService {
         // 4. 구매 가능 시간 검증
         LocalDateTime now = LocalDateTime.now();
         if (now.isBefore(policy.getStartTime()) || now.isAfter(policy.getEndTime())) {
-            throw new CustomException(ProductErrorCode.INVALID_STATUS, "현재는 구매할 수 없는 시간입니다.");
+            throw new CustomException(TimedealErrorCode.INVALID_STATUS);
         }
 
-        // 5. 재고 선점 (Redis Lua)
+        // 5. 보유 포인트 검증
+        int totalPrice = policy.getDiscountedPrice() * quantity;
+        if (!pointService.hasEnoughPoints(memberId, totalPrice)) {
+            log.warn("[타임딜 포인트 부족] memberId={}, totalPrice={}", memberId, totalPrice);
+            throw new CustomException(PurchaseErrorCode.INSUFFICIENT_POINTS);
+        }
+
+        // 6. 재고 선점 (Redis Lua)
         String redisKey = ProductCacheKeys.timedealStock(dealId);
         Long result = stockRedisLuaService.decreaseStock(redisKey, quantity);
 

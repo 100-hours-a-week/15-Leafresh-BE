@@ -34,12 +34,26 @@ import org.springframework.dao.DataIntegrityViolationException;
 @ExtendWith(MockitoExtension.class)
 class ProductOrderCreateServiceTest {
 
-    @Mock private MemberRepository memberRepository;
-    @Mock private ProductRepository productRepository;
-    @Mock private PurchaseIdempotencyKeyRepository idempotencyRepository;
-    @Mock private StockRedisLuaService stockRedisLuaService;
-    @Mock private PurchaseMessagePublisher purchaseMessagePublisher;
-    @Mock private ProductCacheLockFacade productCacheLockFacade;
+    @Mock
+    private MemberRepository memberRepository;
+
+    @Mock
+    private ProductRepository productRepository;
+
+    @Mock
+    private PurchaseIdempotencyKeyRepository idempotencyRepository;
+
+    @Mock
+    private StockRedisLuaService stockRedisLuaService;
+
+    @Mock
+    private PurchaseMessagePublisher purchaseMessagePublisher;
+
+    @Mock
+    private ProductCacheLockFacade productCacheLockFacade;
+
+    @Mock
+    private PointService pointService;
 
     @InjectMocks
     private ProductOrderCreateService productOrderCreateService;
@@ -63,6 +77,7 @@ class ProductOrderCreateServiceTest {
             // given
             given(memberRepository.findById(1L)).willReturn(Optional.of(member));
             given(productRepository.findById(10L)).willReturn(Optional.of(product));
+            given(pointService.hasEnoughPoints(eq(1L), anyInt())).willReturn(true);
             given(stockRedisLuaService.decreaseStock("stock:product:10", 1)).willReturn(1L);
 
             // when
@@ -115,6 +130,7 @@ class ProductOrderCreateServiceTest {
         void create_redisReturnsMinusOne() {
             given(memberRepository.findById(1L)).willReturn(Optional.of(member));
             given(productRepository.findById(10L)).willReturn(Optional.of(product));
+            given(pointService.hasEnoughPoints(eq(1L), anyInt())).willReturn(true);
             given(stockRedisLuaService.decreaseStock(any(), anyInt())).willReturn(-1L);
 
             assertThatThrownBy(() ->
@@ -128,6 +144,7 @@ class ProductOrderCreateServiceTest {
         void create_redisReturnsMinusTwo() {
             given(memberRepository.findById(1L)).willReturn(Optional.of(member));
             given(productRepository.findById(10L)).willReturn(Optional.of(product));
+            given(pointService.hasEnoughPoints(eq(1L), anyInt())).willReturn(true);
             given(stockRedisLuaService.decreaseStock(any(), anyInt())).willReturn(-2L);
 
             assertThatThrownBy(() ->
