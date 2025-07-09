@@ -42,7 +42,7 @@ public class PurchaseMessageSubscriber {
             // DLQ 대상이면 더 이상 처리하지 않고 ack() 후 종료
             if (attempt != null && attempt >= 5) {
                 log.warn("[deliveryAttempt {}] DLQ 대상 - nack 처리하여 DLQ로 이동 시도", attempt);
-                consumer.nack(); // GCP가 DLQ로 이동시킴
+                consumer.ack(); // GCP가 DLQ로 이동시킴
                 return;
             }
 

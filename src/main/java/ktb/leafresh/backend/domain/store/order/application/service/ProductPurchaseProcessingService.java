@@ -38,23 +38,32 @@ public class ProductPurchaseProcessingService {
     @Transactional
     public void process(PurchaseCommand cmd) {
         try {
+            // 회원 조회
             Member member = memberRepository.findById(cmd.memberId())
                     .orElseThrow(() -> new CustomException(MemberErrorCode.MEMBER_NOT_FOUND));
 
+            // 상품 조회
             Product product = productRepository.findById(cmd.productId())
                     .orElseThrow(() -> new CustomException(ProductErrorCode.PRODUCT_NOT_FOUND));
 
-            Optional<TimedealPolicy> timedealOpt = Optional.empty();
+            // 타임딜 정책 조회 (선택적)
+            TimedealPolicy timedealPolicy = null;
             if (cmd.timedealPolicyId() != null) {
-                timedealOpt = timedealPolicyRepository.findById(cmd.timedealPolicyId())
-                        .filter(policy -> policy.getDeletedAt() == null);
-            } else {
-                timedealOpt = product.getPurchasableTimedealPolicy(LocalDateTime.now());
+                timedealPolicy = timedealPolicyRepository.findById(cmd.timedealPolicyId())
+                        .filter(policy -> policy.getDeletedAt() == null)
+                        .orElseThrow(() -> new CustomException(TimedealErrorCode.TIMEDEAL_POLICY_NOT_FOUND));
+
+                // 타임딜 정책과 상품이 일치하지 않으면 예외
+                if (!timedealPolicy.getProduct().getId().equals(product.getId())) {
+                    throw new CustomException(TimedealErrorCode.INVALID_PRODUCT_FOR_TIMEDEAL);
+                }
             }
 
-            int unitPrice = timedealOpt.map(TimedealPolicy::getDiscountedPrice).orElse(product.getPrice());
-            PurchaseType purchaseType = timedealOpt.isPresent() ? PurchaseType.TIMEDEAL : PurchaseType.NORMAL;
+            // 단가 및 구매 유형 결정
+            int unitPrice = (timedealPolicy != null) ? timedealPolicy.getDiscountedPrice() : product.getPrice();
+            PurchaseType purchaseType = (timedealPolicy != null) ? PurchaseType.TIMEDEAL : PurchaseType.NORMAL;
 
+            // 구매 컨텍스트 생성 및 처리
             PurchaseProcessContext context = new PurchaseProcessContext(
                     member, product, cmd.quantity(), unitPrice, purchaseType
             );
