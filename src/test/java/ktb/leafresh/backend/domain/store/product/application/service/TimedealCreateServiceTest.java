@@ -60,13 +60,15 @@ class TimedealCreateServiceTest {
         // given
         Product product = ProductFixture.createDefaultProduct();
         ReflectionTestUtils.setField(product, "id", 1L);
+        int stock = 1000;
 
         TimedealCreateRequestDto dto = new TimedealCreateRequestDto(
                 product.getId(),
                 FIXED_START,
                 FIXED_END,
                 2000,
-                33
+                33,
+                stock
         );
 
         given(productRepository.findById(product.getId())).willReturn(Optional.of(product));
@@ -82,7 +84,7 @@ class TimedealCreateServiceTest {
 
         // then
         assertThat(response.dealId()).isEqualTo(10L);
-        verify(productCacheLockFacade).cacheTimedealStock(eq(10L), eq(product.getStock()), eq(FIXED_END.toLocalDateTime()));
+        verify(productCacheLockFacade).cacheTimedealStock(eq(10L), eq(stock), eq(FIXED_END.toLocalDateTime()));
         verify(productCacheLockFacade).updateSingleTimedealCache(any());
         verify(eventPublisher).publishEvent(eventCaptor.capture());
 
@@ -96,7 +98,9 @@ class TimedealCreateServiceTest {
     void createTimedeal_fail_productNotFound() {
         // given
         Long invalidProductId = 999L;
-        TimedealCreateRequestDto dto = new TimedealCreateRequestDto(invalidProductId, FIXED_START, FIXED_END, 2000, 20);
+        TimedealCreateRequestDto dto = new TimedealCreateRequestDto(
+                invalidProductId, FIXED_START, FIXED_END, 2000, 20, 100
+        );
         given(productRepository.findById(invalidProductId)).willReturn(Optional.empty());
 
         // when
@@ -104,7 +108,7 @@ class TimedealCreateServiceTest {
 
         // then
         assertThat(exception.getErrorCode()).isEqualTo(TimedealErrorCode.PRODUCT_NOT_FOUND);
-        assertThat(exception.getMessage()).isEqualTo(TimedealErrorCode.PRODUCT_NOT_FOUND.getMessage()); // ✅ 하드코딩 제거
+        assertThat(exception.getMessage()).isEqualTo(TimedealErrorCode.PRODUCT_NOT_FOUND.getMessage());
     }
 
     @Test
@@ -114,7 +118,9 @@ class TimedealCreateServiceTest {
         ReflectionTestUtils.setField(product, "id", 1L);
         Long productId = product.getId();
 
-        TimedealCreateRequestDto dto = new TimedealCreateRequestDto(productId, FIXED_END, FIXED_START, 2000, 20);
+        TimedealCreateRequestDto dto = new TimedealCreateRequestDto(
+                productId, FIXED_END, FIXED_START, 2000, 20, 500
+        );
         when(productRepository.findById(productId)).thenReturn(Optional.of(product));
 
         CustomException exception = catchThrowableOfType(() -> service.create(dto), CustomException.class);
@@ -130,7 +136,9 @@ class TimedealCreateServiceTest {
         Product product = ProductFixture.createDefaultProduct();
         ReflectionTestUtils.setField(product, "id", 1L);
 
-        TimedealCreateRequestDto dto = new TimedealCreateRequestDto(product.getId(), FIXED_START, FIXED_END, 2000, 20);
+        TimedealCreateRequestDto dto = new TimedealCreateRequestDto(
+                product.getId(), FIXED_START, FIXED_END, 2000, 20, 300
+        );
         given(productRepository.findById(product.getId())).willReturn(Optional.of(product));
         given(timedealPolicyRepository.existsByProductIdAndTimeOverlap(anyLong(), any(), any())).willReturn(true);
 
@@ -148,7 +156,9 @@ class TimedealCreateServiceTest {
         ReflectionTestUtils.setField(product, "id", 1L);
         Long productId = product.getId();
 
-        TimedealCreateRequestDto dto = new TimedealCreateRequestDto(productId, FIXED_START, FIXED_END, 2000, 20);
+        TimedealCreateRequestDto dto = new TimedealCreateRequestDto(
+                productId, FIXED_START, FIXED_END, 2000, 20, 150
+        );
         when(productRepository.findById(productId)).thenReturn(Optional.of(product));
         when(timedealPolicyRepository.existsByProductIdAndTimeOverlap(eq(productId), any(), any()))
                 .thenReturn(false);
