@@ -21,5 +21,9 @@ public record TimedealCreateRequestDto(
 
         @NotNull(message = "할인율은 필수입니다.")
         @Min(value = 1, message = "할인율은 1 이상이어야 합니다.")
-        Integer discountedPercentage
+        Integer discountedPercentage,
+
+        @NotNull(message = "재고는 필수입니다.")
+        @Min(value = 1, message = "재고는 1 이상이어야 합니다.")
+        Integer stock
 ) {}

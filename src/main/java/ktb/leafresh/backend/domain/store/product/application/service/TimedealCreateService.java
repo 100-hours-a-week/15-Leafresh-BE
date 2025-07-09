@@ -49,7 +49,7 @@ public class TimedealCreateService {
                 .product(product)
                 .discountedPrice(dto.discountedPrice())
                 .discountedPercentage(dto.discountedPercentage())
-                .stock(product.getStock())
+                .stock(dto.stock())
                 .startTime(dto.startTime().toLocalDateTime())
                 .endTime(dto.endTime().toLocalDateTime())
                 .build();
