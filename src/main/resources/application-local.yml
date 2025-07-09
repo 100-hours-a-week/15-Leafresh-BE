@@ -40,13 +40,19 @@ gcp:
     location: classpath:${GCP_CREDENTIALS_LOCATION}
   storage:
     bucket: ${GCP_STORAGE_BUCKET}
+    lock-image-url: ${LOCK_IMAGE_URL}
   pubsub:
     topics:
       order: ${GCP_PUBSUB_TOPIC_ORDER}
       image-verification: ${GCP_PUBSUB_TOPIC_IMAGE_VERIFICATION}
+      feedback: ${GCP_PUBSUB_TOPIC_FEEDBACK}
     subscriptions:
       order: ${GCP_PUBSUB_SUBSCRIPTION_ORDER}
       dlq: ${GCP_PUBSUB_SUBSCRIPTION_ORDER_DLQ}
+      image-verification-result: ${GCP_PUBSUB_SUBSCRIPTION_IMAGE_VERIFICATION_RESULT}
+      verification-dlq: ${GCP_PUBSUB_SUBSCRIPTION_IMAGE_VERIFICATION_RESULT_DLQ}
+      feedback-result: ${GCP_PUBSUB_SUBSCRIPTION_FEEDBACK_RESULT}
+      feedback-result-dlq: ${GCP_PUBSUB_SUBSCRIPTION_FEEDBACK_DLQ}
 
 logging:
   level:
