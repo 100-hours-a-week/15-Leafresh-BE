@@ -101,6 +101,10 @@ class ProductPurchaseProcessingServiceTest {
         // given
         PurchaseCommand cmd = new PurchaseCommand(MEMBER_ID, PRODUCT_ID, TIMEDEAL_ID, QUANTITY, "key", null);
 
+        ReflectionTestUtils.setField(product, "id", PRODUCT_ID);
+        ReflectionTestUtils.setField(timedeal, "id", TIMEDEAL_ID);
+        ReflectionTestUtils.setField(timedeal, "product", product);
+
         given(memberRepository.findById(MEMBER_ID)).willReturn(Optional.of(member));
         given(productRepository.findById(PRODUCT_ID)).willReturn(Optional.of(product));
         given(timedealPolicyRepository.findById(TIMEDEAL_ID)).willReturn(Optional.of(timedeal));
