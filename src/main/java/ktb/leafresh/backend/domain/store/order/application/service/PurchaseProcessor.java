@@ -40,37 +40,60 @@ public class PurchaseProcessor {
 
     @Transactional
     public void process(PurchaseProcessContext context) {
+        log.debug("[검증] 재고 및 포인트 확인");
+        if (context.purchaseType() == PurchaseType.TIMEDEAL) {
+            processTimedealPurchase(context);
+        } else {
+            processNormalPurchase(context);
+        }
+    }
+
+    private void processTimedealPurchase(PurchaseProcessContext context) {
+        Member member = context.member();
+        Product product = context.product();
+        int quantity = context.quantity();
+        int totalPrice = context.totalPrice();
+
+        TimedealPolicy policy = product.getTimedealPolicies().stream()
+                .filter(p -> !p.isDeleted()
+                        && p.getStartTime().isBefore(LocalDateTime.now())
+                        && p.getEndTime().isAfter(LocalDateTime.now()))
+                .findFirst()
+                .orElseThrow(() -> new CustomException(ProductErrorCode.PRODUCT_NOT_FOUND));
+
+        policy.decreaseStock(quantity);
+        timedealPolicyRepository.save(policy); // dirty checking 우회
+
+        finalizePurchase(context, policy);
+        updateTimedealCache(product, policy);
+    }
+
+    private void processNormalPurchase(PurchaseProcessContext context) {
+        Product product = context.product();
+        int quantity = context.quantity();
+
+        product.decreaseStock(quantity);
+        productRepository.save(product); // dirty checking 방지
+
+        finalizePurchase(context, null);
+    }
+
+    private void finalizePurchase(PurchaseProcessContext context, TimedealPolicy policy) {
         Member member = context.member();
         Product product = context.product();
         int totalPrice = context.totalPrice();
-        int quantity = context.quantity();
 
-        log.debug("[검증] 재고 및 포인트 확인");
-        TimedealPolicy policy = null;
-        if (context.purchaseType() == PurchaseType.TIMEDEAL) {
-            // 타임딜일 경우 TimedealPolicy의 stock을 차감해야 함
-            policy = product.getTimedealPolicies().stream()
-                    .filter(p -> !p.isDeleted() && p.getStartTime().isBefore(LocalDateTime.now()) && p.getEndTime().isAfter(LocalDateTime.now()))
-                    .findFirst()
-                    .orElseThrow(() -> new CustomException(ProductErrorCode.PRODUCT_NOT_FOUND));
-            policy.decreaseStock(quantity);
-            timedealPolicyRepository.save(policy); // dirty checking 우회를 위한 명시적 save
-        } else {
-            product.decreaseStock(quantity);
+        if (member.getCurrentLeafPoints() < totalPrice) {
+            throw new CustomException(PurchaseErrorCode.INSUFFICIENT_POINTS);
         }
 
-        if (member.getCurrentLeafPoints() < totalPrice)
-            throw new CustomException(PurchaseErrorCode.INSUFFICIENT_POINTS);
-
-        log.debug("[차감] 포인트 및 재고 차감");
+        log.debug("[차감] 포인트 차감 및 구매 저장");
         member.updateCurrentLeafPoints(member.getCurrentLeafPoints() - totalPrice);
-        productRepository.save(product); // dirty checking 방지
 
-        log.debug("[저장] 구매 정보 저장");
         ProductPurchase purchase = ProductPurchase.builder()
                 .member(member)
                 .product(product)
-                .quantity(quantity)
+                .quantity(context.quantity())
                 .price(context.unitPrice())
                 .type(context.purchaseType())
                 .purchasedAt(LocalDateTime.now())
@@ -85,17 +108,17 @@ public class PurchaseProcessor {
 
         log.info("[구매 처리 완료] memberId={}, productId={}, price={}, points left={}",
                 member.getId(), product.getId(), totalPrice, member.getCurrentLeafPoints());
+    }
 
-        if (context.purchaseType() == PurchaseType.TIMEDEAL && policy != null) {
-            String itemKey = "store:products:timedeal:item:" + policy.getId();
-            try {
-                var cacheDto = TimedealProductSummaryCacheDtoMapper.from(product, policy);
-                String json = objectMapper.writeValueAsString(cacheDto);
-                redisTemplate.opsForValue().set(itemKey, json);
-                log.debug("[Redis] 단건 캐시 갱신 완료 - key={}, stock={}", itemKey, cacheDto.stock());
-            } catch (JsonProcessingException e) {
-                log.error("[Redis] 단건 캐시 직렬화 실패 - policyId={}", policy.getId(), e);
-            }
+    private void updateTimedealCache(Product product, TimedealPolicy policy) {
+        String itemKey = "store:products:timedeal:item:" + policy.getId();
+        try {
+            var cacheDto = TimedealProductSummaryCacheDtoMapper.from(product, policy);
+            String json = objectMapper.writeValueAsString(cacheDto);
+            redisTemplate.opsForValue().set(itemKey, json);
+            log.debug("[Redis] 단건 캐시 갱신 완료 - key={}, stock={}", itemKey, cacheDto.stock());
+        } catch (JsonProcessingException e) {
+            log.error("[Redis] 단건 캐시 직렬화 실패 - policyId={}", policy.getId(), e);
         }
     }
 }
