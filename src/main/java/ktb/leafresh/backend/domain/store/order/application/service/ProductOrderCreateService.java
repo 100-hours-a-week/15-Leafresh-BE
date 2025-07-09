@@ -61,6 +61,8 @@ public class ProductOrderCreateService {
         if (result == -1) throw new CustomException(ProductErrorCode.PRODUCT_NOT_FOUND);
         if (result == -2) throw new CustomException(ProductErrorCode.OUT_OF_STOCK);
 
+        productCacheLockFacade.updateSingleProductCache(product);
+
         // 5. 메시지 큐 발행
         PurchaseCommand command = new PurchaseCommand(memberId, productId, null, quantity, idempotencyKey, LocalDateTime.now());
         purchaseMessagePublisher.publish(command);

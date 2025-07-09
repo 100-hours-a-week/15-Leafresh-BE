@@ -3,6 +3,7 @@ package ktb.leafresh.backend.domain.store.order.application.service;
 import ktb.leafresh.backend.domain.member.domain.entity.Member;
 import ktb.leafresh.backend.domain.member.infrastructure.repository.MemberRepository;
 import ktb.leafresh.backend.domain.store.order.application.dto.PurchaseCommand;
+import ktb.leafresh.backend.domain.store.order.application.facade.ProductCacheLockFacade;
 import ktb.leafresh.backend.domain.store.order.domain.entity.PurchaseIdempotencyKey;
 import ktb.leafresh.backend.domain.store.order.infrastructure.publisher.PurchaseMessagePublisher;
 import ktb.leafresh.backend.domain.store.order.infrastructure.repository.PurchaseIdempotencyKeyRepository;
@@ -30,6 +31,7 @@ public class TimedealOrderCreateService {
     private final PurchaseIdempotencyKeyRepository idempotencyRepository;
     private final StockRedisLuaService stockRedisLuaService;
     private final PurchaseMessagePublisher purchaseMessagePublisher;
+    private final ProductCacheLockFacade productCacheLockFacade;
 
     @DistributedLock(key = "'timedeal:stock:' + #dealId", waitTime = 0, leaseTime = 3)
     @Transactional
@@ -61,6 +63,8 @@ public class TimedealOrderCreateService {
 
         if (result == -1) throw new CustomException(ProductErrorCode.PRODUCT_NOT_FOUND);
         if (result == -2) throw new CustomException(ProductErrorCode.OUT_OF_STOCK);
+
+        productCacheLockFacade.updateSingleTimedealCache(policy);
 
         // 6. MQ 발행
         purchaseMessagePublisher.publish(new PurchaseCommand(
