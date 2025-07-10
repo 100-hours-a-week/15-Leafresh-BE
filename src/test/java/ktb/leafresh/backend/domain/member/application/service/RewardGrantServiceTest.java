@@ -73,15 +73,15 @@ class RewardGrantServiceTest {
     class GrantDailyLoginReward {
 
         @Test
-        @DisplayName("오늘 로그인 보상을 아직 받지 않았다면 10포인트를 지급한다")
+        @DisplayName("오늘 로그인 보상을 아직 받지 않았다면 30포인트를 지급한다")
         void grantDailyLoginReward_success() {
             // when
             rewardGrantService.grantDailyLoginReward(member);
 
             // then
-            assertThat(member.getCurrentLeafPoints()).isEqualTo(10);
-            assertThat(member.getTotalLeafPoints()).isEqualTo(10);
-            verify(rewardService).rewardLeafPoints(member, 10);
+            assertThat(member.getCurrentLeafPoints()).isEqualTo(30);
+            assertThat(member.getTotalLeafPoints()).isEqualTo(30);
+            verify(rewardService).rewardLeafPoints(member, 30);
         }
 
         @Test
