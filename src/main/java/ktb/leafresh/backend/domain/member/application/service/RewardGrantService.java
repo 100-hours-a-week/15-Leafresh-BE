@@ -13,7 +13,7 @@ import org.springframework.stereotype.Service;
 public class RewardGrantService {
 
     private static final int SIGNUP_REWARD = 1500;
-    private static final int DAILY_LOGIN_REWARD = 10;
+    private static final int DAILY_LOGIN_REWARD = 30;
     private final LeafPointCacheUpdater rewardService;
 
     public void grantLeafPoints(Member member, int points) {
