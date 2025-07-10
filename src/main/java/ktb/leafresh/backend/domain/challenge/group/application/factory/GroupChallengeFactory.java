@@ -10,6 +10,8 @@ import ktb.leafresh.backend.global.exception.CustomException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.time.ZoneId;
+
 @Component
 @RequiredArgsConstructor
 public class GroupChallengeFactory {
@@ -26,8 +28,8 @@ public class GroupChallengeFactory {
                 .title(dto.title())
                 .description(dto.description())
                 .imageUrl(dto.thumbnailImageUrl())
-                .startDate(dto.startDate().toLocalDateTime())
-                .endDate(dto.endDate().toLocalDateTime())
+                .startDate(dto.startDate().atZoneSameInstant(ZoneId.of("Asia/Seoul")).toLocalDateTime())
+                .endDate(dto.endDate().atZoneSameInstant(ZoneId.of("Asia/Seoul")).toLocalDateTime())
                 .verificationStartTime(dto.verificationStartTime())
                 .verificationEndTime(dto.verificationEndTime())
                 .maxParticipantCount(dto.maxParticipantCount())
