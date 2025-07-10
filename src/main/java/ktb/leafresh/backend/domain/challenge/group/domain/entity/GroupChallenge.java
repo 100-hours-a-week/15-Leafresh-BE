@@ -103,8 +103,8 @@ public class GroupChallenge extends BaseEntity {
         this.description = description;
         this.imageUrl = imageUrl;
         this.maxParticipantCount = maxParticipantCount;
-        this.startDate = startDate.toLocalDate().atStartOfDay();
-        this.endDate = endDate.toLocalDate().atTime(23, 59, 59);
+        this.startDate = startDate.toLocalDateTime();
+        this.endDate = endDate.toLocalDateTime();
         this.verificationStartTime = verificationStart;
         this.verificationEndTime = verificationEnd;
     }
