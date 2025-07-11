@@ -18,6 +18,7 @@ import ktb.leafresh.backend.domain.member.infrastructure.repository.TreeLevelRep
 import ktb.leafresh.backend.global.exception.CustomException;
 import ktb.leafresh.backend.global.exception.MemberErrorCode;
 import ktb.leafresh.backend.global.security.TokenProvider;
+import ktb.leafresh.backend.global.validator.NicknameValidator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -72,12 +73,7 @@ public class OAuthSignupService {
     }
 
     private void validateNickname(String nickname) {
-        if (nickname == null || nickname.trim().isEmpty()) {
-            throw new CustomException(MemberErrorCode.NICKNAME_REQUIRED);
-        }
-        if (!nickname.matches("^[a-zA-Z0-9가-힣]{1,20}$")) {
-            throw new CustomException(MemberErrorCode.NICKNAME_INVALID_FORMAT);
-        }
+        NicknameValidator.validate(nickname);
         if (nicknameCheckService.isDuplicated(nickname)) {
             throw new CustomException(MemberErrorCode.ALREADY_EXISTS);
         }

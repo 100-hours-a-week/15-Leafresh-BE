@@ -4,10 +4,9 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import ktb.leafresh.backend.domain.member.application.service.MemberNicknameCheckService;
 import ktb.leafresh.backend.domain.member.presentation.dto.response.NicknameCheckResponseDto;
-import ktb.leafresh.backend.global.exception.CustomException;
-import ktb.leafresh.backend.global.exception.MemberErrorCode;
 import ktb.leafresh.backend.global.response.ApiResponse;
 import ktb.leafresh.backend.global.response.ApiResponseConstants;
+import ktb.leafresh.backend.global.validator.NicknameValidator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -33,27 +32,12 @@ public class MemberNicknameCheckController {
     @ApiResponseConstants.ServerErrorResponses
     @GetMapping("/nickname")
     public ResponseEntity<ApiResponse<NicknameCheckResponseDto>> checkNickname(
-            @RequestParam(value = "input", required = false) String input) {
+            @RequestParam("input") String input) {
+        NicknameValidator.validate(input);
 
-        validateNickname(input);
+        boolean isDuplicated = memberNicknameCheckService.isDuplicated(input);
+        String message = isDuplicated ? "이미 사용 중인 닉네임입니다." : "사용 가능한 닉네임입니다.";
 
-        try {
-            boolean isDuplicated = memberNicknameCheckService.isDuplicated(input);
-            String message = isDuplicated ? "이미 사용 중인 닉네임입니다." : "사용 가능한 닉네임입니다.";
-
-            return ResponseEntity.ok(ApiResponse.success(message, new NicknameCheckResponseDto(isDuplicated)));
-        } catch (Exception e) {
-            throw new CustomException(MemberErrorCode.NICKNAME_CHECK_FAILED);
-        }
-    }
-
-    private void validateNickname(String input) {
-        if (input == null || input.trim().isEmpty()) {
-            throw new CustomException(MemberErrorCode.NICKNAME_REQUIRED);
-        }
-
-        if (!input.matches("^[a-zA-Z0-9가-힣]{1,20}$")) {
-            throw new CustomException(MemberErrorCode.NICKNAME_INVALID_FORMAT);
-        }
+        return ResponseEntity.ok(ApiResponse.success(message, new NicknameCheckResponseDto(isDuplicated)));
     }
 }

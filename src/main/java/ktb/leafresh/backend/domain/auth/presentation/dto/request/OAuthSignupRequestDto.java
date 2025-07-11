@@ -1,6 +1,7 @@
 package ktb.leafresh.backend.domain.auth.presentation.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import ktb.leafresh.backend.domain.auth.domain.entity.enums.OAuthProvider;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
@@ -17,6 +18,7 @@ public record OAuthSignupRequestDto(
         @Schema(description = "OAuth 제공자 정보(name: 제공자, id: 고유 ID)")
         Provider provider,
 
+        @Pattern(regexp = "^[a-zA-Z0-9가-힣]{1,20}$", message = "닉네임은 특수문자 없이 1~20자여야 합니다.")
         @NotBlank(message = "닉네임은 필수입니다.")
         @Schema(description = "회원 닉네임", example = "leafresh")
         String nickname,
