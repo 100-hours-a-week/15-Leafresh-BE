@@ -3,6 +3,8 @@ package ktb.leafresh.backend.domain.member.application.service;
 import ktb.leafresh.backend.domain.challenge.group.domain.entity.GroupChallengeParticipantRecord;
 import ktb.leafresh.backend.domain.member.application.service.updater.LeafPointCacheUpdater;
 import ktb.leafresh.backend.domain.member.domain.entity.Member;
+import ktb.leafresh.backend.domain.member.domain.entity.TreeLevel;
+import ktb.leafresh.backend.domain.member.infrastructure.repository.TreeLevelRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -15,12 +17,14 @@ public class RewardGrantService {
     private static final int SIGNUP_REWARD = 1500;
     private static final int DAILY_LOGIN_REWARD = 30;
     private final LeafPointCacheUpdater rewardService;
+    private final TreeLevelRepository treeLevelRepository;
 
     public void grantLeafPoints(Member member, int points) {
         member.addLeafPoints(points);
         rewardService.rewardLeafPoints(member, points);
-        log.info("[나뭇잎 지급] memberId={}, 지급량={}, 현재={}, 누적={}",
-                member.getId(), points, member.getCurrentLeafPoints(), member.getTotalLeafPoints());
+        updateTreeLevelIfNeeded(member);
+        log.info("[나뭇잎 지급] memberId={}, 지급량={}, 현재={}, 누적={}, 트리레벨={}",
+                member.getId(), points, member.getCurrentLeafPoints(), member.getTotalLeafPoints(), member.getTreeLevel().getName());
     }
 
     public void grantParticipationBonus(Member member, GroupChallengeParticipantRecord record) {
@@ -52,5 +56,17 @@ public class RewardGrantService {
         else if (days <= 10) return 100;
         else if (days <= 15) return 150;
         else return 200;
+    }
+
+    private void updateTreeLevelIfNeeded(Member member) {
+        TreeLevel newLevel = treeLevelRepository
+                .findFirstByMinLeafPointLessThanEqualOrderByMinLeafPointDesc(member.getTotalLeafPoints())
+                .orElseThrow(() -> new IllegalStateException("적절한 TreeLevel을 찾을 수 없습니다."));
+
+        if (!member.getTreeLevel().equals(newLevel)) {
+            TreeLevel oldLevel = member.getTreeLevel();
+            member.updateTreeLevel(newLevel);
+            log.info("[트리 레벨 변경됨] memberId={}, {} → {}", member.getId(), oldLevel.getName(), newLevel.getName());
+        }
     }
 }

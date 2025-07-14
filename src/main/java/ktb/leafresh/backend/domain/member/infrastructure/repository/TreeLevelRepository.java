@@ -11,4 +11,6 @@ public interface TreeLevelRepository extends JpaRepository<TreeLevel, Long> {
     Optional<TreeLevel> findByName(TreeLevelName name);
 
     Optional<TreeLevel> findFirstByMinLeafPointGreaterThanOrderByMinLeafPointAsc(int minLeafPoint);
+
+    Optional<TreeLevel> findFirstByMinLeafPointLessThanEqualOrderByMinLeafPointDesc(int totalLeafPoints);
 }
