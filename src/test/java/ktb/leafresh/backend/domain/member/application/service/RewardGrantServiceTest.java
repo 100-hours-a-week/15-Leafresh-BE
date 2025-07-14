@@ -4,6 +4,9 @@ import ktb.leafresh.backend.domain.challenge.group.domain.entity.GroupChallenge;
 import ktb.leafresh.backend.domain.challenge.group.domain.entity.GroupChallengeParticipantRecord;
 import ktb.leafresh.backend.domain.member.application.service.updater.LeafPointCacheUpdater;
 import ktb.leafresh.backend.domain.member.domain.entity.Member;
+import ktb.leafresh.backend.domain.member.domain.entity.TreeLevel;
+import ktb.leafresh.backend.domain.member.domain.entity.enums.TreeLevelName;
+import ktb.leafresh.backend.domain.member.infrastructure.repository.TreeLevelRepository;
 import ktb.leafresh.backend.support.fixture.MemberFixture;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -23,15 +26,24 @@ class RewardGrantServiceTest {
     @Mock
     private LeafPointCacheUpdater rewardService;
 
+    @Mock
+    private TreeLevelRepository treeLevelRepository;
+
     @InjectMocks
     private RewardGrantService rewardGrantService;
 
     private Member member;
+    private TreeLevel sprout;
+    private TreeLevel young;
 
     @BeforeEach
     void setUp() {
+        sprout = TreeLevel.builder().id(1L).name(TreeLevelName.SPROUT).minLeafPoint(0).build();
+        young = TreeLevel.builder().id(2L).name(TreeLevelName.YOUNG).minLeafPoint(2500).build();
+
         member = MemberFixture.of();
         member.updateCurrentLeafPoints(0);
+        member.updateTreeLevel(sprout);
     }
 
     @Nested
@@ -39,12 +51,34 @@ class RewardGrantServiceTest {
     class GrantLeafPoints {
 
         @Test
-        @DisplayName("지정한 포인트만큼 회원에게 나뭇잎을 지급하고 캐시에 반영한다")
-        void grantLeafPoints_success() {
+        @DisplayName("지정한 포인트만큼 회원에게 나뭇잎을 지급하고 캐시에 반영하며 트리 레벨도 갱신한다")
+        void grantLeafPoints_withTreeLevelUpgrade() {
+            // given
+            given(treeLevelRepository.findFirstByMinLeafPointLessThanEqualOrderByMinLeafPointDesc(3000))
+                    .willReturn(java.util.Optional.of(young));
+
+            // when
+            rewardGrantService.grantLeafPoints(member, 3000);
+
+            // then
+            assertThat(member.getCurrentLeafPoints()).isEqualTo(3000);
+            assertThat(member.getTotalLeafPoints()).isEqualTo(3000);
+            assertThat(member.getTreeLevel()).isEqualTo(young);
+            verify(rewardService).rewardLeafPoints(member, 3000);
+        }
+
+        @Test
+        @DisplayName("트리 레벨이 변경되지 않는 경우 기존 레벨 유지")
+        void grantLeafPoints_withoutTreeLevelUpgrade() {
+            // given
+            given(treeLevelRepository.findFirstByMinLeafPointLessThanEqualOrderByMinLeafPointDesc(500))
+                    .willReturn(java.util.Optional.of(sprout));
+
             // when
             rewardGrantService.grantLeafPoints(member, 500);
 
             // then
+            assertThat(member.getTreeLevel()).isEqualTo(sprout);
             assertThat(member.getCurrentLeafPoints()).isEqualTo(500);
             assertThat(member.getTotalLeafPoints()).isEqualTo(500);
             verify(rewardService).rewardLeafPoints(member, 500);
@@ -56,14 +90,15 @@ class RewardGrantServiceTest {
     class GrantSignupReward {
 
         @Test
-        @DisplayName("회원가입 보상으로 1500포인트를 지급한다")
+        @DisplayName("회원가입 보상으로 1500포인트를 지급하고 트리 레벨을 갱신한다")
         void grantSignupReward_success() {
-            // when
+            given(treeLevelRepository.findFirstByMinLeafPointLessThanEqualOrderByMinLeafPointDesc(1500))
+                    .willReturn(java.util.Optional.of(sprout));
+
             rewardGrantService.grantSignupReward(member);
 
-            // then
             assertThat(member.getCurrentLeafPoints()).isEqualTo(1500);
-            assertThat(member.getTotalLeafPoints()).isEqualTo(1500);
+            assertThat(member.getTreeLevel()).isEqualTo(sprout);
             verify(rewardService).rewardLeafPoints(member, 1500);
         }
     }
@@ -73,14 +108,15 @@ class RewardGrantServiceTest {
     class GrantDailyLoginReward {
 
         @Test
-        @DisplayName("오늘 로그인 보상을 아직 받지 않았다면 30포인트를 지급한다")
+        @DisplayName("오늘 로그인 보상을 아직 받지 않았다면 30포인트를 지급하고 트리 레벨을 갱신한다")
         void grantDailyLoginReward_success() {
-            // when
+            given(treeLevelRepository.findFirstByMinLeafPointLessThanEqualOrderByMinLeafPointDesc(30))
+                    .willReturn(java.util.Optional.of(sprout));
+
             rewardGrantService.grantDailyLoginReward(member);
 
-            // then
             assertThat(member.getCurrentLeafPoints()).isEqualTo(30);
-            assertThat(member.getTotalLeafPoints()).isEqualTo(30);
+            assertThat(member.hasReceivedLoginRewardToday()).isTrue();
             verify(rewardService).rewardLeafPoints(member, 30);
         }
 
@@ -88,14 +124,14 @@ class RewardGrantServiceTest {
         @DisplayName("이미 오늘 보상을 받은 경우 지급하지 않는다")
         void grantDailyLoginReward_skipIfAlreadyReceived() {
             // given
-            member.updateLastLoginRewardedAt(); // 오늘로 설정됨
+            member.updateLastLoginRewardedAt();
             int before = member.getCurrentLeafPoints();
 
             // when
             rewardGrantService.grantDailyLoginReward(member);
 
             // then
-            assertThat(member.getCurrentLeafPoints()).isEqualTo(before); // unchanged
+            assertThat(member.getCurrentLeafPoints()).isEqualTo(before);
             verify(rewardService, never()).rewardLeafPoints(any(), anyInt());
         }
     }
@@ -111,17 +147,17 @@ class RewardGrantServiceTest {
         private GroupChallenge challenge;
 
         @Test
-        @DisplayName("5일 이하 챌린지 보너스로 50포인트 지급")
+        @DisplayName("5일 이하 챌린지 보너스로 50포인트 지급 후 트리 레벨 갱신")
         void grantParticipationBonus_shortChallenge() {
-            // given
             given(record.getGroupChallenge()).willReturn(challenge);
             given(challenge.getDurationInDays()).willReturn(3);
+            given(treeLevelRepository.findFirstByMinLeafPointLessThanEqualOrderByMinLeafPointDesc(50))
+                    .willReturn(java.util.Optional.of(sprout));
 
-            // when
             rewardGrantService.grantParticipationBonus(member, record);
 
-            // then
             assertThat(member.getCurrentLeafPoints()).isEqualTo(50);
+            assertThat(member.getTreeLevel()).isEqualTo(sprout);
             verify(rewardService).rewardLeafPoints(member, 50);
         }
 
@@ -130,6 +166,8 @@ class RewardGrantServiceTest {
         void grantParticipationBonus_mediumChallenge() {
             given(record.getGroupChallenge()).willReturn(challenge);
             given(challenge.getDurationInDays()).willReturn(10);
+            given(treeLevelRepository.findFirstByMinLeafPointLessThanEqualOrderByMinLeafPointDesc(100))
+                    .willReturn(java.util.Optional.of(sprout));
 
             rewardGrantService.grantParticipationBonus(member, record);
 
@@ -142,6 +180,8 @@ class RewardGrantServiceTest {
         void grantParticipationBonus_longChallenge() {
             given(record.getGroupChallenge()).willReturn(challenge);
             given(challenge.getDurationInDays()).willReturn(15);
+            given(treeLevelRepository.findFirstByMinLeafPointLessThanEqualOrderByMinLeafPointDesc(150))
+                    .willReturn(java.util.Optional.of(sprout));
 
             rewardGrantService.grantParticipationBonus(member, record);
 
@@ -150,10 +190,12 @@ class RewardGrantServiceTest {
         }
 
         @Test
-        @DisplayName("16일 이상 챌린지 보너스로 200포인트 지급")
+        @DisplayName("16일 이상 챌린지 보너스로 200포인트 지급 후 트리 레벨 갱신")
         void grantParticipationBonus_extraLongChallenge() {
             given(record.getGroupChallenge()).willReturn(challenge);
             given(challenge.getDurationInDays()).willReturn(30);
+            given(treeLevelRepository.findFirstByMinLeafPointLessThanEqualOrderByMinLeafPointDesc(200))
+                    .willReturn(java.util.Optional.of(sprout));
 
             rewardGrantService.grantParticipationBonus(member, record);
 

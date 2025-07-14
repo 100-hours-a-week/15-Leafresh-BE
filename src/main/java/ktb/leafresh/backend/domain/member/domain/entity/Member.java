@@ -154,4 +154,8 @@ public class Member extends BaseEntity {
     public void updateCurrentLeafPoints(int newPoints) {
         this.currentLeafPoints = newPoints;
     }
+
+    public void updateTreeLevel(TreeLevel newTreeLevel) {
+        this.treeLevel = newTreeLevel;
+    }
 }
