@@ -108,6 +108,10 @@ dependencies {
 
 	// p6spy for SQL profiling
 	implementation 'com.github.gavlyukovskiy:p6spy-spring-boot-starter:1.8.0'
+
+	// AWS
+	implementation("com.amazonaws:aws-java-sdk-s3:1.12.700")
+	implementation("com.amazonaws:aws-java-sdk-sqs:1.12.700")
 }
 
 dependencyManagement {
