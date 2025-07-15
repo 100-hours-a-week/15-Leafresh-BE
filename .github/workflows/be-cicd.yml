@@ -51,7 +51,7 @@ jobs:
       - name: Set GCP Secret Name
         id: set-env-vars
         run: |
-          echo "SECRET_NAME=env.docker-local" >> $GITHUB_ENV
+          echo "SECRET_NAME=env_docker_local" >> $GITHUB_ENV
           echo "${{ secrets.ENV_BE_DEV }}" > .env
           echo "SIGNOZ_INGESTION_KEY=${{ secrets.SIGNOZ_INGESTION_KEY }}" >> .env
           
@@ -123,7 +123,7 @@ jobs:
       - name: Set GCP Secret Name based on branch
         id: set-env-vars
         run: |
-          echo "SECRET_NAME=env.docker-prod" >> $GITHUB_ENV
+          echo "SECRET_NAME=env_docker_prod" >> $GITHUB_ENV
           echo "${{ secrets.ENV_BE_PROD }}" > .env
           echo "SIGNOZ_INGESTION_KEY=${{ secrets.SIGNOZ_INGESTION_KEY }}" >> .env
 
@@ -206,7 +206,7 @@ jobs:
             echo "Secret Manager에서 .env 기져오기"
             # .env를 홈 디렉토리에 우선 저장
             if ! gcloud secrets versions access latest \
-              --secret="env.docker-local" \
+              --secret="env_docker_local" \
               --project="${{ secrets.GCP_PROJECT_ID_DEV }}" > ~/env-be-dev.tmp; then
               echo ".env 파일 다운로드 실패"
               exit 1
