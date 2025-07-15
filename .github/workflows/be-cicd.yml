@@ -9,69 +9,7 @@ on:
       - 'v*-dev'
       - 'v*'
 
-jobs:  
-  sync-gsm:
-    name: Upload .env to Secret Manager
-    if: github.event_name == 'pull_request' && github.event.action != 'closed'
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: Set GCP Secret Name based on branch
-        id: set-env-vars
-        run: |
-          if [[ "${GITHUB_REF##*/}" == "main" ]]; then
-            echo "main branch detected, Uploading env to prod..." # 메시지 수정
-            echo "GCP_PROJECT_ID=${{ secrets.GCP_PROJECT_ID_PROD }}" >> $GITHUB_ENV
-            echo "SECRET_NAME=env.docker-prod" >> $GITHUB_ENV
-            echo "${{ secrets.ENV_BE_PROD }}" > .env
-            echo "SIGNOZ_INGESTION_KEY=${{ secrets.SIGNOZ_INGESTION_KEY }}" >> .env
-            echo "gcp_project_id_output=${{ secrets.GCP_PROJECT_ID_PROD }}" >> "$GITHUB_OUTPUT"
-            echo "gcp_sa_key_json_output=${{ secrets.GCP_SA_KEY_PROD_JSON }}" >> "$GITHUB_OUTPUT"
-          else
-            echo "develop branch detected, Uploading env to dev..."
-            echo "GCP_PROJECT_ID=${{ secrets.GCP_PROJECT_ID_DEV }}" >> $GITHUB_ENV
-            echo "SECRET_NAME=env.docker-local" >> $GITHUB_ENV
-            echo "${{ secrets.ENV_BE_DEV }}" > .env
-            echo "SIGNOZ_INGESTION_KEY=${{ secrets.SIGNOZ_INGESTION_KEY }}" >> .env
-            echo "gcp_project_id_output=${{ secrets.GCP_PROJECT_ID_DEV }}" >> "$GITHUB_OUTPUT"
-            echo "gcp_sa_key_json_output=${{ secrets.GCP_SA_KEY_DEV_JSON }}" >> "$GITHUB_OUTPUT"
-          fi
-
-      - name: Authenticate to Google Cloud
-        uses: google-github-actions/auth@v2
-        with:
-          project_id: ${{ steps.set-env-vars.outputs.gcp_project_id_output }}
-          credentials_json: ${{ steps.set-env-vars.outputs.gcp_sa_key_json_output }}
-
-      - name: Setup Google Cloud SDK and Set GCP Project
-        uses: 'google-github-actions/setup-gcloud@v2'
-
-      - name: Change to Correct Project
-        run: |
-          gcloud config set project $GCP_PROJECT_ID
-
-      - name: Confirm active gcloud project
-        run: gcloud config get-value project
-
-      - name: Validate .env content
-        run: |
-          if [[ ! -s .env ]]; then
-            echo ".env file EMPTY."
-            exit 1
-          fi
-
-      - name: Push .env to Secret Manager
-        run: |
-          if gcloud secrets describe "$SECRET_NAME" >/dev/null 2>&1; then
-            echo "Secret $SECRET_NAME exists, adding new version..."
-            gcloud secrets versions add "$SECRET_NAME" --data-file=.env
-          else
-            echo "Secret $SECRET_NAME does not exist, creating..."
-            gcloud secrets create "$SECRET_NAME" --data-file=.env --replication-policy=automatic
-          fi
-
+jobs:
   unit-test:                                    # 단위 테스트를 수행하는 Job (develop 브랜치 PR 대상)
     name: Unit Test
     if: github.event_name == 'pull_request' && github.event.action != 'closed'
@@ -110,6 +48,44 @@ jobs:
     steps:
       - uses: actions/checkout@v3              # 소스코드 체크아웃
 
+      - name: Set GCP Secret Name
+        id: set-env-vars
+        run: |
+          echo "SECRET_NAME=env.docker-local" >> $GITHUB_ENV
+          echo "${{ secrets.ENV_BE_DEV }}" > .env
+          echo "SIGNOZ_INGESTION_KEY=${{ secrets.SIGNOZ_INGESTION_KEY }}" >> .env
+          
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          project_id: ${{ secrets.GCP_PROJECT_ID_DEV }}
+          credentials_json: ${{ secrets.GCP_SA_KEY_DEV_JSON }}
+
+      - name: Setup Google Cloud SDK and Set GCP Project
+        uses: 'google-github-actions/setup-gcloud@v2'
+
+      - name: Change to Correct Project
+        run: |
+          gcloud config set project ${{ secrets.GCP_PROJECT_ID_DEV }}
+      - name: Confirm active gcloud project
+        run: gcloud config get-value project
+
+      - name: Validate .env content
+        run: |
+          if [[ ! -s .env ]]; then
+            echo ".env file EMPTY."
+            exit 1
+          fi
+      - name: Push .env to Secret Manager
+        run: |
+          if gcloud secrets describe "$SECRET_NAME" >/dev/null 2>&1; then
+            echo "Secret $SECRET_NAME exists, adding new version..."
+            gcloud secrets versions add "$SECRET_NAME" --data-file=.env
+          else
+            echo "Secret $SECRET_NAME does not exist, creating..."
+            gcloud secrets create "$SECRET_NAME" --data-file=.env --replication-policy=automatic
+          fi
+
       - name: Set up Docker Buildx             # Docker Buildx 설정
         uses: docker/setup-buildx-action@v3
         with:
@@ -143,6 +119,44 @@ jobs:
         working-directory: ./
     steps:
       - uses: actions/checkout@v3              # 코드 체크아웃
+
+      - name: Set GCP Secret Name based on branch
+        id: set-env-vars
+        run: |
+          echo "SECRET_NAME=env.docker-prod" >> $GITHUB_ENV
+          echo "${{ secrets.ENV_BE_PROD }}" > .env
+          echo "SIGNOZ_INGESTION_KEY=${{ secrets.SIGNOZ_INGESTION_KEY }}" >> .env
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          project_id: ${{ secrets.GCP_PROJECT_ID_PROD }}
+          credentials_json: ${{ secrets.GCP_SA_KEY_PROD_JSON }}
+
+      - name: Setup Google Cloud SDK and Set GCP Project
+        uses: 'google-github-actions/setup-gcloud@v2'
+
+      - name: Change to Correct Project
+        run: |
+          gcloud config set project ${{ secrets.GCP_PROJECT_ID_PROD }}
+      - name: Confirm active gcloud project
+        run: gcloud config get-value project
+
+      - name: Validate .env content
+        run: |
+          if [[ ! -s .env ]]; then
+            echo ".env file EMPTY."
+            exit 1
+          fi
+      - name: Push .env to Secret Manager
+        run: |
+          if gcloud secrets describe "$SECRET_NAME" >/dev/null 2>&1; then
+            echo "Secret $SECRET_NAME exists, adding new version..."
+            gcloud secrets versions add "$SECRET_NAME" --data-file=.env
+          else
+            echo "Secret $SECRET_NAME does not exist, creating..."
+            gcloud secrets create "$SECRET_NAME" --data-file=.env --replication-policy=automatic
+          fi
 
       - name: Set up Docker Buildx             # Docker Buildx 설정
         uses: docker/setup-buildx-action@v3
@@ -189,7 +203,6 @@ jobs:
             sudo mv ~/leafresh-gcs.json /home/${{ secrets.SSH_USER }}/backend/app/leafresh-gcs.json
             sudo chown ${{ secrets.SSH_USER }}:${{ secrets.SSH_USER }} /home/${{ secrets.SSH_USER }}/backend/app/leafresh-gcs.json
             sudo chmod 600 /home/${{ secrets.SSH_USER }}/backend/app/leafresh-gcs.json
-
             echo "Secret Manager에서 .env 기져오기"
             # .env를 홈 디렉토리에 우선 저장
             if ! gcloud secrets versions access latest \
@@ -245,7 +258,6 @@ jobs:
             --zone=${{ secrets.AZ }} \
             --tunnel-through-iap \
             --command="bash -c 'cd be && ./deploy.sh'"
-
   notify:
     name: Discord Notification
     needs: [deploy-dev, deploy-prod]
@@ -275,7 +287,6 @@ jobs:
               MESSAGE="${MESSAGE}🚨 \`[FE prod]\` 배포 실패\n"
             fi
           fi
-
           if [ -z "$MESSAGE" ]; then
             MESSAGE="⚠️ 배포 상태 정보를 찾을 수 없습니다."
           fi
