@@ -1,0 +1,32 @@
+spring:
+  datasource:
+    url: jdbc:mysql://${EKS_DB_HOST}:${DB_PORT}/${EKS_DB_NAME}
+    username: ${EKS_DB_USER}
+    password: ${EKS_DB_PASSWORD}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  data:
+    redis:
+      host: ${EKS_CACHE_HOST}
+      port: ${EKS_CACHE_PORT}
+
+redis:
+  redisson:
+    address: redis://${SPRING_DATA_REDIS_HOST}:${SPRING_DATA_REDIS_PORT}
+  bloom:
+    host: ${EKS_CACHE_HOST}
+    port: ${EKS_CACHE_PORT}
+
+cookie:
+  secure: true
+  samesite: ${EKS_COOKIE_SAMESITE:None}
+  domain: ${EKS_COOKIE_DOMAIN:.leafresh.app}
+
+cloud:
+  aws:
+    credentials:
+      access-key: ${AWS_ACCESS_KEY_ID}
+      secret-key: ${AWS_SECRET_ACCESS_KEY}
+    region:
+      static: ap-northeast-2
+    stack:
+      auto: false

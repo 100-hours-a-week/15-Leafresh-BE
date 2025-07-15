@@ -43,11 +43,13 @@ out/
 .env.bigbang-prod
 .env.docker-local
 .env.docker-prod
-.env.eks-local
-.env.eks-prod
+.env.eks
 
 ### GCP ###
 leafresh-gcs.json
 leafresh-prod2-wren.json
 leafresh-prod3-be.json
 leafresh-dev2.json
+
+### AWS ###
+leafresh-v3-be-wren_accessKeys.csv
