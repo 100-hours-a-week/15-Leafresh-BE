@@ -169,4 +169,9 @@ public interface GroupChallengeVerificationRepository extends JpaRepository<Grou
 
     @Query("SELECT COUNT(g) FROM GroupChallengeVerification g")
     int countAll();
+
+    boolean existsByParticipantRecord_Member_IdAndParticipantRecord_GroupChallenge_Id(
+            Long memberId,
+            Long challengeId
+    );
 }

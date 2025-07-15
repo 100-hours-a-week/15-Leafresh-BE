@@ -17,10 +17,13 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import java.time.Clock;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -38,7 +41,22 @@ class GroupChallengeDetailReadServiceTest {
     @Mock
     private GroupChallengeVerificationRepository verificationRepository;
 
-    @InjectMocks private GroupChallengeDetailReadService groupChallengeDetailReadService;
+    @Mock
+    private Clock clock;
+
+    @InjectMocks
+    private GroupChallengeDetailReadService groupChallengeDetailReadService;
+
+    private final static LocalDateTime FIXED_NOW = LocalDateTime.of(2025, 7, 15, 10, 0);
+    private final static ZoneId KST = ZoneId.of("Asia/Seoul");
+
+    @BeforeEach
+    void setUp() {
+        Clock fixedClock = Clock.fixed(FIXED_NOW.atZone(KST).toInstant(), KST);
+        lenient().when(clock.withZone(any())).thenReturn(fixedClock);
+        lenient().when(clock.instant()).thenReturn(fixedClock.instant());
+        lenient().when(clock.getZone()).thenReturn(fixedClock.getZone());
+    }
 
     @Nested
     @DisplayName("getChallengeDetail()은")
@@ -53,26 +71,35 @@ class GroupChallengeDetailReadServiceTest {
 
             GroupChallenge challenge = GroupChallengeFixture.of(member, GroupChallengeCategoryFixture.defaultCategory());
             ReflectionTestUtils.setField(challenge, "id", 100L);
+            ReflectionTestUtils.setField(challenge, "startDate", FIXED_NOW.minusDays(1));
+            ReflectionTestUtils.setField(challenge, "endDate", FIXED_NOW.plusDays(1));
 
             GroupChallengeParticipantRecord record = GroupChallengeParticipantRecordFixture.of(challenge, member);
             GroupChallengeVerification verification = GroupChallengeVerificationFixture.of(record);
             List<GroupChallengeVerification> verifications = List.of(verification);
 
+            ZonedDateTime startUtc = FIXED_NOW.toLocalDate().atStartOfDay(KST).withZoneSameInstant(ZoneId.of("UTC"));
+            ZonedDateTime endUtc = FIXED_NOW.toLocalDate().atTime(23, 59, 59).atZone(KST).withZoneSameInstant(ZoneId.of("UTC"));
+
             given(groupChallengeRepository.findById(100L)).willReturn(Optional.of(challenge));
             given(verificationRepository.findTop9ByParticipantRecord_GroupChallenge_IdOrderByCreatedAtDesc(100L))
                     .willReturn(verifications);
-            given(verificationRepository.findTopByParticipantRecord_Member_IdAndParticipantRecord_GroupChallenge_IdOrderByCreatedAtDesc(1L, 100L))
-                    .willReturn(Optional.of(verification));
+            given(verificationRepository.existsByParticipantRecord_Member_IdAndParticipantRecord_GroupChallenge_Id(1L, 100L))
+                    .willReturn(true);
+            given(verificationRepository.findTopByParticipantRecord_Member_IdAndParticipantRecord_GroupChallenge_IdAndCreatedAtBetween(
+                    1L, 100L, startUtc.toLocalDateTime(), endUtc.toLocalDateTime()
+            )).willReturn(Optional.of(verification));
 
             // when
             GroupChallengeDetailResponseDto result = groupChallengeDetailReadService.getChallengeDetail(1L, 100L);
 
             // then
             assertThat(result).isNotNull();
-            assertThat(result.status()).isEqualTo(ChallengeStatus.SUCCESS);
-            assertThat(result.verificationImages()).containsExactly("https://dummy.image/verify.jpg");
+            assertThat(result.status()).isEqualTo(verification.getStatus());
+            assertThat(result.verificationImages()).containsExactly(verification.getImageUrl());
             assertThat(result.exampleImages()).hasSize(challenge.getExampleImages().size());
         }
+
 
         @Test
         @DisplayName("존재하지 않는 챌린지를 조회할 경우 예외를 던진다.")

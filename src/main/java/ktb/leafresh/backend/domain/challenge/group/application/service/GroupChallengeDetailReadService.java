@@ -13,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.*;
 import java.util.List;
 
 @Slf4j
@@ -23,6 +24,7 @@ public class GroupChallengeDetailReadService {
 
     private final GroupChallengeRepository groupChallengeRepository;
     private final GroupChallengeVerificationRepository verificationRepository;
+    private final Clock clock;
 
     public GroupChallengeDetailResponseDto getChallengeDetail(Long memberIdOrNull, Long challengeId) {
         try {
@@ -70,9 +72,48 @@ public class GroupChallengeDetailReadService {
             return ChallengeStatus.NOT_SUBMITTED;
         }
 
-        log.info("로그인 상태 - memberId = {}", memberIdOrNull);
+        GroupChallenge challenge = getChallengeOrThrow(challengeId);
+
+        // 참가 여부 확인
+        boolean hasParticipated = verificationRepository
+                .existsByParticipantRecord_Member_IdAndParticipantRecord_GroupChallenge_Id(
+                        memberIdOrNull,
+                        challengeId
+                );
+
+        if (!hasParticipated) {
+            return ChallengeStatus.NOT_PARTICIPATED;
+        }
+
+        // 날짜 계산
+        ZoneId kst = ZoneId.of("Asia/Seoul");
+        LocalDate todayInKST = LocalDate.now(clock.withZone(kst));
+        LocalDateTime startOfToday = todayInKST.atStartOfDay();
+        LocalDateTime endOfToday = todayInKST.atTime(23, 59, 59);
+        ZonedDateTime startUtc = startOfToday.atZone(kst).withZoneSameInstant(ZoneId.of("UTC"));
+        ZonedDateTime endUtc = endOfToday.atZone(kst).withZoneSameInstant(ZoneId.of("UTC"));
+
+        LocalDateTime now = LocalDateTime.now(clock);
+
+        // 인증 기간 내일 때 오늘 인증 여부 확인
+        if (!now.isBefore(challenge.getStartDate()) && !now.isAfter(challenge.getEndDate())) {
+            return verificationRepository
+                    .findTopByParticipantRecord_Member_IdAndParticipantRecord_GroupChallenge_IdAndCreatedAtBetween(
+                            memberIdOrNull,
+                            challengeId,
+                            startUtc.toLocalDateTime(),
+                            endUtc.toLocalDateTime()
+                    )
+                    .map(GroupChallengeVerification::getStatus)
+                    .orElse(ChallengeStatus.NOT_SUBMITTED);
+        }
+
+        // 인증 기간 외일 경우 마지막 인증 상태 반환
         return verificationRepository
-                .findTopByParticipantRecord_Member_IdAndParticipantRecord_GroupChallenge_IdOrderByCreatedAtDesc(memberIdOrNull, challengeId)
+                .findTopByParticipantRecord_Member_IdAndParticipantRecord_GroupChallenge_IdOrderByCreatedAtDesc(
+                        memberIdOrNull,
+                        challengeId
+                )
                 .map(GroupChallengeVerification::getStatus)
                 .orElse(ChallengeStatus.NOT_SUBMITTED);
     }
