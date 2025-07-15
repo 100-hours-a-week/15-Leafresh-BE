@@ -17,6 +17,7 @@ import ktb.leafresh.backend.domain.verification.infrastructure.repository.Verifi
 import ktb.leafresh.backend.global.common.entity.enums.ChallengeType;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
@@ -26,7 +27,8 @@ import java.util.concurrent.*;
 
 @Component
 @Slf4j
-public class GcpAiVerificationPubSubPublisher {
+@Profile("!eks")
+public class GcpAiVerificationPubSubPublisher implements AiVerificationPublisher {
 
     private final Publisher imageVerificationPublisher;
     private final ObjectMapper objectMapper;
