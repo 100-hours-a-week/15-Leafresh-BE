@@ -9,7 +9,7 @@ on:
       - 'v*-dev'
       - 'v*'
 
-job:  
+jobs:  
   sync-gsm:
     name: Upload .env to Secret Manager
     if: github.event_name == 'pull_request' && github.event.action != 'closed'
