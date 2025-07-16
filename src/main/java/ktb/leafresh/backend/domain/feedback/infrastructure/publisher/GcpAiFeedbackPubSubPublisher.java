@@ -16,6 +16,7 @@ import ktb.leafresh.backend.domain.member.domain.entity.Member;
 import ktb.leafresh.backend.domain.member.infrastructure.repository.MemberRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
@@ -25,7 +26,8 @@ import java.util.concurrent.TimeUnit;
 
 @Component
 @Slf4j
-public class GcpAiFeedbackPubSubPublisher {
+@Profile("!eks")
+public class GcpAiFeedbackPubSubPublisher implements AiFeedbackPublisher {
 
     private final Publisher feedbackPublisher;
     private final ObjectMapper objectMapper;
