@@ -1,21 +1,16 @@
 package ktb.leafresh.backend.domain.feedback.infrastructure.publisher;
 
+import com.amazonaws.services.sqs.AmazonSQSAsync;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.api.core.ApiFuture;
-import com.google.api.core.ApiFutureCallback;
-import com.google.api.core.ApiFutures;
-import com.google.cloud.pubsub.v1.Publisher;
-import com.google.common.util.concurrent.MoreExecutors;
-import com.google.protobuf.ByteString;
-import com.google.pubsub.v1.PubsubMessage;
 import ktb.leafresh.backend.domain.feedback.domain.entity.FeedbackFailureLog;
 import ktb.leafresh.backend.domain.feedback.infrastructure.dto.request.AiFeedbackCreationRequestDto;
 import ktb.leafresh.backend.domain.feedback.infrastructure.repository.FeedbackFailureLogRepository;
 import ktb.leafresh.backend.domain.member.domain.entity.Member;
 import ktb.leafresh.backend.domain.member.infrastructure.repository.MemberRepository;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
@@ -25,67 +20,50 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 @Component
+@Profile("eks")
 @Slf4j
-@Profile("!eks")
-public class GcpAiFeedbackPubSubPublisher implements AiFeedbackPublisher {
+@RequiredArgsConstructor
+public class AwsAiFeedbackSqsPublisher implements AiFeedbackPublisher {
 
-    private final Publisher feedbackPublisher;
+    private final AmazonSQSAsync amazonSQSAsync;
     private final ObjectMapper objectMapper;
     private final MemberRepository memberRepository;
     private final FeedbackFailureLogRepository feedbackFailureLogRepository;
+
+    @Value("${aws.sqs.feedback-request-queue-url}")
+    private String queueUrl;
 
     private static final int MAX_RETRY = 3;
     private static final long INITIAL_BACKOFF_MS = 300;
 
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(2);
 
-    public GcpAiFeedbackPubSubPublisher(
-            @Qualifier("feedbackPubSubPublisher") Publisher feedbackPublisher,
-            ObjectMapper objectMapper,
-            MemberRepository memberRepository,
-            FeedbackFailureLogRepository feedbackFailureLogRepository
-    ) {
-        this.feedbackPublisher = feedbackPublisher;
-        this.objectMapper = objectMapper;
-        this.memberRepository = memberRepository;
-        this.feedbackFailureLogRepository = feedbackFailureLogRepository;
-    }
-
+    @Override
     public void publishAsyncWithRetry(AiFeedbackCreationRequestDto dto) {
         try {
             String json = objectMapper.writeValueAsString(dto);
-            sendWithRetry(json, 1);
+            sendWithRetry(json, dto, 1);
         } catch (JsonProcessingException e) {
-            log.error("[피드백 직렬화 실패]", e);
+            log.error("[SQS 직렬화 실패]", e);
             logFailure(dto, null, "직렬화 실패: " + e.getMessage());
         }
     }
 
-    private void sendWithRetry(String json, int attempt) {
-        PubsubMessage message = PubsubMessage.newBuilder()
-                .setData(ByteString.copyFromUtf8(json))
-                .build();
+    private void sendWithRetry(String body, AiFeedbackCreationRequestDto dto, int attempt) {
+        try {
+            amazonSQSAsync.sendMessage(queueUrl, body);
+            log.info("[SQS 피드백 발행 성공] attempt={}, dto={}", attempt, body);
+        } catch (Exception e) {
+            log.warn("[SQS 피드백 발행 실패] attempt={}, error={}", attempt, e.getMessage());
 
-        ApiFuture<String> future = feedbackPublisher.publish(message);
-
-        ApiFutures.addCallback(future, new ApiFutureCallback<>() {
-            @Override
-            public void onSuccess(String messageId) {
-                log.info("[피드백 발행 성공] attempt={}, messageId={}", attempt, messageId);
+            if (attempt < MAX_RETRY) {
+                long backoff = INITIAL_BACKOFF_MS * (1L << (attempt - 1));
+                scheduler.schedule(() -> sendWithRetry(body, dto, attempt + 1), backoff, TimeUnit.MILLISECONDS);
+            } else {
+                log.error("[SQS 피드백 발행 최종 실패] dto={}", dto);
+                logFailure(dto, body, "최대 재시도 초과: " + e.getMessage());
             }
-
-            @Override
-            public void onFailure(Throwable t) {
-                log.warn("[피드백 발행 실패] attempt={}, error={}", attempt, t.getMessage());
-
-                if (attempt < MAX_RETRY) {
-                    long backoff = INITIAL_BACKOFF_MS * (1L << (attempt - 1));
-                    scheduler.schedule(() -> sendWithRetry(json, attempt + 1), backoff, TimeUnit.MILLISECONDS);
-                } else {
-                    log.error("[피드백 발행 최종 실패] json={}, error={}", json, t.getMessage());
-                }
-            }
-        }, MoreExecutors.directExecutor());
+        }
     }
 
     private void logFailure(AiFeedbackCreationRequestDto dto, String json, String reason) {

@@ -14,6 +14,7 @@ import ktb.leafresh.backend.global.exception.CustomException;
 import ktb.leafresh.backend.global.exception.FeedbackErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Profile;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
@@ -23,6 +24,7 @@ import java.time.LocalDate;
 @Slf4j
 @Component
 @RequiredArgsConstructor
+@Profile("!eks")
 public class GcpAiFeedbackResultSubscriber {
 
     private final Environment environment;

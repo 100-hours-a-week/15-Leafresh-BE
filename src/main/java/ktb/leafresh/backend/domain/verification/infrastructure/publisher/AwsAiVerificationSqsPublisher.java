@@ -3,25 +3,33 @@ package ktb.leafresh.backend.domain.verification.infrastructure.publisher;
 import com.amazonaws.services.sqs.AmazonSQSAsync;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import ktb.leafresh.backend.domain.member.domain.entity.Member;
+import ktb.leafresh.backend.domain.member.infrastructure.repository.MemberRepository;
+import ktb.leafresh.backend.domain.verification.domain.entity.VerificationFailureLog;
 import ktb.leafresh.backend.domain.verification.infrastructure.dto.request.AiVerificationRequestDto;
+import ktb.leafresh.backend.domain.verification.infrastructure.repository.VerificationFailureLogRepository;
+import ktb.leafresh.backend.global.common.entity.enums.ChallengeType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDateTime;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 @Component
-@Profile("eks")
 @Slf4j
+@Profile("eks")
 @RequiredArgsConstructor
 public class AwsAiVerificationSqsPublisher implements AiVerificationPublisher {
 
     private final AmazonSQSAsync amazonSQSAsync;
     private final ObjectMapper objectMapper;
+    private final MemberRepository memberRepository;
+    private final VerificationFailureLogRepository failureLogRepository;
 
     @Value("${aws.sqs.verification-request-queue-url}")
     private String queueUrl;
@@ -34,10 +42,11 @@ public class AwsAiVerificationSqsPublisher implements AiVerificationPublisher {
     @Override
     public void publishAsyncWithRetry(AiVerificationRequestDto dto) {
         try {
-            String messageBody = objectMapper.writeValueAsString(dto);
-            sendWithRetry(messageBody, dto, 1);
+            String json = objectMapper.writeValueAsString(dto);
+            sendWithRetry(json, dto, 1);
         } catch (JsonProcessingException e) {
-            log.error("[SQS 직렬화 실패]", e);
+            log.error("[AI 인증 직렬화 실패]", e);
+            logFailure(dto, null, "직렬화 실패: " + e.getMessage());
         }
     }
 
@@ -52,8 +61,28 @@ public class AwsAiVerificationSqsPublisher implements AiVerificationPublisher {
                 long backoff = INITIAL_BACKOFF_MS * (1L << (attempt - 1));
                 scheduler.schedule(() -> sendWithRetry(body, dto, attempt + 1), backoff, TimeUnit.MILLISECONDS);
             } else {
-                log.error("[SQS 인증 요청 발행 최종 실패] dto={}", dto);
+                log.error("[SQS 인증 발행 최종 실패] dto={}, error={}", body, e.getMessage());
+                logFailure(dto, body, "최대 재시도 초과: " + e.getMessage());
             }
+        }
+    }
+
+    private void logFailure(AiVerificationRequestDto dto, String json, String reason) {
+        try {
+            Member member = memberRepository.findById(dto.memberId())
+                    .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
+
+            failureLogRepository.save(VerificationFailureLog.builder()
+                    .member(member)
+                    .challengeType(dto.type() != null ? dto.type() : ChallengeType.GROUP)
+                    .challengeId(dto.challengeId())
+                    .verificationId(dto.verificationId())
+                    .reason(reason)
+                    .requestBody(json != null ? json : "{}")
+                    .occurredAt(LocalDateTime.now())
+                    .build());
+        } catch (Exception e) {
+            log.warn("[FailureLog 저장 실패] {}", e.getMessage());
         }
     }
 }
