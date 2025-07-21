@@ -34,7 +34,7 @@ public class ProductOrderCreateService {
     private final ProductCacheLockFacade productCacheLockFacade;
     private final PointService pointService;
 
-    @DistributedLock(key = "'product:stock:' + #productId", waitTime = 0, leaseTime = 3)
+    @DistributedLock(key = "'product:stock:' + #productId", waitTime = 3, leaseTime = 3)
     @Transactional
     public void create(Long memberId, Long productId, int quantity, String idempotencyKey) {
         // 1. 사용자 조회

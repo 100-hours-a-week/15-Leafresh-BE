@@ -34,7 +34,7 @@ public class TimedealOrderCreateService {
     private final ProductCacheLockFacade productCacheLockFacade;
     private final PointService pointService;
 
-    @DistributedLock(key = "'timedeal:stock:' + #dealId", waitTime = 0, leaseTime = 3)
+    @DistributedLock(key = "'timedeal:stock:' + #dealId", waitTime = 3, leaseTime = 3)
     @Transactional
     public void create(Long memberId, Long dealId, int quantity, String idempotencyKey) {
         // 1. 사용자 조회
