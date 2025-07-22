@@ -2,7 +2,7 @@ package ktb.leafresh.backend.domain.verification.application.listener;
 
 import ktb.leafresh.backend.domain.verification.domain.event.VerificationCreatedEvent;
 import ktb.leafresh.backend.domain.verification.infrastructure.client.AiVerificationClient;
-import ktb.leafresh.backend.domain.verification.infrastructure.publisher.GcpAiVerificationPubSubPublisher;
+import ktb.leafresh.backend.domain.verification.infrastructure.publisher.AiVerificationPublisher;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -30,7 +30,7 @@ public class VerificationEventListener {
 //        }
 //    }
 
-    private final GcpAiVerificationPubSubPublisher imagePublisher;
+    private final AiVerificationPublisher imagePublisher;
 
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
