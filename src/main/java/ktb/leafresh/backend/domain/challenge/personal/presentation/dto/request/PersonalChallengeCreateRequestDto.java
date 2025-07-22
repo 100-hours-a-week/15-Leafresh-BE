@@ -4,9 +4,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.*;
 import ktb.leafresh.backend.global.common.entity.enums.DayOfWeek;
 import ktb.leafresh.backend.global.common.entity.enums.ExampleImageType;
-import ktb.leafresh.backend.global.validator.ValidGcsImageUrl;
+import ktb.leafresh.backend.global.validator.ValidImageUrl;
 
-import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
 
@@ -42,7 +41,7 @@ public record PersonalChallengeCreateRequestDto(
 ) {
         public record ExampleImageRequestDto(
                 @NotBlank
-                @ValidGcsImageUrl
+                @ValidImageUrl
                 String imageUrl,
                 @NotNull ExampleImageType type,
                 @NotBlank String description,

@@ -2,7 +2,7 @@ package ktb.leafresh.backend.domain.member.presentation.dto.request;
 
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
-import ktb.leafresh.backend.global.validator.ValidGcsImageUrl;
+import ktb.leafresh.backend.global.validator.ValidImageUrl;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -17,6 +17,6 @@ public class MemberUpdateRequestDto {
         )
         private String nickname;
 
-        @ValidGcsImageUrl
+        @ValidImageUrl
         private String imageUrl;
 }

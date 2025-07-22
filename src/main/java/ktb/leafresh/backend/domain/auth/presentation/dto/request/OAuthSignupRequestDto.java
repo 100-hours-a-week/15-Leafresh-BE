@@ -5,7 +5,7 @@ import jakarta.validation.constraints.Pattern;
 import ktb.leafresh.backend.domain.auth.domain.entity.enums.OAuthProvider;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
-import ktb.leafresh.backend.global.validator.ValidGcsImageUrl;
+import ktb.leafresh.backend.global.validator.ValidImageUrl;
 
 @Schema(description = "OAuth 회원가입 요청")
 public record OAuthSignupRequestDto(
@@ -24,7 +24,7 @@ public record OAuthSignupRequestDto(
         String nickname,
 
         @NotBlank(message = "프로필 이미지 URL은 필수입니다.")
-        @ValidGcsImageUrl
+        @ValidImageUrl
         @Schema(description = "OAuth 프로필 이미지 URL", example = "https://k.kakaocdn.net/.../profile.jpg")
         String imageUrl
 

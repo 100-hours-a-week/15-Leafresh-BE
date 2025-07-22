@@ -7,9 +7,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 import ktb.leafresh.backend.global.common.entity.enums.ExampleImageType;
-import ktb.leafresh.backend.global.validator.ValidGcsImageUrl;
+import ktb.leafresh.backend.global.validator.ValidImageUrl;
 
-import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -29,7 +28,7 @@ public record GroupChallengeUpdateRequestDto(
         @Schema(description = "최대 인원 수") int maxParticipantCount,
 
         @NotBlank
-        @ValidGcsImageUrl
+        @ValidImageUrl
         @Schema(description = "썸네일 이미지 URL") String thumbnailImageUrl,
 
         @NotNull
@@ -70,7 +69,7 @@ public record GroupChallengeUpdateRequestDto(
 
         public record NewImage(
                 @NotBlank
-                @ValidGcsImageUrl
+                @ValidImageUrl
                 @Schema(description = "이미지 URL") String imageUrl,
 
                 @NotNull
