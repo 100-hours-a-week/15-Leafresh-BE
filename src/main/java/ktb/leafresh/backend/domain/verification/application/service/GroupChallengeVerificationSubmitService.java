@@ -7,6 +7,7 @@ import ktb.leafresh.backend.domain.challenge.group.infrastructure.repository.Gro
 import ktb.leafresh.backend.domain.verification.domain.entity.GroupChallengeVerification;
 import ktb.leafresh.backend.domain.verification.domain.support.validator.VerificationSubmitValidator;
 import ktb.leafresh.backend.domain.verification.infrastructure.dto.request.AiVerificationRequestDto;
+import ktb.leafresh.backend.domain.verification.infrastructure.publisher.AiVerificationPublisher;
 import ktb.leafresh.backend.domain.verification.infrastructure.publisher.GcpAiVerificationPubSubPublisher;
 import ktb.leafresh.backend.domain.verification.infrastructure.repository.GroupChallengeVerificationRepository;
 import ktb.leafresh.backend.domain.verification.presentation.dto.request.GroupChallengeVerificationRequestDto;
@@ -34,7 +35,7 @@ public class GroupChallengeVerificationSubmitService {
     private final GroupChallengeVerificationRepository verificationRepository;
     private final VerificationSubmitValidator validator;
     private final StringRedisTemplate redisTemplate;
-    private final GcpAiVerificationPubSubPublisher pubSubPublisher;
+    private final AiVerificationPublisher pubSubPublisher;
 
     private static final String TOTAL_VERIFICATION_COUNT_KEY = "leafresh:totalVerifications:count";
 
