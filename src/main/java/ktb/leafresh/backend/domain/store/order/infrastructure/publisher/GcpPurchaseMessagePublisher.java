@@ -14,7 +14,7 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 @Component
-@Profile("!local")
+@Profile("!eks")
 @Slf4j
 public class GcpPurchaseMessagePublisher implements PurchaseMessagePublisher {
 
