@@ -26,7 +26,7 @@ public class BadgeReadService {
     private final BadgeRepository badgeRepository;
     private final MemberRepository memberRepository;
 
-    @Value("${gcp.storage.lock-image-url}")
+    @Value("${lock-image-url}")
     private String lockImageUrl;
 
     public BadgeListResponseDto getAllBadges(Long memberId) {
