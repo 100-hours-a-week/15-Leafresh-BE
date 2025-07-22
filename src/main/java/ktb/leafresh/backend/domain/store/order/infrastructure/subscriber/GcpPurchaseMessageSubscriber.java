@@ -15,10 +15,10 @@ import org.springframework.stereotype.Component;
 import jakarta.annotation.PostConstruct;
 
 @Slf4j
-@Profile("!local")
+@Profile("!eks")
 @Component
 @RequiredArgsConstructor
-public class PurchaseMessageSubscriber {
+public class GcpPurchaseMessageSubscriber {
 
     private final Environment environment;
     private final ProductPurchaseProcessingService processingService;
