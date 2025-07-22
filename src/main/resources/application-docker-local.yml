@@ -27,7 +27,6 @@ gcp:
     location: classpath:${GCP_CREDENTIALS_LOCATION}
   storage:
     bucket: ${GCP_STORAGE_BUCKET}
-    lock-image-url: ${LOCK_IMAGE_URL}
   pubsub:
     topics:
       order: ${GCP_PUBSUB_TOPIC_ORDER}
@@ -40,3 +39,5 @@ gcp:
       verification-dlq: ${GCP_PUBSUB_SUBSCRIPTION_IMAGE_VERIFICATION_RESULT_DLQ}
       feedback-result: ${GCP_PUBSUB_SUBSCRIPTION_FEEDBACK_RESULT}
       feedback-result-dlq: ${GCP_PUBSUB_SUBSCRIPTION_FEEDBACK_DLQ}
+
+lock-image-url: ${LOCK_IMAGE_URL}
