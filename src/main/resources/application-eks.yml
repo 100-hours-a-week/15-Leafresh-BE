@@ -32,6 +32,9 @@ cloud:
       auto: false
 
 aws:
+  s3:
+    bucket: ${AWS_S3_BUCKET}
+    lock-image-url: ${LOCK_IMAGE_URL}
   sqs:
     feedback-request-queue-url: ${AWS_SQS_FEEDBACK_REQUEST_QUEUE_URL}
     feedback-result-queue-url: ${AWS_SQS_FEEDBACK_RESULT_QUEUE_URL}

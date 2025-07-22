@@ -1,8 +1,8 @@
 //package ktb.leafresh.backend.domain.image.application.service;
 //
-//import com.google.cloud.storage.BlobInfo;
-//import com.google.cloud.storage.HttpMethod;
-//import com.google.cloud.storage.Storage;
+//import com.amazonaws.HttpMethod;
+//import com.amazonaws.services.s3.AmazonS3;
+//import com.amazonaws.services.s3.model.GeneratePresignedUrlRequest;
 //import ktb.leafresh.backend.domain.image.presentation.dto.response.PresignedUrlResponseDto;
 //import ktb.leafresh.backend.global.exception.CustomException;
 //import ktb.leafresh.backend.global.exception.GlobalErrorCode;
@@ -13,42 +13,40 @@
 //import org.springframework.stereotype.Service;
 //
 //import java.net.URL;
+//import java.util.Date;
 //import java.util.List;
-//import java.util.concurrent.TimeUnit;
 //
 //@Slf4j
 //@Service
 //@RequiredArgsConstructor
-//@Profile("!eks")
-//public class GcsService {
+//@Profile("eks")
+//public class S3Service {
 //
-//    private final Storage storage;
+//    private final AmazonS3 amazonS3;
 //
-//    @Value("${gcp.storage.bucket}")
+//    @Value("${aws.s3.bucket}")
 //    private String bucketName;
 //
 //    private static final List<String> ALLOWED_CONTENT_TYPES = List.of("image/png", "image/jpeg", "image/jpg", "image/webp");
 //
-//    public PresignedUrlResponseDto generateV4UploadPresignedUrl(String fileName, String contentType) {
-//        log.info("[PresignedUrl 요청] fileName={}, contentType={}", fileName, contentType);
+//    public PresignedUrlResponseDto generatePresignedUrl(String fileName, String contentType) {
+//        log.info("[S3 Presigned URL 요청] fileName={}, contentType={}", fileName, contentType);
 //
 //        if (!ALLOWED_CONTENT_TYPES.contains(contentType)) {
 //            log.warn("지원하지 않는 Content-Type 요청됨: {}", contentType);
 //            throw new CustomException(GlobalErrorCode.UNSUPPORTED_CONTENT_TYPE);
 //        }
 //
-//        BlobInfo blobInfo = BlobInfo.newBuilder(bucketName, fileName)
-//                .setContentType(contentType)
-//                .build();
+//        // 만료 시간 3분
+//        Date expiration = new Date(System.currentTimeMillis() + 3 * 60 * 1000);
 //
-//        log.debug("BlobInfo 생성 완료 - bucket={}, fileName={}", bucketName, fileName);
+//        GeneratePresignedUrlRequest request = new GeneratePresignedUrlRequest(bucketName, fileName)
+//                .withMethod(HttpMethod.PUT)
+//                .withContentType(contentType)
+//                .withExpiration(expiration);
 //
-//        URL uploadUrl = storage.signUrl(blobInfo, 3, TimeUnit.MINUTES,
-//                Storage.SignUrlOption.httpMethod(HttpMethod.PUT),
-//                Storage.SignUrlOption.withV4Signature(),
-//                Storage.SignUrlOption.withContentType());
-//
-//        String fileUrl = String.format("https://storage.googleapis.com/%s/%s", bucketName, fileName);
+//        URL uploadUrl = amazonS3.generatePresignedUrl(request);
+//        String fileUrl = String.format("https://%s.s3.ap-northeast-2.amazonaws.com/%s", bucketName, fileName);
 //
 //        log.info("Presigned URL 발급 완료 - uploadUrl={}, fileUrl={}", uploadUrl, fileUrl);
 //

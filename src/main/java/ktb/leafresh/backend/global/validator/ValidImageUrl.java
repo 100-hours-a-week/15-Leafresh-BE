@@ -6,12 +6,12 @@ import jakarta.validation.Payload;
 import java.lang.annotation.*;
 
 @Documented
-@Constraint(validatedBy = GcsImageUrlValidator.class)
+@Constraint(validatedBy = ImageUrlValidator.class)
 @Target({ ElementType.FIELD, ElementType.PARAMETER })
 @Retention(RetentionPolicy.RUNTIME)
-public @interface ValidGcsImageUrl {
+public @interface ValidImageUrl {
 
-    String message() default "유효하지 않은 GCS 이미지 URL입니다.";
+    String message() default "유효하지 않은 이미지 URL입니다.";
 
     Class<?>[] groups() default {};
 
