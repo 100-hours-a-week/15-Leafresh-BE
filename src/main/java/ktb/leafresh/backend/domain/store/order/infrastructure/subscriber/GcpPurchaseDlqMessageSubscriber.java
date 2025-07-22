@@ -22,10 +22,10 @@ import org.springframework.stereotype.Component;
 import java.time.LocalDateTime;
 
 @Component
-@Profile("!local")
+@Profile("!eks")
 @RequiredArgsConstructor
 @Slf4j
-public class PurchaseDlqMessageSubscriber {
+public class GcpPurchaseDlqMessageSubscriber {
 
     private final Environment environment;
     private final ObjectMapper objectMapper;
