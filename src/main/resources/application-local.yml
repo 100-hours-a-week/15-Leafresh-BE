@@ -40,7 +40,6 @@ gcp:
     location: classpath:${GCP_CREDENTIALS_LOCATION}
   storage:
     bucket: ${GCP_STORAGE_BUCKET}
-    lock-image-url: ${LOCK_IMAGE_URL}
   pubsub:
     topics:
       order: ${GCP_PUBSUB_TOPIC_ORDER}
@@ -60,3 +59,5 @@ logging:
     org.hibernate.stat: DEBUG
     org.hibernate.SQL: DEBUG
     org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+
+lock-image-url: ${LOCK_IMAGE_URL}
