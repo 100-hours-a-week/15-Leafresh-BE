@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import ktb.leafresh.backend.domain.feedback.application.assembler.FeedbackDtoAssembler;
 import ktb.leafresh.backend.domain.feedback.infrastructure.dto.request.AiFeedbackCreationRequestDto;
+import ktb.leafresh.backend.domain.feedback.infrastructure.publisher.AiFeedbackPublisher;
 import ktb.leafresh.backend.domain.feedback.infrastructure.publisher.GcpAiFeedbackPubSubPublisher;
 import ktb.leafresh.backend.domain.member.domain.entity.Member;
 import ktb.leafresh.backend.domain.member.infrastructure.repository.MemberRepository;
@@ -26,7 +27,7 @@ public class FeedbackCommandService {
     private final MemberRepository memberRepository;
     private final FeedbackDtoAssembler dtoAssembler;
 //    private final FeedbackCreationClient feedbackCreationClient;
-    private final GcpAiFeedbackPubSubPublisher feedbackPublisher;
+    private final AiFeedbackPublisher feedbackPublisher;
     private final ObjectMapper objectMapper;
 
     public void handleFeedbackCreationRequest(Long memberId) {
