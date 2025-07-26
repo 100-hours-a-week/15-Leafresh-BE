@@ -76,15 +76,15 @@ jobs:
             echo ".env file EMPTY."
             exit 1
           fi
-      - name: Push .env to Secret Manager
-        run: |
-          if gcloud secrets describe "$SECRET_NAME" >/dev/null 2>&1; then
-            echo "Secret $SECRET_NAME exists, adding new version..."
-            gcloud secrets versions add "$SECRET_NAME" --data-file=.env
-          else
-            echo "Secret $SECRET_NAME does not exist, creating..."
-            gcloud secrets create "$SECRET_NAME" --data-file=.env --replication-policy=automatic
-          fi
+      # - name: Push .env to Secret Manager
+      #   run: |
+      #     if gcloud secrets describe "$SECRET_NAME" >/dev/null 2>&1; then
+      #       echo "Secret $SECRET_NAME exists, adding new version..."
+      #       gcloud secrets versions add "$SECRET_NAME" --data-file=.env
+      #     else
+      #       echo "Secret $SECRET_NAME does not exist, creating..."
+      #       gcloud secrets create "$SECRET_NAME" --data-file=.env --replication-policy=automatic
+      #     fi
 
       - name: Set up Docker Buildx             # Docker Buildx 설정
         uses: docker/setup-buildx-action@v3
