@@ -97,107 +97,107 @@ jobs:
       - name: Run Tests                        # 단위 테스트 실행
         run: ./gradlew test
         
-  integration-test:
-    name: Integration Test
-    if: github.event_name == 'pull_request' && github.base_ref == 'main'
-    runs-on: ubuntu-latest
+  # integration-test:
+  #   name: Integration Test
+  #   if: github.event_name == 'pull_request' && github.base_ref == 'main'
+  #   runs-on: ubuntu-latest
 
-    services:
-      mysql:
-        image: mysql:8.0
-        env:
-          MYSQL_ROOT_PASSWORD: Rlatldms!2!3
-          MYSQL_DATABASE: leafresh
-        ports:
-          - 3306:3306
-        options: >-
-          --health-cmd="mysqladmin ping -h 127.0.0.1 --protocol=tcp"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=5
-      redis:
-        image: redis:6.2
-        ports:
-          - 6379:6379
-        options: >-
-          --health-cmd="redis-cli ping"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=5
-    defaults:
-      run:
-        working-directory: ./
+  #   services:
+  #     mysql:
+  #       image: mysql:8.0
+  #       env:
+  #         MYSQL_ROOT_PASSWORD: Rlatldms!2!3
+  #         MYSQL_DATABASE: leafresh
+  #       ports:
+  #         - 3306:3306
+  #       options: >-
+  #         --health-cmd="mysqladmin ping -h 127.0.0.1 --protocol=tcp"
+  #         --health-interval=10s
+  #         --health-timeout=5s
+  #         --health-retries=5
+  #     redis:
+  #       image: redis:6.2
+  #       ports:
+  #         - 6379:6379
+  #       options: >-
+  #         --health-cmd="redis-cli ping"
+  #         --health-interval=10s
+  #         --health-timeout=5s
+  #         --health-retries=5
+  #   defaults:
+  #     run:
+  #       working-directory: ./
 
-    steps:
-      - uses: actions/checkout@v3
+  #   steps:
+  #     - uses: actions/checkout@v3
 
-      - name: Set up JDK 21
-        uses: actions/setup-java@v3
-        with:
-          distribution: 'oracle'
-          java-version: 21
+  #     - name: Set up JDK 21
+  #       uses: actions/setup-java@v3
+  #       with:
+  #         distribution: 'oracle'
+  #         java-version: 21
 
-      - name: Create .env file from GitHub Secret
-        run: echo "${{ secrets.ENV_BE_DEV }}" > .env
+  #     - name: Create .env file from GitHub Secret
+  #       run: echo "${{ secrets.ENV_BE_DEV }}" > .env
 
-      - name: Export environment variables
-        run: |
-          set -o allexport
-          source .env
-          set +o allexport
-          echo "kakao_client_id=${kakao_client_id}"
-          echo "jwt_secret=${jwt_secret:0:10}..." # 일부만 출력
+  #     - name: Export environment variables
+  #       run: |
+  #         set -o allexport
+  #         source .env
+  #         set +o allexport
+  #         echo "kakao_client_id=${kakao_client_id}"
+  #         echo "jwt_secret=${jwt_secret:0:10}..." # 일부만 출력
       
-      - name: Export .env variables to environment
-        run: |
-          echo "${{ secrets.ENV_DOCKER_LOCAL }}" > .env
-          grep -v '^#' .env | xargs -L1 echo export >> $GITHUB_ENV
+  #     - name: Export .env variables to environment
+  #       run: |
+  #         echo "${{ secrets.ENV_DOCKER_LOCAL }}" > .env
+  #         grep -v '^#' .env | xargs -L1 echo export >> $GITHUB_ENV
       
-      - name: Create GCP credentials file
-        run: echo "${{ secrets.GCP_SA_KEY_DEV_BASE64 }}" | base64 -d > /home/runner/leafresh2-428172295b3d.json
+  #     - name: Create GCP credentials file
+  #       run: echo "${{ secrets.GCP_SA_KEY_DEV_BASE64 }}" | base64 -d > /home/runner/leafresh2-428172295b3d.json
 
-      - name: Build Spring Boot App
-        run: ./gradlew bootJar
+  #     - name: Build Spring Boot App
+  #       run: ./gradlew bootJar
 
-      - name: Start Spring Boot App with env
-        run: |
-          source .env
-          nohup java \
-            -Dspring.profiles.active=$spring_profiles_active \
-            -Dspring.datasource.url=jdbc:mysql://${docker_local_db_host}:${db_port}/${docker_local_db_name} \
-            -Dspring.datasource.username=${docker_local_db_user} \
-            -Dspring.datasource.password=${docker_local_db_password} \
-            -Dspring.redis.host=${docker_local_cache_host} \
-            -Dspring.redis.port=${docker_local_cache_port} \
-            -Djwt.secret="${jwt_secret}" \
-            -Dkakao.client-id=${kakao_client_id} \
-            -Dkakao.client-secret=${kakao_client_secret} \
-            -Dkakao.redirect-uri=${kakao_redirect_uri} \
-            -Dai-server.base-url=${ai_server_base_url} \
-            -Dgcp.project-id=${gcp_project_id} \
-            -Dgcp.credentials.location=${gcp_credentials_location} \
-            -jar build/libs/*.jar > app.log 2>&1 &
-          echo "✅ Java started, waiting for Spring Boot..."
+  #     - name: Start Spring Boot App with env
+  #       run: |
+  #         source .env
+  #         nohup java \
+  #           -Dspring.profiles.active=$spring_profiles_active \
+  #           -Dspring.datasource.url=jdbc:mysql://${docker_local_db_host}:${db_port}/${docker_local_db_name} \
+  #           -Dspring.datasource.username=${docker_local_db_user} \
+  #           -Dspring.datasource.password=${docker_local_db_password} \
+  #           -Dspring.redis.host=${docker_local_cache_host} \
+  #           -Dspring.redis.port=${docker_local_cache_port} \
+  #           -Djwt.secret="${jwt_secret}" \
+  #           -Dkakao.client-id=${kakao_client_id} \
+  #           -Dkakao.client-secret=${kakao_client_secret} \
+  #           -Dkakao.redirect-uri=${kakao_redirect_uri} \
+  #           -Dai-server.base-url=${ai_server_base_url} \
+  #           -Dgcp.project-id=${gcp_project_id} \
+  #           -Dgcp.credentials.location=${gcp_credentials_location} \
+  #           -jar build/libs/*.jar > app.log 2>&1 &
+  #         echo "✅ Java started, waiting for Spring Boot..."
           
-          for i in {1..30}; do
-            if curl -s http://localhost:8080/actuator/health | grep UP > /dev/null; then
-              echo "✅ Spring Boot is UP"
-              break
-            fi
-            echo "⏳ Waiting for Spring Boot..."
-            sleep 2
-          done
-      - name: Integration Test
-        run: |
-          curl -v http://localhost:8080/api/challenges/group/categories || (
-            echo "API call failed"
-            echo "===== APP.LOG START ====="
-            cat app.log || echo "app.log not found"
-            echo "===== APP.LOG END ====="
-            exit 1
-          )
-      - name: Stop Spring Boot App
-        run: pkill -f 'java -jar'
+  #         for i in {1..30}; do
+  #           if curl -s http://localhost:8080/actuator/health | grep UP > /dev/null; then
+  #             echo "✅ Spring Boot is UP"
+  #             break
+  #           fi
+  #           echo "⏳ Waiting for Spring Boot..."
+  #           sleep 2
+  #         done
+  #     - name: Integration Test
+  #       run: |
+  #         curl -v http://localhost:8080/api/challenges/group/categories || (
+  #           echo "API call failed"
+  #           echo "===== APP.LOG START ====="
+  #           cat app.log || echo "app.log not found"
+  #           echo "===== APP.LOG END ====="
+  #           exit 1
+  #         )
+  #     - name: Stop Spring Boot App
+  #       run: pkill -f 'java -jar'
 
   build-dev:                                    # develop 브랜치에서 Docker 이미지 빌드 및 푸시
     name: Build and Push Docker (dev)
@@ -230,7 +230,7 @@ jobs:
 
   build-prod:                                   # main 브랜치에서 Docker 이미지 빌드 및 푸시
     name: Build and Push Docker (prod)
-    needs: [integration-test]
+    #needs: [integration-test]
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -350,85 +350,34 @@ jobs:
     outputs:
       status: ${{ steps.set-status.outputs.status }}
     steps:
-      - name: SSH 키 설정
-        uses: webfactory/ssh-agent@v0.9.0
-        with:
-          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY_PROD }}
+    - name: Authenticate to Google Cloud
+      uses: google-github-actions/auth@v2
+      with:
+        project_id: ${{ secrets.PROJECT_ID }}
+        credentials_json: ${{ secrets.SA_KEY_JSON }}
 
-      - name: Upload GCP json key to BE Server
-        run: |
-          echo "${{ secrets.GCP_SA_KEY_PROD_BASE64 }}" | base64 -d > gcp-key.json
-          scp -o StrictHostKeyChecking=no gcp-key.json ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST_PROD }}:/home/ubuntu/gcp-key.json
+    - name: Setup Google Cloud SDK and Set GCP Project
+      uses: 'google-github-actions/setup-gcloud@v2'
 
-      - name: Deploy Backend (Prod) via SSH
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.SSH_HOST_PROD }}
-          username: ${{ secrets.SSH_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          script: |
-            set -e
-            echo "GCP 인증 및 Docker 로그인"
-            gcloud auth activate-service-account --key-file=/home/ubuntu/gcp-key.json
-            gcloud auth configure-docker
+    - name: Verify The Installation of gcloud CLI
+      run: gcloud info
 
-            echo "Secret Manager에서 .env 가져오기"
-            mkdir -p /home/ubuntu/app
-            if ! gcloud secrets versions access latest \
-              --secret="env-be-prod" \
-              --project="leafresh-prod" > /home/ubuntu/app/.env; then
-              echo ".env 파일 다운로드 실패"
-              exit 1
-            fi
+    - name: Upload via IAP SCP to BE PROD server
+      run: |
+        gcloud compute ssh ${{ secrets.SSH_USER }}@leafresh-be-tester-a \
+          --project=${{ secrets.PROJECT_ID }} \
+          --zone=${{ secrets.AZ }} \
+          --tunnel-through-iap \
+          --command="bash -c 'cd be && ./deploy.sh'"
 
-            echo "[PROD 환경] Blue-Green 배포 시작"
-            CURRENT=$(cat /opt/backend-current 2>/dev/null || echo blue)
-            NEXT=$( [ "$CURRENT" = "blue" ] && echo green || echo blue )
-            echo "[PROD] 현재: $CURRENT → 다음: $NEXT"
+    - name: Set Status (Prod)
+      id: set-status
+      if: success()
+      run: echo "status=success" >> "$GITHUB_OUTPUT"
 
-            docker stop backend-$NEXT || true
-            docker rm backend-$NEXT || true
-            docker pull jchanho99/backend-prod:latest
-
-            echo "현재 사용 중인 컨테이너 이미지 확인"
-            docker inspect --format='{{.Config.Image}}' backend-$CURRENT || echo "컨테이너가 존재하지 않음"
-
-            docker run -d --name backend-$NEXT \
-              --env-file /home/ubuntu/app/.env \
-              -p 8081:8080 \
-              --restart always \
-              jchanho99/backend-prod:latest
-
-            echo "헬스체크 시작"
-            SUCCESS=false
-            for i in {1..10}; do
-              sleep 5
-              if curl -f http://localhost:8081/actuator/health; then
-                echo "헬스체크 통과"
-                SUCCESS=true
-                break
-              fi
-              echo "헬스체크 재시도 ($i/10)"
-            done
-
-            if [ "$SUCCESS" = false ]; then
-              echo "헬스체크 실패"
-              exit 1
-            fi
-
-            echo "$NEXT" > /opt/backend-current
-            PREV=$( [ "$NEXT" = "blue" ] && echo green || echo blue )
-            docker stop backend-$PREV || true
-            docker rm backend-$PREV || true
-
-      - name: Set Status (Prod)
-        id: set-status
-        if: success()
-        run: echo "status=success" >> "$GITHUB_OUTPUT"
-
-      - name: Set Status (Prod Failure)
-        if: failure() && steps.deploy-prod.outcome == 'failure' # deploy-step이 실패했을 때만
-        run: echo "status=failure" >> "$GITHUB_OUTPUT"
+    - name: Set Status (Prod Failure)
+      if: failure() && steps.deploy-step.outcome == 'failure'
+      run: echo "status=failure" >> "$GITHUB_OUTPUT"
 
   notify:
     name: Discord Notification

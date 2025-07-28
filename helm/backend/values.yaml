@@ -1,0 +1,100 @@
+image:
+  repository: 886436932852.dkr.ecr.ap-northeast-2.amazonaws.com/leafresh-be
+  tag: v0.0.144-dev
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 8080
+
+env:
+  - name: SPRING_PROFILES_ACTIVE
+    value: "eks"
+  - name: SPRING_DATA_REDIS_HOST
+    value: ""
+  - name: SPRING_DATA_REDIS_PORT
+    value: "6379"
+  - name: DB_PORT
+    value: "3306"
+  - name: EKS_DB_NAME
+    value: "leafresh"
+  - name: EKS_CACHE_HOST
+    value: ""
+  - name: EKS_CACHE_PORT
+    value: "6379"
+  - name: TEXT_AI_SERVER_BASE_URL
+    value: "http://10.0.2.83:8000"
+  - name: IMAGE_AI_SERVER_BASE_URL
+    value: "http://10.0.2.15:8000"
+  - name: MAKE_CHALLENGE_AI_SERVER_BASE_URL
+    value: "http://10.0.2.15:8000"
+  - name: EKS_COOKIE_DOMAIN
+    value: ".leafresh.app"
+  - name: EKS_COOKIE_SAMESITE
+    value: "None"
+  - name: LOCK_IMAGE_URL
+    value: "https://storage.googleapis.com/leafresh-prod-images/init/badge/common/%E1%84%8C%E1%85%A1%E1%84%86%E1%85%AE%E1%86%AF%E1%84%89%E1%85%AC.png"
+secrets:
+  AWS_ACCESS_KEY_ID: ""
+  AWS_SECRET_ACCESS_KEY: ""
+  EKS_DB_HOST: ""
+  EKS_DB_USER: "root"
+  EKS_DB_PASSWORD: ""
+  SECURITY_USER_NAME: "admin"
+  SECURITY_USER_PASSWORD: ""
+  JWT_SECRET: ""
+  KAKAO_CLIENT_ID: ""
+  KAKAO_CLIENT_SECRET: ""
+  AWS_SQS_FEEDBACK_REQUEST_QUEUE_URL: ""
+  AWS_SQS_FEEDBACK_RESULT_QUEUE_URL: ""
+  AWS_SQS_FEEDBACK_RESULT_DLQ_QUEUE_URL: ""
+  AWS_SQS_VERIFICATION_REQUEST_QUEUE_URL: ""
+  AWS_SQS_VERIFICATION_RESULT_QUEUE_URL: ""
+  AWS_SQS_VERIFICATION_DLQ_QUEUE_URL: ""
+  AWS_SQS_ORDER_REQUEST_QUEUE_URL: ""
+  AWS_SQS_ORDER_DLQ_QUEUE_URL: ""
+resources:
+  limits:
+    cpu: 1000m
+    memory: 1024Mi
+  requests:
+    cpu: 500m
+    memory: 512Mi
+
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 5
+  targetCPUUtilizationPercentage: 70
+
+livenessProbe:
+  httpGet:
+    path: /actuator/health
+    port: 8080
+  initialDelaySeconds: 15
+  periodSeconds: 10
+  timeoutSeconds: 5
+
+readinessProbe:
+  httpGet:
+    path: /actuator/health
+    port: 8080
+  initialDelaySeconds: 10
+  periodSeconds: 10
+  timeoutSeconds: 5
+
+ingress:
+  enabled: true
+  host: "localhost-back.test"
+  path: /
+  pathType: Prefix
+  tlsEnabled: false
+
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: false
+  name: ""
+  automount: false
+  annotations: {}
