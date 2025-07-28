@@ -38,9 +38,11 @@ aws:
     feedback-request-queue-url: ${AWS_SQS_FEEDBACK_REQUEST_QUEUE_URL}
     feedback-result-queue-url: ${AWS_SQS_FEEDBACK_RESULT_QUEUE_URL}
     feedback-result-dlq-queue-url: ${AWS_SQS_FEEDBACK_RESULT_DLQ_QUEUE_URL}
+
     verification-request-queue-url: ${AWS_SQS_VERIFICATION_REQUEST_QUEUE_URL}
     verification-result-queue-url: ${AWS_SQS_VERIFICATION_RESULT_QUEUE_URL}
     verification-dlq-queue-url: ${AWS_SQS_VERIFICATION_DLQ_QUEUE_URL}
+
     order-request-queue-url: ${AWS_SQS_ORDER_REQUEST_QUEUE_URL}
     order-dlq-queue-url: ${AWS_SQS_ORDER_DLQ_QUEUE_URL}
 
