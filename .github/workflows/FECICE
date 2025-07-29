@@ -1,0 +1,515 @@
+name: Frontend CI/CD
+
+on:
+  pull_request:
+    branches: ['develop', 'main']
+  push:
+    tags:
+      - 'v*-dev'
+      - 'v*'
+
+env:
+  REGION: asia-northeast3
+  PROJECT_ID_PROD: leafresh-prod2
+  BLUE_MIG_NAME: leafresh-fe-blue-template
+  GREEN_MIG_NAME: leafresh-fe-green-template
+  LOAD_BALANCER_NAME: leafresh-https-lb
+  URL_MAP_NAME: leafresh-https-lb  # URL Map 이름
+  BLUE_BACKEND_SERVICE_NAME: leafresh-fe-blue-bs
+  GREEN_BACKEND_SERVICE_NAME: leafresh-fe-green-bs
+
+
+jobs:
+  setup:
+    name: Setup and Install Dependencies
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    outputs:
+      pnpm_cache_hit: ${{ steps.cache-pnpm.outputs.cache-hit }}
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 'lts/*'
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: latest
+      - name: Cache pnpm modules
+        id: cache-pnpm
+        uses: actions/cache@v3
+        with:
+          path: ./node_modules
+          key: ${{ runner.os }}-pnpm-${{ hashFiles('./pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-
+      - name: Install Dependencies
+        run: pnpm install --frozen-lockfile
+        working-directory: ./
+
+  lint-and-unit-test:
+    name: Lint and Unit test
+    needs: setup
+    if: github.event_name == 'pull_request' && github.base_ref == 'develop'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 'lts/*'
+      - uses: pnpm/action-setup@v2
+        with:
+          version: latest
+      - name: Use cached pnpm modules
+        if: steps.setup.outputs.pnpm_cache_hit == 'true'
+        run: echo "Using cached pnpm modules"
+      - name: Install Dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Delete Duplicates
+        run: |
+          pnpm dedupe
+          pnpm install
+      - name: Run Lint
+        run: pnpm run lint
+      - name: Run Unit Test
+        run: |
+          echo "${{  secrets.ENV_FE_ANALYTICS  }}" >> .env
+          echo "${{  secrets.ENV_FE_TEST  }}" >> .env.test
+
+          pnpm run test
+
+  integration-test:
+    name: Integration Test
+    needs: setup
+    if: github.event_name == 'pull_request' && github.base_ref == 'main'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium]
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 'lts/*'
+      - uses: pnpm/action-setup@v2
+        with:
+          version: latest
+      - name: Use cached pnpm modules
+        if: steps.setup.outputs.pnpm_cache_hit == 'true'
+        run: echo "Using cached pnpm modules"
+      - name: Install Dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps ${{ matrix.browser }}
+      - name: Build Next.js app for testing
+        run: pnpm run build
+      - name: Start Next.js app for testing
+        run: |
+          echo "${{  secrets.ENV_FE_ANALYTICS  }}" >> .env
+          echo "${{  secrets.ENV_FE_DEV_PROD  }}" >> .env.production
+          
+          pnpm run start &
+          
+      - name: Wait for App to Start (Health Check)
+        run: sleep 20
+      - name: Run Playwright Tests (${{ matrix.browser }})
+        run: pnpm exec playwright test --project=chromium
+        env:
+          PLAYWRIGHT_TEST_BASE_URL: http://localhost:3000
+
+  build-dev:
+    name: Build and Push Docker (dev)
+    if: github.event_name == 'pull_request' && github.base_ref == 'develop'
+    needs: [lint-and-unit-test]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Docker Login
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_TOKEN }}
+
+      - name: Build and Push Docker Image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: jchanho99/frontend-develop:latest
+
+  build-prod:
+    name: Build and Push Docker (prod)
+    if: github.event_name == 'pull_request' && github.base_ref == 'main'
+    needs: [integration-test]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Docker Login
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_TOKEN }}
+
+      - name: Build and Push Docker Image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: jchanho99/frontend-prod:latest
+
+  deploy-dev:
+    name: Deploy to Dev Server
+    if: startsWith(github.ref, 'refs/tags/v') && endsWith(github.ref, '-dev') && github.base_ref == 'refs/heads/develop'
+    runs-on: ubuntu-latest
+    outputs:
+      status: ${{ steps.set-status.outputs.status }}
+    steps:
+      - name: Checkout for git access
+        uses: actions/checkout@v3
+      
+      - name: Extract tag name
+        id: tag
+        run: |
+          TAG_NAME="${GITHUB_REF#refs/tags/v}"
+          echo "TAG_NAME=$TAG_NAME" >> $GITHUB_ENV
+
+      - name: Deploy to Dev
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST_DEV }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: 22
+          script: |
+            cd /home/ubuntu/frontend/app
+            echo "${{  secrets.ENV_FE_ANALYTICS  }}" >> .env
+            echo "${{  secrets.ENV_FE_DEV_PROD  }}" >> .env.production
+
+            IMAGE="jchanho99/frontend-develop:latest"
+            cd /home/ubuntu/frontend
+            sudo docker compose down --rmi all
+            sudo docker compose pull
+            sudo docker compose up -d
+            sudo docker compose ps
+
+      - name: Upload tag-versioned image to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_TOKEN }}
+
+      - name: Tag and Push Docker Image (tag = ${{ env.TAG_NAME }})
+        run: |
+          docker pull jchanho99/frontend-develop:latest
+          docker image tag jchanho99/frontend-develop:latest temp-image-with-label
+
+          # 임시 컨테이너 생성 후 레이블 추가로 digest 변경
+          docker container create --name temp-container temp-image-with-label
+          docker commit --change "LABEL force-push-tag=${TAG_NAME}-$(date +%s)" temp-container jchanho99/frontend-develop:${TAG_NAME}
+
+          # 정리
+          docker container stop temp-container
+          docker container rm temp-container
+          docker image rm temp-image-with-label
+
+          # 푸시
+          docker push jchanho99/frontend-develop:${TAG_NAME}
+
+      - name: Set Status (Dev)
+        id: set-status
+        if: success()
+        run: echo "status=success" >> "$GITHUB_OUTPUT"
+
+      - name: Set Status (Dev Failure)
+        if: failure() && steps.deploy-dev.outcome == 'failure' # deploy-step이 실패했을 때만
+        run: echo "status=failure" >> "$GITHUB_OUTPUT"
+
+  # deploy-prod:
+  #   name: Deploy to Prod Server (Blue-Green)
+  #   if: startsWith(github.ref, 'refs/tags/v') && !endsWith(github.ref, '-dev') && github.base_ref == 'refs/heads/main'
+  #   outputs:
+  #     status: ${{ steps.set-status.outputs.status }}
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Checkout for git access
+  #       uses: actions/checkout@v3
+
+  #     - name: Extract tag name
+  #       id: tag
+  #       run: |
+  #         TAG_NAME="${GITHUB_REF#refs/tags/v}"
+  #         echo "TAG_NAME=$TAG_NAME" >> $GITHUB_ENV0
+
+  #     - name: Load environment variables from .env files
+  #       id: load_env_vars
+  #       run: |
+  #         # 환경 변수를 저장할 임시 파일 생성
+  #         TEMP_ENV_FILE=$(mktemp)
+
+  #         # .env.common 파일이 존재하면 읽어서 임시 파일에 추가
+  #         if [ -f .env.common ]; then
+  #           echo "Loading variables from .env.common"
+  #           while IFS='=' read -r key value; do
+  #             if [[ ! -z "$key" && ! "$key" =~ ^# ]]; then # 주석 및 빈 줄 무시
+  #               echo "$key=\"$value\"" >> "$TEMP_ENV_FILE" # 변수=값 형태로 저장 (값에 공백 있을 수 있으므로 따옴표)
+  #             fi
+  #           done < .env.common
+  #         fi
+
+  #         # .env.prod 파일이 존재하면 읽어서 임시 파일에 추가 (동일한 키는 덮어씀)
+  #         if [ -f .env.prod ]; then
+  #           echo "Loading variables from .env.prod (will override common values)"
+  #           while IFS='=' read -r key value; do
+  #             if [[ ! -z "$key" && ! "$key" =~ ^# ]]; then # 주석 및 빈 줄 무시
+  #               echo "$key=\"$value\"" >> "$TEMP_ENV_FILE"
+  #             fi
+  #           done < .env.prod
+  #         fi
+
+  #         # 임시 파일에서 최종 환경 변수 목록을 추출하여 Docker run 옵션 형태로 변환
+  #         ENV_VARS_FOR_DOCKER_RUN=""
+  #         if [ -s "$TEMP_ENV_FILE" ]; then # 파일이 비어있지 않은 경우에만 처리
+  #           # sourced variables will be available as shell variables, then iterate over them
+  #           source "$TEMP_ENV_FILE"
+  #           for var in $(cat "$TEMP_ENV_FILE" | grep -v '^#' | awk -F'=' '{print $1}'); do
+  #               # Use 'eval' to correctly expand the variable (e.g., if value has spaces)
+  #               # This needs careful handling if values contain malicious code
+  #               # For typical .env files, this is usually acceptable.
+  #               ENV_VARS_FOR_DOCKER_RUN+="-e \"$var=$(eval echo \$$var)\" "
+  #           done
+  #         fi
+
+  #         # 결과 출력 (이 내용은 startup-script로 전달됨)
+  #         echo "Generated Docker run env options: ${ENV_VARS_FOR_DOCKER_RUN}"
+  #         echo "ENV_VARS_FOR_DOCKER_RUN=${ENV_VARS_FOR_DOCKER_RUN}" >> $GITHUB_OUTPUT
+
+  #         # 임시 파일 삭제
+  #         rm "$TEMP_ENV_FILE"
+
+  #     - name: Determine current active MIG (Blue or Green)
+  #       id: get_active_mig
+  #       run: |
+  #         # Load Balancer의 URL Map에서 현재 트래픽이 어느 백엔드로 향하고 있는지 확인합니다.
+  #         # Artifact Registry 버전과 동일한 로직을 사용합니다.
+          
+  #         ACTIVE_MIG_NAME=""
+  #         INACTIVE_MIG_NAME=""
+  #         ACTIVE_BACKEND_SERVICE=""
+  #         INACTIVE_BACKEND_SERVICE=""
+
+  #         CURRENT_DEFAULT_SERVICE=$(gcloud compute url-maps describe ${{ env.URL_MAP_NAME }} --project ${{ env.PROJECT_ID_PROD }} --format="value(defaultService)" | awk -F'/' '{print $NF}')
+
+  #         if [[ "$CURRENT_DEFAULT_SERVICE" == "${{ env.BLUE_BACKEND_SERVICE_NAME }}" ]]; then
+  #           echo "Current active backend is BLUE. Deploying to GREEN."
+  #           ACTIVE_MIG_NAME="${{ env.BLUE_MIG_NAME }}"
+  #           INACTIVE_MIG_NAME="${{ env.GREEN_MIG_NAME }}"
+  #           ACTIVE_BACKEND_SERVICE="${{ env.BLUE_BACKEND_SERVICE_NAME }}"
+  #           INACTIVE_BACKEND_SERVICE="${{ env.GREEN_BACKEND_SERVICE_NAME }}"
+  #         else
+  #           echo "Current active backend is GREEN. Deploying to BLUE."
+  #           ACTIVE_MIG_NAME="${{ env.GREEN_MIG_NAME }}"
+  #           INACTIVE_MIG_NAME="${{ env.BLUE_MIG_NAME }}"
+  #           ACTIVE_BACKEND_SERVICE="${{ env.GREEN_BACKEND_SERVICE_NAME }}"
+  #           INACTIVE_BACKEND_SERVICE="${{ env.BLUE_BACKEND_SERVICE_NAME }}"
+  #         fi
+  #         echo "active_mig_name=$ACTIVE_MIG_NAME" >> $GITHUB_OUTPUT
+  #         echo "inactive_mig_name=$INACTIVE_MIG_NAME" >> $GITHUB_OUTPUT
+  #         echo "active_backend_service=$ACTIVE_BACKEND_SERVICE" >> $GITHUB_OUTPUT
+  #         echo "inactive_backend_service=$INACTIVE_BACKEND_SERVICE" >> $GITHUB_OUTPUT
+
+  #     - name: Get current MIG instance template name
+  #       id: get_template
+  #       run: |
+  #         TEMPLATE_NAME=$(gcloud compute instance-groups managed describe ${{ steps.get_active_mig.outputs.inactive_mig_name }} --zone ${{ env.REGION }}-a --project ${{ env.PROJECT_ID }} --format="value(instanceTemplate)" | awk -F'/' '{print $NF}')
+  #         echo "current_template_name=$TEMPLATE_NAME" >> $GITHUB_OUTPUT
+          
+  #     - name: Create new instance template for inactive MIG
+  #       id: create_new_template
+  #       run: |
+  #         NEW_TEMPLATE_NAME="${{ steps.get_active_mig.outputs.inactive_mig_name }}-${{ github.sha }}"
+  #         FULL_IMAGE_NAME="jchanho99/frontend-prod"
+
+  #         gcloud compute instance-templates create $NEW_TEMPLATE_NAME \
+  #           --project ${{ env.PROJECT_ID_PROD }} \
+  #           --machine-type e2-custom-2-3072 \
+  #           --image-family ubuntu-2204-lts \
+  #           --image-project ubuntu-os-cloud \
+  #           --boot-disk-size 20GB \
+  #           --metadata startup-script="""#! /bin/bash
+  #           sudo apt-get update
+  #           sudo apt-get install -y ca-certificates curl gnupg lsb-release
+  #           sudo mkdir -p /etc/apt/keyrings
+  #           curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+  #           echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
+  #           $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+  #           sudo apt-get update
+  #           sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+  #           sudo systemctl start docker
+  #           sudo systemctl enable docker
+
+  #           echo "${{  secrets.ENV_FE_ANALYTICS  }}" >> .env
+  #           echo "${{  secrets.ENV_FE_PROD  }}" >> .env.production
+            
+  #           sudo docker pull $FULL_IMAGE_NAME:latest
+  #           sudo docker run -d -p 80:80 --env-file .env --env-file .env.production $FULL_IMAGE_NAME:latest
+  #           """ \
+  #           --tags http-server,https-server \
+  #           --scopes cloud-platform # 필요한 스코프 추가
+
+  #         echo "new_template_name=$NEW_TEMPLATE_NAME" >> $GITHUB_OUTPUT
+
+  #     - name: Update inactive MIG with new instance template
+  #       run: |
+  #         gcloud compute instance-groups managed set-instance-template ${{ steps.get_active_mig.outputs.inactive_mig_name }} \
+  #           --template ${{ steps.create_new_template.outputs.new_template_name }} \
+  #           --zone ${{ env.REGION }}-a \
+  #           --project ${{ env.PROJECT_ID_PROD }}
+          
+  #         echo "Waiting for rolling update of ${{ steps.get_active_mig.outputs.inactive_mig_name }} to complete..."
+  #         gcloud compute instance-groups managed wait-until --stable ${{ steps.get_active_mig.outputs.inactive_mig_name }} --zone ${{ env.REGION }}-a --project ${{ env.PROJECT_ID }}
+          
+  #     - name: Health Check for inactive MIG
+  #       run: |
+  #         echo "Performing health check on newly deployed MIG (${{ steps.get_active_mig.outputs.inactive_mig_name }})..."
+  #         echo "Simulating health check success. (Replace with actual health check logic)"
+
+  #     - name: Switch Load Balancer traffic to new MIG
+  #       run: |
+  #         echo "Switching Load Balancer traffic from ${{ steps.get_active_mig.outputs.active_backend_service }} to ${{ steps.get_active_mig.outputs.inactive_backend_service }}..."
+          
+  #         gcloud compute url-maps set-default-service ${{ env.URL_MAP_NAME }} \
+  #           --default-service ${{ steps.get_active_mig.outputs.inactive_backend_service }} \
+  #           --project ${{ env.PROJECT_ID_PROD }} \
+  #           --global
+
+  #         echo "Traffic switch initiated. It may take some time for changes to propagate."
+          
+  #     - name: Clean up old instance template (optional)
+  #       run: |
+  #         OLD_TEMPLATE_NAME="${{ steps.get_template.outputs.current_template_name }}"
+  #         if [[ -n "$OLD_TEMPLATE_NAME" ]]; then
+  #           echo "Deleting old instance template: $OLD_TEMPLATE_NAME"
+  #           gcloud compute instance-templates delete $OLD_TEMPLATE_NAME --project ${{ env.PROJECT_ID_PROD }} --quiet
+  #         fi
+
+  #     - name: Tag and Push Docker Image (tag = ${{ env.TAG_NAME }})
+  #       run: |
+  #         docker pull jchanho99/frontend-prod:latest
+  #         docker image tag jchanho99/frontend-prod:latest temp-image-with-label
+
+  #         # 임시 컨테이너 생성 후 레이블 추가로 digest 변경
+  #         docker container create --name temp-container temp-image-with-label
+  #         docker commit --change "LABEL force-push-tag=${TAG_NAME}-$(date +%s)" temp-container jchanho99/frontend-prod:${TAG_NAME}
+
+  #         # 정리
+  #         docker container stop temp-container
+  #         docker container rm temp-container
+  #         docker image rm temp-image-with-label
+
+  #         # 푸시
+  #         docker push jchanho99/frontend-prod:${TAG_NAME}
+
+  #     - name: Set Status (Prod)
+  #       id: set-status
+  #       if: success()
+  #       run: echo "status=success" >> "$GITHUB_OUTPUT"
+
+  #     - name: Set Status (Prod Failure)
+  #       if: failure() && steps.deploy-prod.outcome == 'failure' # deploy-step이 실패했을 때만
+  #       run: echo "status=failure" >> "$GITHUB_OUTPUT"
+   upload-artifact:
+    name: Build and Upload FE Artifact to PROD Server
+    needs: build-prod
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Node.js and pnpm
+        uses: actions/setup-node@v3
+        with:
+          node-version: 'lts/*'
+
+      - uses: pnpm/action-setup@v2
+        with:
+          version: latest
+
+      - name: Install dependencies and build
+        run: |
+          pnpm install
+          pnpm run build
+
+      - name: Archive build result
+        run: |
+          tar -czf fe-build.tar.gz .next public node_modules package.json .env.production scripts/
+
+      - name: Upload via IAP SCP to FE PROD server
+        run: |
+          gcloud compute scp fe-build.tar.gz \
+            ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST_PROD }}:~/fe-build.tar.gz \
+            --zone=asia-northeast3-a \
+            --tunnel-through-iap \
+            --project=${{ env.PROJECT_ID_PROD }}
+
+  remote-deploy:
+    name: Run deploy.sh on FE server
+    needs: upload-artifact
+    runs-on: ubuntu-latest
+    steps:
+      - name: SSH into FE server and run deploy script
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST_PROD }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: 22
+          script: |
+            bash ~/deploy.sh
+
+  notify:
+    name: Discord Notification
+    needs: [deploy-dev, remote-deploy] # 명시적으로 종속성 추가
+    if: |
+      always() &&
+      (
+        needs.deploy-dev.result != 'skipped' || 
+        needs.remote-prod.result != 'skipped'
+      )
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send Discord Message
+        run: |
+          TAG="${GITHUB_REF#refs/tags/}"
+          if [[ "${{ needs.deploy-dev.result }}" != 'skipped' ]]; then
+            STATUS="${{ needs.deploy-dev.outputs.status }}"
+          elif [[ "${{ needs.remote-deploy.result }}" != 'skipped' ]]; then
+            STATUS="success"
+          else
+            STATUS="unknown"
+          fi
+
+          if [[ "$STATUS" == "success" ]]; then
+            MESSAGE="✅ [${TAG}] 배포 완료"
+          elif [[ "$STATUS" == "failure" ]]; then
+            MESSAGE="🚨 [${TAG}] 배포 실패. actions에서 로그를 확인하세요."
+          else
+            MESSAGE="⚠️ [${TAG}] 배포 상태를 알 수 없습니다."
+          fi
+
+          echo "message=$MESSAGE" >> $GITHUB_OUTPUT
+
+          curl -H "Content-Type: application/json" \
+               -X POST \
+               -d "{\"content\": \"$MESSAGE\"}" \
+               ${{ secrets.DISCORD_WEBHOOK_URL }}
