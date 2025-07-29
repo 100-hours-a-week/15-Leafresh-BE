@@ -24,6 +24,7 @@ public class GroupChallengeDetailReadService {
 
     private final GroupChallengeRepository groupChallengeRepository;
     private final GroupChallengeVerificationRepository verificationRepository;
+    private final GroupChallengeParticipantRecordRepository participantRecordRepository;
     private final Clock clock;
 
     public GroupChallengeDetailResponseDto getChallengeDetail(Long memberIdOrNull, Long challengeId) {
@@ -75,11 +76,8 @@ public class GroupChallengeDetailReadService {
         GroupChallenge challenge = getChallengeOrThrow(challengeId);
 
         // 참가 여부 확인
-        boolean hasParticipated = verificationRepository
-                .existsByParticipantRecord_Member_IdAndParticipantRecord_GroupChallenge_Id(
-                        memberIdOrNull,
-                        challengeId
-                );
+        boolean hasParticipated = participantRecordRepository
+                .existsByMember_IdAndGroupChallenge_Id(memberIdOrNull, challengeId);
 
         if (!hasParticipated) {
             return ChallengeStatus.NOT_PARTICIPATED;

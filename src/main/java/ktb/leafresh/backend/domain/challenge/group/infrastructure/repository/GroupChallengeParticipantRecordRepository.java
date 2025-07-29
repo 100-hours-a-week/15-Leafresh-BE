@@ -32,4 +32,6 @@ public interface GroupChallengeParticipantRecordRepository extends JpaRepository
     boolean existsSuccessInPastWeek(@Param("memberId") Long memberId, @Param("oneWeekAgo") LocalDateTime oneWeekAgo);
 
     List<GroupChallengeParticipantRecord> findAllByMemberId(Long memberId);
+
+    boolean existsByMember_IdAndGroupChallenge_Id(Long memberId, Long groupChallengeId);
 }
