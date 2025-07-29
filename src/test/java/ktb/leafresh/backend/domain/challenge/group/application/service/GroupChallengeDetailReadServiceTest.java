@@ -1,6 +1,7 @@
 package ktb.leafresh.backend.domain.challenge.group.application.service;
 
 import ktb.leafresh.backend.domain.challenge.group.domain.entity.GroupChallenge;
+import ktb.leafresh.backend.domain.challenge.group.infrastructure.repository.GroupChallengeParticipantRecordRepository;
 import ktb.leafresh.backend.domain.challenge.group.infrastructure.repository.GroupChallengeRepository;
 import ktb.leafresh.backend.domain.verification.infrastructure.repository.GroupChallengeVerificationRepository;
 import ktb.leafresh.backend.domain.challenge.group.presentation.dto.response.GroupChallengeDetailResponseDto;
@@ -40,6 +41,9 @@ class GroupChallengeDetailReadServiceTest {
 
     @Mock
     private GroupChallengeVerificationRepository verificationRepository;
+
+    @Mock
+    private GroupChallengeParticipantRecordRepository participantRecordRepository;
 
     @Mock
     private Clock clock;
@@ -84,7 +88,7 @@ class GroupChallengeDetailReadServiceTest {
             given(groupChallengeRepository.findById(100L)).willReturn(Optional.of(challenge));
             given(verificationRepository.findTop9ByParticipantRecord_GroupChallenge_IdOrderByCreatedAtDesc(100L))
                     .willReturn(verifications);
-            given(verificationRepository.existsByParticipantRecord_Member_IdAndParticipantRecord_GroupChallenge_Id(1L, 100L))
+            given(participantRecordRepository.existsByMember_IdAndGroupChallenge_Id(1L, 100L))
                     .willReturn(true);
             given(verificationRepository.findTopByParticipantRecord_Member_IdAndParticipantRecord_GroupChallenge_IdAndCreatedAtBetween(
                     1L, 100L, startUtc.toLocalDateTime(), endUtc.toLocalDateTime()
