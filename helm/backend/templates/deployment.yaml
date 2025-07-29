@@ -1,0 +1,14 @@
+env:
+  {{- range .Values.env }}
+  - name: {{ .name }}
+    value: {{ .value | quote }}
+  {{- end }}
+
+  {{- $root := . }} 
+  {{- range $key, $_ := .Values.secrets }}
+  - name: {{ $key }}
+    valueFrom:
+      secretKeyRef:
+        name: {{ include "leafresh-be.fullname" $root }}-secret
+        key: {{ $key }}
+  {{- end }}

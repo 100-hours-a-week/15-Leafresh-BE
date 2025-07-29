@@ -110,9 +110,7 @@ jobs:
 
   build-prod:                                   # main 브랜치에서 Docker 이미지 빌드 및 푸시
     name: Build and Push Docker (prod)
-    if: >
-      (github.event_name == 'push' && startsWith(github.ref, 'refs/heads/main')) ||
-      (github.event_name == 'pull_request' && github.base_ref == 'main' && github.event.action == 'closed' && github.event.pull_request.merged == true)
+
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -240,24 +238,7 @@ jobs:
     outputs:
       status: ${{ steps.set-status.outputs.status }}
     steps:
-      - uses: actions/checkout@v3
-
-      - name: Authenticate to Google Cloud
-        uses: google-github-actions/auth@v2
-        with:
-          project_id: ${{ secrets.GCP_PROJECT_ID_PROD }}
-          credentials_json: ${{ secrets.GCP_SA_KEY_PROD_JSON }}
-
-      - name: Setup Google Cloud SDK and Set GCP Project
-        uses: 'google-github-actions/setup-gcloud@v2'
-
-      - name: Upload via IAP SCP to BE PROD server
-        run: |
-          gcloud compute ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST_PROD }} \
-            --project=${{ secrets.GCP_PROJECT_ID_PROD }} \
-            --zone=${{ secrets.AZ }} \
-            --tunnel-through-iap \
-            --command="bash -c 'cd be && ./deploy.sh'"
+      
   notify:
     name: Discord Notification
     needs: [deploy-dev, deploy-prod]
