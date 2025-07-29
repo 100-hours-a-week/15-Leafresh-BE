@@ -231,17 +231,9 @@ jobs:
         if: failure() && steps.deploy-dev.outcome == 'failure' # deploy-step이 실패했을 때만
         run: echo "status=failure" >> "$GITHUB_OUTPUT"
 
-  deploy-prod:
-    name: BE Docker 배포 (Prod)
-    needs: [build-prod]
-    runs-on: ubuntu-latest
-    outputs:
-      status: ${{ steps.set-status.outputs.status }}
-    steps:
-      
   notify:
     name: Discord Notification
-    needs: [deploy-dev, deploy-prod]
+    needs: [deploy-dev]
     if: |
         needs.deploy-dev.result != 'skipped' ||
         needs.deploy-prod.result != 'skipped'
