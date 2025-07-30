@@ -41,8 +41,12 @@ public class AwsAiVerificationSqsPublisher implements AiVerificationPublisher {
 
     @Override
     public void publishAsyncWithRetry(AiVerificationRequestDto dto) {
+        log.info("[디버그] publishAsyncWithRetry 진입, dto={}", dto);
+
         try {
             String json = objectMapper.writeValueAsString(dto);
+            log.info("[디버그] 직렬화 성공: {}", json);
+            log.info("[디버그] queueUrl={}", queueUrl);
             sendWithRetry(json, dto, 1);
         } catch (JsonProcessingException e) {
             log.error("[AI 인증 직렬화 실패]", e);
