@@ -1,6 +1,7 @@
 package ktb.leafresh.backend.domain.verification.infrastructure.publisher;
 
 import com.amazonaws.services.sqs.AmazonSQSAsync;
+import com.amazonaws.services.sqs.model.SendMessageRequest;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import ktb.leafresh.backend.domain.member.domain.entity.Member;
@@ -11,6 +12,7 @@ import ktb.leafresh.backend.domain.verification.infrastructure.repository.Verifi
 import ktb.leafresh.backend.global.common.entity.enums.ChallengeType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
@@ -56,7 +58,14 @@ public class AwsAiVerificationSqsPublisher implements AiVerificationPublisher {
 
     private void sendWithRetry(String body, AiVerificationRequestDto dto, int attempt) {
         try {
-            amazonSQSAsync.sendMessage(queueUrl, body);
+            SendMessageRequest request = new SendMessageRequest()
+                    .withQueueUrl(queueUrl)
+                    .withMessageBody(body)
+                    .withMessageGroupId("group-challenge-verification")
+                    .withMessageDeduplicationId(generateDeduplicationId(body, dto.memberId()));
+
+            amazonSQSAsync.sendMessage(request);
+
             log.info("[SQS 인증 요청 발행 성공] attempt={}, dto={}", attempt, body);
         } catch (Exception e) {
             log.warn("[SQS 인증 요청 발행 실패] attempt={}, error={}", attempt, e.getMessage());
@@ -88,5 +97,9 @@ public class AwsAiVerificationSqsPublisher implements AiVerificationPublisher {
         } catch (Exception e) {
             log.warn("[FailureLog 저장 실패] {}", e.getMessage());
         }
+    }
+
+    private String generateDeduplicationId(String body, Long memberId) {
+        return memberId + "-" + DigestUtils.sha256Hex(body);
     }
 }
