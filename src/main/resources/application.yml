@@ -83,3 +83,4 @@ security:
     - https://be.dev-leafresh.app
     - https://springboot.dev-leafresh.app
     - https://local.leafresh.click:3000
+    - https://local.leafresh.app
