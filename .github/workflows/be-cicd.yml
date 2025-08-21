@@ -5,9 +5,6 @@ on:
     branches: ["develop", "main"]
   push:
     branches: ["develop", "main"]
-    tags:
-      - 'v*-dev'
-      - 'v*'
 
 jobs:
   unit-test:                                    # 단위 테스트를 수행하는 Job (develop 브랜치 PR 대상)
@@ -51,7 +48,6 @@ jobs:
       - name: Set GCP Secret Name
         id: set-env-vars
         run: |
-          echo "SECRET_NAME=env_docker_local" >> $GITHUB_ENV
           echo "${{ secrets.ENV_BE_DEV }}" > .env
           echo "SIGNOZ_INGESTION_KEY=${{ secrets.SIGNOZ_INGESTION_KEY }}" >> .env
 
@@ -97,7 +93,6 @@ jobs:
       - name: Set GCP Secret Name based on branch
         id: set-env-vars
         run: |
-          echo "SECRET_NAME=env_docker_prod" >> $GITHUB_ENV
           echo "${{ secrets.ENV_BE_PROD }}" > .env
           echo "SIGNOZ_INGESTION_KEY=${{ secrets.SIGNOZ_INGESTION_KEY }}" >> .env
 
@@ -140,39 +135,19 @@ jobs:
     steps:
       - uses: actions/checkout@v3              # 소스코드 체크아웃
 
-      # - name: Deploy Backend (Develop) via SSH
-      #   uses: appleboy/ssh-action@v1.0.3
-      #   with:
-      #     host: ${{ secrets.SSH_HOST_DEV }}
-      #     username: ${{ secrets.SSH_USER }}
-      #     key: ${{ secrets.SSH_PRIVATE_KEY }}
-      #     script: |
-      #       set -e
-      #       echo "GCP 인증 및 Docker 로그인"
-      #       echo '${{ secrets.GCP_SA_KEY_GCS_BASE64 }}' | base64 -d > ~/leafresh-gcs.json
-      #       sudo mv ~/leafresh-gcs.json /home/${{ secrets.SSH_USER }}/backend/app/leafresh-gcs.json
-      #       sudo chown ${{ secrets.SSH_USER }}:${{ secrets.SSH_USER }} /home/${{ secrets.SSH_USER }}/backend/app/leafresh-gcs.json
-      #       sudo chmod 600 /home/${{ secrets.SSH_USER }}/backend/app/leafresh-gcs.json
-      #       echo "Secret Manager에서 .env 기져오기"
-      #       # .env를 홈 디렉토리에 우선 저장
-      #       if ! gcloud secrets versions access latest \
-      #         --secret="env_docker_local" \
-      #         --project="${{ secrets.GCP_PROJECT_ID_DEV }}" > ~/env-be-dev.tmp; then
-      #         echo ".env 파일 다운로드 실패"
-      #         exit 1
-      #       fi
-            
-      #       # 권한 수정 후 앱 디렉토리로 이동
-      #       sudo mv ~/env-be-dev.tmp /home/${{ secrets.SSH_USER }}/backend/app/.env
-      #       sudo chown ${{ secrets.SSH_USER }}:${{ secrets.SSH_USER }} /home/${{ secrets.SSH_USER }}/backend/app/.env
-      #       sudo chmod 600 /home/${{ secrets.SSH_USER }}/backend/app/.env
-            
-      #       echo "[DEV] 환경 배포 중"
-      #       cd /home/${{ secrets.SSH_USER }}/backend
-      #       sudo docker compose down --rmi all
-      #       sudo docker compose pull
-      #       sudo docker compose up -d
-      #       sudo docker compose ps
+      - name: Deploy Backend (Develop) via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            echo "[DEV] 환경 배포 중
+            sudo docker compose stop backend
+            sudo docker compose rm -f backend
+            sudo docker compose pull backend
+            sudo docker compose up -d backend
+            sudo docker compose ps
       
       - name: Set Status (Dev)
         id: set-status
@@ -187,8 +162,7 @@ jobs:
     name: Discord Notification
     needs: [deploy-dev]
     if: |
-        needs.deploy-dev.result != 'skipped' ||
-        needs.deploy-prod.result != 'skipped'
+        needs.deploy-dev.result != 'skipped'
     runs-on: ubuntu-latest
     steps:
       - name: Send Discord Message
@@ -204,14 +178,14 @@ jobs:
             fi
           fi
           # Prod 결과 처리
-          if [[ "${{ needs.deploy-prod.result }}" != 'skipped' ]]; then
-            STATUS_PROD="${{ needs.deploy-prod.outputs.status }}"
-            if [ "$STATUS_PROD" = "success" ]; then
-              MESSAGE="${MESSAGE}✅ \`[FE prod]\` 배포 완료\n"
-            elif [ "$STATUS_PROD" = "failure" ]; then
-              MESSAGE="${MESSAGE}🚨 \`[FE prod]\` 배포 실패\n"
-            fi
-          fi
+          # if [[ "${{ needs.deploy-prod.result }}" != 'skipped' ]]; then
+          #   STATUS_PROD="${{ needs.deploy-prod.outputs.status }}"
+          #   if [ "$STATUS_PROD" = "success" ]; then
+          #     MESSAGE="${MESSAGE}✅ \`[FE prod]\` 배포 완료\n"
+          #   elif [ "$STATUS_PROD" = "failure" ]; then
+          #     MESSAGE="${MESSAGE}🚨 \`[FE prod]\` 배포 실패\n"
+          #   fi
+          # fi
           if [ -z "$MESSAGE" ]; then
             MESSAGE="⚠️ 배포 상태 정보를 찾을 수 없습니다."
           fi
