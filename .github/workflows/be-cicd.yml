@@ -82,7 +82,9 @@ jobs:
 
   build-prod:                                   # main 브랜치에서 Docker 이미지 빌드 및 푸시
     name: Build and Push Docker (prod)
-
+    if: >
+      (github.event_name == 'push' && startsWith(github.ref, 'refs/heads/main')) ||
+      (github.event_name == 'pull_request' && github.base_ref == 'main' && github.event.action == 'closed' && github.event.pull_request.merged == true)
     runs-on: ubuntu-latest
     defaults:
       run:
