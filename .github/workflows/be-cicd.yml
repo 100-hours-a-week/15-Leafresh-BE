@@ -145,7 +145,7 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            echo "[DEV] 환경 배포 중
+            echo "백엔드 배포 중"
             sudo docker compose stop backend
             sudo docker compose rm -f backend
             sudo docker compose pull backend
