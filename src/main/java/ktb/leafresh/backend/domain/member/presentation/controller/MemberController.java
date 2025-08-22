@@ -31,11 +31,11 @@ public class MemberController {
   @ApiResponseConstants.ClientErrorResponses
   @ApiResponseConstants.ServerErrorResponses
   public ResponseEntity<ApiResponse<MemberUpdateResponseDto>> updateMemberInfo(
-      @CurrentMemberId Long memberId,
-      @Valid @RequestBody MemberUpdateRequestDto requestDto) {
+      @CurrentMemberId Long memberId, @Valid @RequestBody MemberUpdateRequestDto requestDto) {
 
     MemberUpdateResponseDto responseDto =
-        memberUpdateService.updateMemberInfo(memberId, requestDto.getNickname(), requestDto.getImageUrl());
+        memberUpdateService.updateMemberInfo(
+            memberId, requestDto.getNickname(), requestDto.getImageUrl());
 
     return ResponseEntity.ok(ApiResponse.success("회원 정보 수정이 완료되었습니다.", responseDto));
   }

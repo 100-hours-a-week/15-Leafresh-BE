@@ -1,5 +1,10 @@
 package ktb.leafresh.backend.domain.auth.presentation.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import ktb.leafresh.backend.domain.auth.application.service.oauth.OAuthLoginService;
@@ -16,6 +21,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @Slf4j
+@Tag(name = "OAuth 콜백", description = "OAuth 인증 콜백 처리 API")
 @RestController
 @RequiredArgsConstructor
 public class OAuthCallbackController {
@@ -23,9 +29,27 @@ public class OAuthCallbackController {
   private final OAuthLoginService oAuthLoginService;
   private final AuthCookieProvider authCookieProvider;
 
+  @Operation(
+      summary = "카카오 OAuth 콜백",
+      description = "카카오 OAuth 인증 후 인가 코드를 받아 로그인을 처리합니다.",
+      responses = {
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            responseCode = "200",
+            description = "카카오 로그인 성공",
+            content = @Content(schema = @Schema(implementation = OAuthLoginResponseDto.class))),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            responseCode = "400",
+            description = "잘못된 인가 코드"),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            responseCode = "500",
+            description = "서버 내부 오류")
+      })
   @GetMapping("/member/kakao/callback")
   public ResponseEntity<ApiResponse<OAuthLoginResponseDto>> kakaoCallback(
-      @RequestParam String code, HttpServletRequest request, HttpServletResponse response) {
+      @Parameter(description = "카카오에서 발급한 인가 코드", required = true, example = "abc123") @RequestParam
+          String code,
+      HttpServletRequest request,
+      HttpServletResponse response) {
     log.info("인가 코드 수신 - code={}", code);
 
     // 실제 요청 URL 전체를 redirect_uri로 사용 (카카오 등록값과 반드시 일치해야 함)

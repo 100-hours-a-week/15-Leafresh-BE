@@ -26,7 +26,7 @@ public class VerificationCountController {
   public ResponseEntity<ApiResponse<VerificationCountResponseDto>> getTotalVerificationCount() {
 
     VerificationCountResponseDto result = verificationCountReadService.getTotalVerificationCount();
-    
+
     return ResponseEntity.ok(ApiResponse.success("누적 사용자 인증 수 조회에 성공했습니다.", result));
   }
 }

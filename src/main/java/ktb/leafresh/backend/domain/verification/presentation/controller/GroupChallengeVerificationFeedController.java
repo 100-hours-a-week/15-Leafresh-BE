@@ -33,12 +33,14 @@ public class GroupChallengeVerificationFeedController {
   public ResponseEntity<ApiResponse<GroupChallengeVerificationFeedListResponseDto>> getFeed(
       @Parameter(description = "커서 ID") @RequestParam(required = false) Long cursorId,
       @Parameter(description = "커서 타임스탬프") @RequestParam(required = false) String cursorTimestamp,
-      @Parameter(description = "페이지 크기") @RequestParam(defaultValue = "12") @Min(1) @Max(50) int size,
+      @Parameter(description = "페이지 크기") @RequestParam(defaultValue = "12") @Min(1) @Max(50)
+          int size,
       @Parameter(description = "카테고리 필터") @RequestParam(required = false) String category,
       @CurrentMemberId Long memberId) {
 
     CursorPaginationResult<GroupChallengeVerificationFeedSummaryDto> result =
-        feedService.getGroupChallengeVerifications(cursorId, cursorTimestamp, size, category, memberId);
+        feedService.getGroupChallengeVerifications(
+            cursorId, cursorTimestamp, size, category, memberId);
 
     return ResponseEntity.ok(
         ApiResponse.success(

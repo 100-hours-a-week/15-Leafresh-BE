@@ -33,7 +33,8 @@ public class NotificationController {
       @CurrentMemberId Long memberId,
       @Parameter(description = "커서 ID") @RequestParam(required = false) Long cursorId,
       @Parameter(description = "커서 타임스탬프") @RequestParam(required = false) String cursorTimestamp,
-      @Parameter(description = "페이지 크기") @RequestParam(defaultValue = "12") @Min(1) @Max(50) int size) {
+      @Parameter(description = "페이지 크기") @RequestParam(defaultValue = "12") @Min(1) @Max(50)
+          int size) {
 
     CursorPaginationResult<NotificationSummaryResponse> result =
         notificationReadService.getNotifications(memberId, cursorId, cursorTimestamp, size);

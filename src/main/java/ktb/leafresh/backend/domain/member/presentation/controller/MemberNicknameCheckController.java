@@ -28,9 +28,9 @@ public class MemberNicknameCheckController {
   @ApiResponseConstants.ClientErrorResponses
   @ApiResponseConstants.ServerErrorResponses
   public ResponseEntity<ApiResponse<NicknameCheckResponseDto>> checkNickname(
-      @Parameter(description = "검사할 닉네임", required = true) 
-      @RequestParam("input") @NotBlank String input) {
-    
+      @Parameter(description = "검사할 닉네임", required = true) @RequestParam("input") @NotBlank
+          String input) {
+
     NicknameValidator.validate(input);
 
     boolean isDuplicated = memberNicknameCheckService.isDuplicated(input);

@@ -41,27 +41,28 @@ public class GroupChallengeManageController {
   @Operation(summary = "단체 챌린지 목록 조회", description = "검색어, 카테고리, 커서 기반 페이지네이션으로 단체 챌린지 목록을 조회합니다.")
   public ResponseEntity<ApiResponse<GroupChallengeListResponseDto>> getGroupChallenges(
       @Parameter(description = "검색어") @RequestParam(required = false) String input,
-      @Parameter(description = "챌린지 카테고리") @RequestParam(required = false) GroupChallengeCategoryName category,
+      @Parameter(description = "챌린지 카테고리") @RequestParam(required = false)
+          GroupChallengeCategoryName category,
       @Parameter(description = "커서 ID") @RequestParam(required = false) Long cursorId,
       @Parameter(description = "커서 타임스탬프") @RequestParam(required = false) String cursorTimestamp,
-      @Parameter(description = "페이지 크기") @RequestParam(defaultValue = "12") @Min(1) @Max(50) int size) {
+      @Parameter(description = "페이지 크기") @RequestParam(defaultValue = "12") @Min(1) @Max(50)
+          int size) {
 
     CursorPaginationResult<GroupChallengeSummaryResponseDto> result =
         searchReadService.getGroupChallenges(input, category, cursorId, cursorTimestamp, size);
 
     return ResponseEntity.ok(
-        ApiResponse.success(
-            "단체 챌린지 목록 조회에 성공하였습니다.", GroupChallengeListResponseDto.from(result)));
+        ApiResponse.success("단체 챌린지 목록 조회에 성공하였습니다.", GroupChallengeListResponseDto.from(result)));
   }
 
   @PostMapping
   @Operation(summary = "단체 챌린지 생성", description = "새로운 단체 챌린지를 생성합니다.")
   public ResponseEntity<ApiResponse<GroupChallengeCreateResponseDto>> createGroupChallenge(
-      @CurrentMemberId Long memberId,
-      @Valid @RequestBody GroupChallengeCreateRequestDto request) {
-    
-    GroupChallengeCreateResponseDto response = groupChallengeCreateService.create(memberId, request);
-    
+      @CurrentMemberId Long memberId, @Valid @RequestBody GroupChallengeCreateRequestDto request) {
+
+    GroupChallengeCreateResponseDto response =
+        groupChallengeCreateService.create(memberId, request);
+
     return ResponseEntity.status(HttpStatus.CREATED)
         .body(ApiResponse.created("단체 챌린지가 생성되었습니다.", response));
   }
@@ -69,11 +70,12 @@ public class GroupChallengeManageController {
   @GetMapping("/{challengeId}")
   @Operation(summary = "단체 챌린지 상세 조회", description = "특정 단체 챌린지의 상세 정보를 조회합니다.")
   public ResponseEntity<ApiResponse<GroupChallengeDetailResponseDto>> getGroupChallengeDetail(
-      @Parameter(description = "챌린지 ID") @PathVariable Long challengeId, 
+      @Parameter(description = "챌린지 ID") @PathVariable Long challengeId,
       @CurrentMemberId Long memberId) {
-    
-    GroupChallengeDetailResponseDto response = detailReadService.getChallengeDetail(memberId, challengeId);
-    
+
+    GroupChallengeDetailResponseDto response =
+        detailReadService.getChallengeDetail(memberId, challengeId);
+
     return ResponseEntity.ok(ApiResponse.success("단체 챌린지 상세 정보를 성공적으로 조회했습니다.", response));
   }
 
@@ -83,7 +85,7 @@ public class GroupChallengeManageController {
       @CurrentMemberId Long memberId,
       @Parameter(description = "챌린지 ID") @PathVariable Long challengeId,
       @Valid @RequestBody GroupChallengeUpdateRequestDto request) {
-    
+
     groupChallengeUpdateService.update(memberId, challengeId, request);
     return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
   }
@@ -91,11 +93,11 @@ public class GroupChallengeManageController {
   @DeleteMapping("/{challengeId}")
   @Operation(summary = "단체 챌린지 삭제", description = "기존 단체 챌린지를 삭제합니다.")
   public ResponseEntity<ApiResponse<Map<String, Long>>> deleteGroupChallenge(
-      @CurrentMemberId Long memberId, 
+      @CurrentMemberId Long memberId,
       @Parameter(description = "챌린지 ID") @PathVariable Long challengeId) {
-    
+
     Long deletedId = groupChallengeDeleteService.delete(memberId, challengeId);
-    
+
     return ResponseEntity.ok(
         ApiResponse.success("단체 챌린지가 성공적으로 삭제되었습니다.", Map.of("deletedChallengeId", deletedId)));
   }

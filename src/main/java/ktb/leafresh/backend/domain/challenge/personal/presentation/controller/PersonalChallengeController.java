@@ -29,18 +29,21 @@ public class PersonalChallengeController {
   @Operation(summary = "개인 챌린지 목록 조회", description = "요일별 개인 챌린지 목록을 조회합니다.")
   public ResponseEntity<ApiResponse<PersonalChallengeListResponseDto>> getPersonalChallengesByDay(
       @Parameter(description = "요일", required = true) @RequestParam @Valid DayOfWeek dayOfWeek) {
-    
+
     PersonalChallengeListResponseDto response = readService.getByDayOfWeek(dayOfWeek);
     return ResponseEntity.ok(ApiResponse.success("개인챌린지 목록 조회에 성공하였습니다.", response));
   }
 
   @GetMapping("/{challengeId}")
-  @Operation(summary = "개인 챌린지 상세 조회", description = "특정 개인 챌린지의 상세 정보를 조회합니다. 로그인한 사용자에게는 추가 정보를 제공합니다.")
+  @Operation(
+      summary = "개인 챌린지 상세 조회",
+      description = "특정 개인 챌린지의 상세 정보를 조회합니다. 로그인한 사용자에게는 추가 정보를 제공합니다.")
   public ResponseEntity<ApiResponse<PersonalChallengeDetailResponseDto>> getPersonalChallengeDetail(
-      @Parameter(description = "챌린지 ID") @PathVariable Long challengeId, 
+      @Parameter(description = "챌린지 ID") @PathVariable Long challengeId,
       @CurrentMemberId Long memberId) {
-    
-    PersonalChallengeDetailResponseDto response = readService.getChallengeDetail(memberId, challengeId);
+
+    PersonalChallengeDetailResponseDto response =
+        readService.getChallengeDetail(memberId, challengeId);
     return ResponseEntity.ok(ApiResponse.success("개인 챌린지 상세 정보를 성공적으로 조회했습니다.", response));
   }
 

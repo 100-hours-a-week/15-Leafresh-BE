@@ -27,8 +27,7 @@ public class TimedealProductController {
 
     TimedealProductListResponseDto response = timedealProductReadService.findTimedealProducts();
 
-    String message = response.timeDeals().isEmpty() ? 
-        "진행 중인 타임딜 상품이 없습니다." : "타임딜 상품 목록을 불러왔습니다.";
+    String message = response.timeDeals().isEmpty() ? "진행 중인 타임딜 상품이 없습니다." : "타임딜 상품 목록을 불러왔습니다.";
 
     return ResponseEntity.ok(ApiResponse.success(message, response));
   }

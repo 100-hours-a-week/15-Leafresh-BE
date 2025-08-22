@@ -31,7 +31,7 @@ public class ProductAdminController {
   @PreAuthorize("hasRole('ADMIN')")
   public ResponseEntity<ApiResponse<ProductCreateResponseDto>> createProduct(
       @Valid @RequestBody ProductCreateRequestDto dto) {
-    
+
     ProductCreateResponseDto response = productCreateService.createProduct(dto);
     return ResponseEntity.ok(ApiResponse.success("일반 상품이 등록되었습니다.", response));
   }
@@ -40,9 +40,9 @@ public class ProductAdminController {
   @Operation(summary = "일반 상품 수정", description = "기존 일반 상품 정보를 수정합니다. (관리자 권한 필요)")
   @PreAuthorize("hasRole('ADMIN')")
   public ResponseEntity<Void> updateProduct(
-      @Parameter(description = "상품 ID") @PathVariable Long productId, 
+      @Parameter(description = "상품 ID") @PathVariable Long productId,
       @Valid @RequestBody ProductUpdateRequestDto dto) {
-    
+
     productUpdateService.update(productId, dto);
     return ResponseEntity.noContent().build();
   }

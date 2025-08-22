@@ -134,7 +134,8 @@ class MemberUpdateServiceTest {
       given(memberRepository.findById(memberId)).willReturn(Optional.of(member));
 
       // when & then
-      assertThatThrownBy(() -> memberUpdateService.updateMemberInfo(memberId, invalidNickname, null))
+      assertThatThrownBy(
+              () -> memberUpdateService.updateMemberInfo(memberId, invalidNickname, null))
           .isInstanceOf(CustomException.class)
           .hasMessageContaining(MemberErrorCode.NICKNAME_INVALID_FORMAT.getMessage());
     }

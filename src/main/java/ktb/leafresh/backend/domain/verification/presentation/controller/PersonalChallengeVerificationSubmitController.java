@@ -44,7 +44,7 @@ public class PersonalChallengeVerificationSubmitController {
   @GetMapping("/{challengeId}/verification/result")
   @Operation(summary = "개인 챌린지 인증 결과 조회", description = "최근 제출한 개인 챌린지 인증의 결과를 조회합니다.")
   public ResponseEntity<ApiResponse<Map<String, String>>> getVerificationResult(
-      @CurrentMemberId Long memberId, 
+      @CurrentMemberId Long memberId,
       @Parameter(description = "챌린지 ID") @PathVariable Long challengeId) {
 
     ChallengeStatus status = resultQueryService.getLatestStatus(memberId, challengeId);

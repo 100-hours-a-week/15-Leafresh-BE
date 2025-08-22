@@ -30,8 +30,8 @@ public class MemberBadgeController {
   @Operation(summary = "최근 획득한 뱃지 조회", description = "회원이 최근에 획득한 뱃지를 최신순으로 조회합니다.")
   public ResponseEntity<ApiResponse<RecentBadgeListResponseDto>> getRecentBadges(
       @CurrentMemberId Long memberId,
-      @Parameter(description = "조회할 뱃지 개수") 
-      @RequestParam(defaultValue = "8") @Min(1) @Max(50) int count) {
+      @Parameter(description = "조회할 뱃지 개수") @RequestParam(defaultValue = "8") @Min(1) @Max(50)
+          int count) {
 
     RecentBadgeListResponseDto badges = recentBadgeReadService.getRecentBadges(memberId, count);
 
