@@ -1,5 +1,6 @@
 package ktb.leafresh.backend.domain.challenge.group.presentation.dto.response;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import ktb.leafresh.backend.domain.verification.domain.entity.GroupChallengeVerification;
 import lombok.Builder;
 
@@ -8,22 +9,31 @@ import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.Map;
 
+@Schema(description = "단체 챌린지 인증 상세 정보 응답")
 @Builder
 public record GroupChallengeVerificationDetailResponseDto(
-    Long id,
-    String nickname,
-    String profileImageUrl,
-    boolean isLiked,
-    String imageUrl,
-    String content,
-    String category,
-    String status,
-    OffsetDateTime verifiedAt,
-    Counts counts,
-    OffsetDateTime createdAt,
-    OffsetDateTime updatedAt) {
+    @Schema(description = "인증 ID", example = "1") Long id,
+    @Schema(description = "인증한 사용자 닉네임", example = "leafresh") String nickname,
+    @Schema(description = "사용자 프로필 이미지 URL", example = "https://leafresh.io/profile.jpg")
+        String profileImageUrl,
+    @Schema(description = "좋아요 여부", example = "true") boolean isLiked,
+    @Schema(description = "인증 이미지 URL", example = "https://leafresh.io/verification.jpg")
+        String imageUrl,
+    @Schema(description = "인증 내용", example = "오늘도 제로웨이스트 실천했어요!") String content,
+    @Schema(description = "챌린지 카테고리", example = "ZERO_WASTE") String category,
+    @Schema(description = "인증 상태", example = "SUCCESS") String status,
+    @Schema(description = "인증 완료 시간", example = "2024-01-01T10:00:00+00:00")
+        OffsetDateTime verifiedAt,
+    @Schema(description = "통계 정보") Counts counts,
+    @Schema(description = "생성일시", example = "2024-01-01T10:00:00+00:00") OffsetDateTime createdAt,
+    @Schema(description = "수정일시", example = "2024-01-01T10:00:00+00:00") OffsetDateTime updatedAt) {
+
+  @Schema(description = "인증 통계 정보")
   @Builder
-  public record Counts(int view, int like, int comment) {}
+  public record Counts(
+      @Schema(description = "조회수", example = "100") int view,
+      @Schema(description = "좋아요 수", example = "25") int like,
+      @Schema(description = "댓글 수", example = "5") int comment) {}
 
   public static GroupChallengeVerificationDetailResponseDto from(
       GroupChallengeVerification v, Map<Object, Object> cachedStats, boolean isLiked) {

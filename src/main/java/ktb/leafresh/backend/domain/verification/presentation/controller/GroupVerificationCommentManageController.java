@@ -43,7 +43,7 @@ public class GroupVerificationCommentManageController {
 
     List<CommentSummaryResponseDto> comments =
         groupVerificationCommentQueryService.getComments(challengeId, verificationId, memberId);
-    
+
     CommentListResponseDto responseDto = new CommentListResponseDto(comments);
 
     return ResponseEntity.ok(ApiResponse.success("댓글 목록을 조회했습니다.", responseDto));
@@ -92,7 +92,7 @@ public class GroupVerificationCommentManageController {
     CommentUpdateResponseDto response =
         groupVerificationCommentUpdateService.updateComment(
             challengeId, verificationId, commentId, memberId, requestDto);
-    
+
     return ResponseEntity.ok(ApiResponse.success("댓글이 수정되었습니다.", response));
   }
 
@@ -106,7 +106,7 @@ public class GroupVerificationCommentManageController {
 
     groupVerificationCommentDeleteService.deleteComment(
         challengeId, verificationId, commentId, memberId);
-    
+
     return ResponseEntity.ok(ApiResponse.success("댓글이 삭제되었습니다."));
   }
 }

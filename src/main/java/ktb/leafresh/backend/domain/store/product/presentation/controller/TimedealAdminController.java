@@ -31,7 +31,7 @@ public class TimedealAdminController {
   @PreAuthorize("hasRole('ADMIN')")
   public ResponseEntity<ApiResponse<TimedealCreateResponseDto>> createTimedeal(
       @Valid @RequestBody TimedealCreateRequestDto dto) {
-    
+
     TimedealCreateResponseDto response = timedealCreateService.create(dto);
     return ResponseEntity.ok(ApiResponse.success("타임딜 상품이 등록되었습니다.", response));
   }
@@ -40,9 +40,9 @@ public class TimedealAdminController {
   @Operation(summary = "타임딜 상품 수정", description = "기존 타임딜 상품 정보를 수정합니다. (관리자 권한 필요)")
   @PreAuthorize("hasRole('ADMIN')")
   public ResponseEntity<Void> updateTimedeal(
-      @Parameter(description = "타임딜 ID") @PathVariable Long dealId, 
+      @Parameter(description = "타임딜 ID") @PathVariable Long dealId,
       @Valid @RequestBody TimedealUpdateRequestDto dto) {
-    
+
     timedealUpdateService.update(dealId, dto);
     return ResponseEntity.noContent().build();
   }

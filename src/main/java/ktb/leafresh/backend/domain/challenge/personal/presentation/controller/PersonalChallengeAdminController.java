@@ -28,9 +28,9 @@ public class PersonalChallengeAdminController {
   @PreAuthorize("hasRole('ADMIN')")
   public ResponseEntity<ApiResponse<PersonalChallengeCreateResponseDto>> create(
       @Valid @RequestBody PersonalChallengeCreateRequestDto request) {
-    
+
     PersonalChallengeCreateResponseDto response = createService.create(request);
-    
+
     return ResponseEntity.status(HttpStatus.CREATED)
         .body(ApiResponse.created("개인 챌린지가 성공적으로 생성되었습니다.", response));
   }

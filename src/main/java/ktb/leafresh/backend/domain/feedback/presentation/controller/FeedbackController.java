@@ -36,11 +36,10 @@ public class FeedbackController {
   @PostMapping
   @Operation(summary = "주간 피드백 생성 요청", description = "지난주 활동을 기반으로 피드백 생성을 요청합니다.")
   public ResponseEntity<ApiResponse<Void>> requestWeeklyFeedback(
-      @CurrentMemberId Long memberId,
-      @Valid @RequestBody FeedbackRequestDto requestDto) {
+      @CurrentMemberId Long memberId, @Valid @RequestBody FeedbackRequestDto requestDto) {
 
     feedbackCommandService.handleFeedbackCreationRequest(memberId);
-    
+
     return ResponseEntity.status(202)
         .body(ApiResponse.success("피드백 요청이 정상적으로 접수되었습니다. 결과는 곧 제공됩니다."));
   }

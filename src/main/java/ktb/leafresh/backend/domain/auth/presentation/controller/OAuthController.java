@@ -1,6 +1,8 @@
 package ktb.leafresh.backend.domain.auth.presentation.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.servlet.http.HttpServletResponse;
 import ktb.leafresh.backend.domain.auth.application.service.oauth.OAuthLoginService;
 import ktb.leafresh.backend.domain.auth.application.service.oauth.OAuthReissueTokenService;
@@ -22,6 +24,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @Slf4j
+@Tag(name = "OAuth 인증", description = "OAuth 로그인 및 토큰 관리 API")
 @RestController
 @RequestMapping("/oauth")
 @RequiredArgsConstructor
@@ -37,23 +40,14 @@ public class OAuthController {
     return ResponseEntity.ok("<h1>카카오 로그인 성공</h1><p>쿠키 확인은 개발자 도구에서</p>");
   }
 
-  //    @Operation(summary = "카카오 로그인 리다이렉트", description = "카카오 인증 페이지로 리다이렉트합니다.")
-  //    @ApiResponseConstants.RedirectResponses
-  //    @GetMapping("/{provider}")
-  //    public ResponseEntity<ApiResponse<OAuthRedirectUrlResponseDto>>
-  // redirectToProvider(@PathVariable String provider) {
-  //        OAuthProvider providerEnum = OAuthProvider.from(provider);
-  //        String redirectUrl = oAuthLoginService.getRedirectUrl();
-  //
-  //        OAuthRedirectUrlResponseDto responseData = new OAuthRedirectUrlResponseDto(redirectUrl);
-  //        return ResponseEntity.ok(ApiResponse.success("소셜 로그인 URL을 반환합니다.", responseData));
-  //    }
-
   @Operation(summary = "카카오 로그인 리다이렉트", description = "카카오 인증 페이지로 리다이렉트합니다.")
   @ApiResponseConstants.RedirectResponses
   @GetMapping("/{provider}")
   public ResponseEntity<ApiResponse<OAuthRedirectUrlResponseDto>> redirectToProvider(
-      @PathVariable String provider, @RequestParam(required = false) String origin) {
+      @Parameter(description = "OAuth 제공자", example = "kakao") @PathVariable String provider,
+      @Parameter(description = "클라이언트 도메인", example = "https://leafresh.app")
+          @RequestParam(required = false)
+          String origin) {
     if (origin == null || origin.isBlank()) {
       origin = "https://leafresh.app"; // fallback 도메인
     }
@@ -82,9 +76,10 @@ public class OAuthController {
   @ApiResponseConstants.ServerErrorResponses
   @GetMapping("/{provider}/callback")
   public ResponseEntity<ApiResponse<OAuthLoginResponseDto>> kakaoCallback(
-      @PathVariable String provider,
-      @RequestParam String code,
-      @RequestParam String state,
+      @Parameter(description = "OAuth 제공자", example = "kakao") @PathVariable String provider,
+      @Parameter(description = "인가 코드", required = true, example = "abc123") @RequestParam
+          String code,
+      @Parameter(description = "상태 토큰", required = true) @RequestParam String state,
       HttpServletResponse response) {
     log.info("인가 코드 수신 - code={}", code);
 
@@ -126,7 +121,8 @@ public class OAuthController {
   @ApiResponseConstants.ClientErrorResponses
   @PostMapping("/token/reissue")
   public ResponseEntity<ApiResponse<Void>> reissueToken(
-      @CookieValue(value = "refreshToken", required = false) String refreshToken,
+      @Parameter(description = "리프레시 토큰 쿠키") @CookieValue(value = "refreshToken", required = false)
+          String refreshToken,
       HttpServletResponse response) {
     if (refreshToken == null || refreshToken.isBlank()) {
       throw new CustomException(GlobalErrorCode.UNAUTHORIZED);
@@ -153,9 +149,11 @@ public class OAuthController {
   @ApiResponseConstants.ClientErrorResponses
   @DeleteMapping("/{provider}/token")
   public ResponseEntity<ApiResponse<Void>> logout(
-      @PathVariable String provider,
-      @CookieValue(value = "accessToken", required = false) String accessToken,
-      @CookieValue(value = "refreshToken", required = false) String refreshToken,
+      @Parameter(description = "OAuth 제공자", example = "kakao") @PathVariable String provider,
+      @Parameter(description = "액세스 토큰 쿠키") @CookieValue(value = "accessToken", required = false)
+          String accessToken,
+      @Parameter(description = "리프레시 토큰 쿠키") @CookieValue(value = "refreshToken", required = false)
+          String refreshToken,
       HttpServletResponse response) {
     if (accessToken == null || accessToken.isBlank()) {
       throw new CustomException(

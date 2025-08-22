@@ -30,7 +30,8 @@ public class MemberLeafPointController {
   public ResponseEntity<ApiResponse<MemberLeafPointResponseDto>> getLeafPoints(
       @CurrentMemberId Long memberId) {
 
-    MemberLeafPointResponseDto responseDto = memberLeafPointReadService.getCurrentLeafPoints(memberId);
+    MemberLeafPointResponseDto responseDto =
+        memberLeafPointReadService.getCurrentLeafPoints(memberId);
 
     return ResponseEntity.ok(ApiResponse.success("보유 나뭇잎 수를 조회했습니다.", responseDto));
   }

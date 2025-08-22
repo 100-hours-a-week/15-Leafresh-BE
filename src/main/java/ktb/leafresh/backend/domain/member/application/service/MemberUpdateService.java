@@ -20,10 +20,12 @@ public class MemberUpdateService {
   @Transactional
   public MemberUpdateResponseDto updateMemberInfo(
       Long memberId, String newNickname, String newImageUrl) {
-    
-    Member member = memberRepository.findById(memberId)
-        .orElseThrow(() -> new CustomException(MemberErrorCode.MEMBER_NOT_FOUND));
-    
+
+    Member member =
+        memberRepository
+            .findById(memberId)
+            .orElseThrow(() -> new CustomException(MemberErrorCode.MEMBER_NOT_FOUND));
+
     boolean updated = false;
 
     log.debug("[회원 정보 수정] 시작 - memberId: {}", memberId);

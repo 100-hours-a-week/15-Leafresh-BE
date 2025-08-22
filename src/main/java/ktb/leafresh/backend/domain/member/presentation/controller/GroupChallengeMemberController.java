@@ -37,7 +37,8 @@ public class GroupChallengeMemberController {
       @CurrentMemberId Long memberId,
       @Parameter(description = "커서 ID") @RequestParam(required = false) Long cursorId,
       @Parameter(description = "커서 타임스탬프") @RequestParam(required = false) String cursorTimestamp,
-      @Parameter(description = "페이지 크기") @RequestParam(defaultValue = "12") @Min(1) @Max(50) int size) {
+      @Parameter(description = "페이지 크기") @RequestParam(defaultValue = "12") @Min(1) @Max(50)
+          int size) {
 
     CursorPaginationResult<CreatedGroupChallengeSummaryResponseDto> result =
         groupChallengeCreatedReadService.getCreatedChallengesByMember(
@@ -50,8 +51,8 @@ public class GroupChallengeMemberController {
 
   @GetMapping("/participations/count")
   @Operation(summary = "참여한 단체 챌린지 카운트 조회", description = "회원이 참여한 단체 챌린지의 상태별 카운트를 조회합니다.")
-  public ResponseEntity<ApiResponse<GroupChallengeParticipationCountResponseDto>> getParticipationCounts(
-      @CurrentMemberId Long memberId) {
+  public ResponseEntity<ApiResponse<GroupChallengeParticipationCountResponseDto>>
+      getParticipationCounts(@CurrentMemberId Long memberId) {
 
     GroupChallengeParticipationCountResponseDto response =
         groupChallengeParticipationReadService.getParticipationCounts(memberId);
@@ -61,29 +62,33 @@ public class GroupChallengeMemberController {
 
   @GetMapping("/participations")
   @Operation(summary = "참여한 단체 챌린지 목록 조회", description = "회원이 참여한 단체 챌린지를 status별로 커서 기반으로 조회합니다.")
-  public ResponseEntity<ApiResponse<GroupChallengeParticipationListResponseDto>> getParticipatedChallenges(
-      @CurrentMemberId Long memberId,
-      @Parameter(description = "챌린지 상태") @RequestParam @NotBlank String status,
-      @Parameter(description = "커서 ID") @RequestParam(required = false) Long cursorId,
-      @Parameter(description = "커서 타임스탬프") @RequestParam(required = false) String cursorTimestamp,
-      @Parameter(description = "페이지 크기") @RequestParam(defaultValue = "12") @Min(1) @Max(50) int size) {
+  public ResponseEntity<ApiResponse<GroupChallengeParticipationListResponseDto>>
+      getParticipatedChallenges(
+          @CurrentMemberId Long memberId,
+          @Parameter(description = "챌린지 상태") @RequestParam @NotBlank String status,
+          @Parameter(description = "커서 ID") @RequestParam(required = false) Long cursorId,
+          @Parameter(description = "커서 타임스탬프") @RequestParam(required = false)
+              String cursorTimestamp,
+          @Parameter(description = "페이지 크기") @RequestParam(defaultValue = "12") @Min(1) @Max(50)
+              int size) {
 
     var response =
         groupChallengeParticipationReadService.getParticipatedChallenges(
             memberId, status, cursorId, cursorTimestamp, size);
-    
+
     return ResponseEntity.ok(ApiResponse.success("참여한 단체 챌린지 목록을 성공적으로 조회했습니다.", response));
   }
 
   @GetMapping("/participations/{challengeId}/verifications")
   @Operation(summary = "참여 챌린지 인증내역 일별 조회", description = "참여한 챌린지의 인증내역을 일자별로 제공합니다.")
-  public ResponseEntity<ApiResponse<GroupChallengeVerificationHistoryResponseDto>> getVerificationHistory(
-      @CurrentMemberId Long memberId, 
-      @Parameter(description = "챌린지 ID") @PathVariable Long challengeId) {
+  public ResponseEntity<ApiResponse<GroupChallengeVerificationHistoryResponseDto>>
+      getVerificationHistory(
+          @CurrentMemberId Long memberId,
+          @Parameter(description = "챌린지 ID") @PathVariable Long challengeId) {
 
     GroupChallengeVerificationHistoryResponseDto response =
         groupChallengeVerificationHistoryService.getVerificationHistory(memberId, challengeId);
-    
+
     return ResponseEntity.ok(ApiResponse.success("단체 챌린지 인증 내역을 성공적으로 조회했습니다.", response));
   }
 }

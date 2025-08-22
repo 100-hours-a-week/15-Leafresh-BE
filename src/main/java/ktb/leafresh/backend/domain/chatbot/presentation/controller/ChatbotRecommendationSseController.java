@@ -26,14 +26,16 @@ public class ChatbotRecommendationSseController {
   private final ChatbotRecommendationSseService chatbotRecommendationSseService;
 
   @GetMapping(value = "/base-info", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-  @Operation(summary = "기본 정보 기반 실시간 챗봇 추천", description = "사용자의 기본 정보를 기반으로 실시간으로 챌린지를 추천합니다. (SSE)")
+  @Operation(
+      summary = "기본 정보 기반 실시간 챗봇 추천",
+      description = "사용자의 기본 정보를 기반으로 실시간으로 챌린지를 추천합니다. (SSE)")
   public SseEmitter baseInfo(
       @Parameter(description = "세션 ID", required = true) @RequestParam @NotBlank String sessionId,
       @Parameter(description = "위치", required = true) @RequestParam @NotBlank String location,
       @Parameter(description = "업무 형태", required = true) @RequestParam @NotBlank String workType,
       @Parameter(description = "카테고리", required = true) @RequestParam @NotBlank String category,
       HttpServletResponse response) {
-    
+
     response.setHeader("Cache-Control", "no-cache");
     response.setHeader("X-Accel-Buffering", "no");
 
@@ -43,12 +45,14 @@ public class ChatbotRecommendationSseController {
   }
 
   @GetMapping(value = "/free-text", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-  @Operation(summary = "자유 텍스트 기반 실시간 챗봇 추천", description = "사용자의 자유 텍스트를 분석하여 실시간으로 챌린지를 추천합니다. (SSE)")
+  @Operation(
+      summary = "자유 텍스트 기반 실시간 챗봇 추천",
+      description = "사용자의 자유 텍스트를 분석하여 실시간으로 챌린지를 추천합니다. (SSE)")
   public SseEmitter freeText(
-      @Parameter(description = "세션 ID", required = true) @RequestParam @NotBlank String sessionId, 
-      @Parameter(description = "사용자 메시지", required = true) @RequestParam @NotBlank String message, 
+      @Parameter(description = "세션 ID", required = true) @RequestParam @NotBlank String sessionId,
+      @Parameter(description = "사용자 메시지", required = true) @RequestParam @NotBlank String message,
       HttpServletResponse response) {
-    
+
     response.setHeader("Cache-Control", "no-cache");
     response.setHeader("X-Accel-Buffering", "no");
 

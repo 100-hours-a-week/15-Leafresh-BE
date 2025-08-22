@@ -29,7 +29,7 @@ public class VerificationResultController {
   @PostMapping("/{verificationId}/result")
   @Operation(summary = "인증 결과 수신", description = "외부 AI 서비스로부터 인증 결과를 수신합니다. (외부 서비스 전용)")
   public ResponseEntity<ApiResponse<Void>> receiveResult(
-      @Parameter(description = "인증 ID") @PathVariable Long verificationId, 
+      @Parameter(description = "인증 ID") @PathVariable Long verificationId,
       @Valid @RequestBody VerificationResultRequestDto dto) {
 
     if (dto.type() == ChallengeType.GROUP) {

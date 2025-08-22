@@ -14,7 +14,7 @@ public class CurrentMemberIdArgumentResolver implements HandlerMethodArgumentRes
 
   @Override
   public boolean supportsParameter(MethodParameter parameter) {
-    return parameter.hasParameterAnnotation(CurrentMemberId.class) 
+    return parameter.hasParameterAnnotation(CurrentMemberId.class)
         && parameter.getParameterType().equals(Long.class);
   }
 
@@ -24,13 +24,13 @@ public class CurrentMemberIdArgumentResolver implements HandlerMethodArgumentRes
       ModelAndViewContainer mavContainer,
       NativeWebRequest webRequest,
       WebDataBinderFactory binderFactory) {
-    
+
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-    
+
     if (authentication == null || !(authentication.getPrincipal() instanceof CustomUserDetails)) {
       return null; // permitAll 엔드포인트에서는 null 반환
     }
-    
+
     CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
     return userDetails.getMemberId();
   }

@@ -32,7 +32,8 @@ public class GroupChallengeVerificationReadController {
       @Parameter(description = "챌린지 ID") @PathVariable Long challengeId,
       @Parameter(description = "커서 ID") @RequestParam(required = false) Long cursorId,
       @Parameter(description = "커서 타임스탬프") @RequestParam(required = false) String cursorTimestamp,
-      @Parameter(description = "페이지 크기") @RequestParam(defaultValue = "12") @Min(1) @Max(50) int size,
+      @Parameter(description = "페이지 크기") @RequestParam(defaultValue = "12") @Min(1) @Max(50)
+          int size,
       @CurrentMemberId Long memberId) {
 
     CursorPaginationResult<GroupChallengeVerificationSummaryDto> result =
@@ -52,19 +53,21 @@ public class GroupChallengeVerificationReadController {
 
     GroupChallengeRuleResponseDto response =
         groupChallengeVerificationReadService.getChallengeRules(challengeId);
-    
+
     return ResponseEntity.ok(ApiResponse.success("단체 챌린지 인증 규약 정보를 성공적으로 조회했습니다.", response));
   }
 
   @GetMapping("/verifications/{verificationId}")
   @Operation(summary = "단체 챌린지 인증 상세 조회", description = "특정 단체 챌린지 인증의 상세 정보를 조회합니다.")
-  public ResponseEntity<ApiResponse<GroupChallengeVerificationDetailResponseDto>> getVerificationDetail(
-      @Parameter(description = "챌린지 ID") @PathVariable Long challengeId,
-      @Parameter(description = "인증 ID") @PathVariable Long verificationId,
-      @CurrentMemberId Long memberId) {
-    
+  public ResponseEntity<ApiResponse<GroupChallengeVerificationDetailResponseDto>>
+      getVerificationDetail(
+          @Parameter(description = "챌린지 ID") @PathVariable Long challengeId,
+          @Parameter(description = "인증 ID") @PathVariable Long verificationId,
+          @CurrentMemberId Long memberId) {
+
     GroupChallengeVerificationDetailResponseDto response =
-        groupChallengeVerificationReadService.getVerificationDetail(challengeId, verificationId, memberId);
+        groupChallengeVerificationReadService.getVerificationDetail(
+            challengeId, verificationId, memberId);
 
     return ResponseEntity.ok(ApiResponse.success("특정 단체 챌린지 인증 상세 정보를 조회했습니다.", response));
   }

@@ -31,11 +31,12 @@ public class ProductController {
       @Parameter(description = "검색어") @RequestParam(required = false) String input,
       @Parameter(description = "커서 ID") @RequestParam(required = false) Long cursorId,
       @Parameter(description = "커서 타임스탬프") @RequestParam(required = false) String cursorTimestamp,
-      @Parameter(description = "페이지 크기") @RequestParam(defaultValue = "12") @Min(1) @Max(50) int size) {
+      @Parameter(description = "페이지 크기") @RequestParam(defaultValue = "12") @Min(1) @Max(50)
+          int size) {
 
     ProductListResponseDto response =
         productSearchReadService.search(input, cursorId, cursorTimestamp, size);
-    
+
     String message = response.getProducts().isEmpty() ? "검색된 상품이 없습니다." : "상품 목록을 조회했습니다.";
     return ResponseEntity.ok(ApiResponse.success(message, response));
   }

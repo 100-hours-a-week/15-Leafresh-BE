@@ -22,13 +22,12 @@ public class EventChallengeController {
 
   @GetMapping
   @Operation(summary = "이벤트 챌린지 목록 조회", description = "현재 진행 중인 이벤트 챌린지 목록을 조회합니다.")
-  public ResponseEntity<ApiResponse<Map<String, List<EventChallengeResponseDto>>>> getEventChallenges() {
-    
+  public ResponseEntity<ApiResponse<Map<String, List<EventChallengeResponseDto>>>>
+      getEventChallenges() {
+
     List<EventChallengeResponseDto> challenges = eventChallengeReadService.getEventChallenges();
-    
+
     return ResponseEntity.ok(
-        ApiResponse.success(
-            "이벤트 챌린지 목록 조회에 성공하였습니다.",
-            Map.of("eventChallenges", challenges)));
+        ApiResponse.success("이벤트 챌린지 목록 조회에 성공하였습니다.", Map.of("eventChallenges", challenges)));
   }
 }

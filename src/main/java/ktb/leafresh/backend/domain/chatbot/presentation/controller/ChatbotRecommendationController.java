@@ -25,11 +25,14 @@ public class ChatbotRecommendationController {
   private final ChatbotRecommendationService recommendationService;
 
   @PostMapping("/base-info")
-  @Operation(summary = "기본 정보 기반 챗봇 추천", description = "사용자의 기본 정보(위치, 업무 형태, 카테고리)를 기반으로 챌린지를 추천합니다.")
+  @Operation(
+      summary = "기본 정보 기반 챗봇 추천",
+      description = "사용자의 기본 정보(위치, 업무 형태, 카테고리)를 기반으로 챌린지를 추천합니다.")
   public ResponseEntity<ApiResponse<ChatbotRecommendationResponseDto>> recommendByBaseInfo(
       @Valid @RequestBody ChatbotBaseInfoRequestDto requestDto) {
 
-    ChatbotRecommendationResponseDto response = recommendationService.recommendByBaseInfo(requestDto);
+    ChatbotRecommendationResponseDto response =
+        recommendationService.recommendByBaseInfo(requestDto);
 
     return ResponseEntity.ok(ApiResponse.success("사용자 기본 정보 키워드 선택을 기반으로 챌린지를 추천합니다.", response));
   }
@@ -39,7 +42,8 @@ public class ChatbotRecommendationController {
   public ResponseEntity<ApiResponse<ChatbotRecommendationResponseDto>> recommendByFreeText(
       @Valid @RequestBody ChatbotFreeTextRequestDto requestDto) {
 
-    ChatbotRecommendationResponseDto response = recommendationService.recommendByFreeText(requestDto);
+    ChatbotRecommendationResponseDto response =
+        recommendationService.recommendByFreeText(requestDto);
 
     return ResponseEntity.ok(ApiResponse.success("사용자 자유 메시지를 기반으로 챌린지를 추천합니다.", response));
   }
