@@ -37,32 +37,47 @@ jobs:
         # 애플리케이션 빌드
         ./gradlew build -x test
         
-        # 백그라운드에서 애플리케이션 시작
-        nohup java -jar build/libs/*.jar --spring.profiles.active=local \
-          --server.port=8080 \
-          --spring.datasource.url=jdbc:h2:mem:testdb \
-          --spring.datasource.driver-class-name=org.h2.Driver \
-          --spring.jpa.hibernate.ddl-auto=create-drop \
-          --jwt.secret=dummy-secret-for-documentation-generation-only-not-for-production-use \
-          --kakao.client-id=dummy \
-          --kakao.client-secret=dummy > app.log 2>&1 &
+        # 백그라운드에서 애플리케이션 시작 (swagger 프로파일 사용)
+        nohup java -jar build/libs/*.jar \
+          --spring.profiles.active=swagger \
+          --server.port=8080 > app.log 2>&1 &
         
-        # 애플리케이션이 시작될 때까지 대기
+        # 애플리케이션이 시작될 때까지 대기 (더 긴 시간과 더 자세한 로그)
         echo "Waiting for application to start..."
-        for i in {1..60}; do
-          if curl -s http://localhost:8080/actuator/health > /dev/null; then
+        for i in {1..90}; do
+          if curl -s http://localhost:8080/actuator/health > /dev/null 2>&1; then
             echo "Application is ready!"
             break
           fi
-          echo "Waiting... ($i/60)"
-          sleep 5
+          echo "Waiting... ($i/90)"
+          if [ $i -eq 30 ] || [ $i -eq 60 ]; then
+            echo "Current application log:"
+            tail -20 app.log
+          fi
+          sleep 2
         done
         
+        # 최종 상태 확인
+        if ! curl -s http://localhost:8080/actuator/health > /dev/null 2>&1; then
+          echo "❌ Application failed to start. Last 50 lines of log:"
+          tail -50 app.log
+          exit 1
+        fi
+        
         # Swagger JSON 다운로드
-        curl -o swagger.json http://localhost:8080/v3/api-docs
+        echo "Downloading Swagger JSON..."
+        if curl -f -o swagger.json http://localhost:8080/v3/api-docs; then
+          echo "✅ Swagger JSON downloaded successfully"
+          echo "JSON size: $(wc -c < swagger.json) bytes"
+        else
+          echo "❌ Failed to download Swagger JSON"
+          echo "Application log:"
+          tail -50 app.log
+          exit 1
+        fi
         
         # 애플리케이션 종료
-        pkill -f "java -jar"
+        pkill -f "java -jar" || true
         
     - name: Create Swagger UI
       run: |

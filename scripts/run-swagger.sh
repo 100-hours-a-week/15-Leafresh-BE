@@ -53,21 +53,8 @@ start_swagger_server() {
     
     # H2 데이터베이스 사용하여 문서화 전용 서버 실행
     java -jar build/libs/*.jar \
-        --spring.profiles.active=local \
-        --server.port=8080 \
-        --spring.datasource.url=jdbc:h2:mem:swagger \
-        --spring.datasource.driver-class-name=org.h2.Driver \
-        --spring.datasource.username=sa \
-        --spring.datasource.password= \
-        --spring.jpa.hibernate.ddl-auto=create-drop \
-        --spring.jpa.show-sql=false \
-        --jwt.secret=dummy-secret-for-documentation-generation-only-not-for-production \
-        --kakao.client-id=dummy \
-        --kakao.client-secret=dummy \
-        --logging.level.org.springframework.security=WARN \
-        --logging.level.ktb.leafresh.backend=WARN \
-        --logging.level.org.hibernate=WARN \
-        --logging.level.com.zaxxer.hikari=WARN &
+        --spring.profiles.active=swagger \
+        --server.port=8080 &
     
     server_pid=$!
     
@@ -109,8 +96,8 @@ start_swagger_server() {
 main() {
     echo -e "${GREEN}"
     echo "╔══════════════════════════════════════╗"
-    echo "║        🌱 Leafresh Swagger          ║"
-    echo "║      API Documentation Server       ║"
+    echo "║        🌱 Leafresh Swagger           ║"
+    echo "║      API Documentation Server        ║"
     echo "╚══════════════════════════════════════╝"
     echo -e "${NC}"
     
