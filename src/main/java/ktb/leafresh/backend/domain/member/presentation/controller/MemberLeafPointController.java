@@ -6,19 +6,19 @@ import ktb.leafresh.backend.domain.member.application.service.MemberLeafPointRea
 import ktb.leafresh.backend.domain.member.presentation.dto.response.MemberLeafPointResponseDto;
 import ktb.leafresh.backend.global.response.ApiResponse;
 import ktb.leafresh.backend.global.response.ApiResponseConstants;
-import ktb.leafresh.backend.global.security.CustomUserDetails;
+import ktb.leafresh.backend.global.security.CurrentMemberId;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-@Slf4j
+@Tag(name = "Member Leaf Point", description = "회원 나뭇잎 포인트 API")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/members")
+@Validated
 public class MemberLeafPointController {
 
   private final MemberLeafPointReadService memberLeafPointReadService;
@@ -28,18 +28,10 @@ public class MemberLeafPointController {
   @ApiResponseConstants.ClientErrorResponses
   @ApiResponseConstants.ServerErrorResponses
   public ResponseEntity<ApiResponse<MemberLeafPointResponseDto>> getLeafPoints(
-      @AuthenticationPrincipal CustomUserDetails userDetails) {
+      @CurrentMemberId Long memberId) {
 
-    Long memberId = userDetails.getMemberId();
-    log.debug("[나뭇잎 보유량 조회] 요청 시작 - memberId: {}", memberId);
+    MemberLeafPointResponseDto responseDto = memberLeafPointReadService.getCurrentLeafPoints(memberId);
 
-    MemberLeafPointResponseDto responseDto =
-        memberLeafPointReadService.getCurrentLeafPoints(memberId);
-
-    log.debug(
-        "[나뭇잎 보유량 조회] 응답 완료 - memberId: {}, currentLeafPoints: {}",
-        memberId,
-        responseDto.getCurrentLeafPoints());
     return ResponseEntity.ok(ApiResponse.success("보유 나뭇잎 수를 조회했습니다.", responseDto));
   }
 }
