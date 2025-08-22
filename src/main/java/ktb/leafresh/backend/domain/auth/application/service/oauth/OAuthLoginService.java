@@ -36,135 +36,142 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class OAuthLoginService {
 
-    @Getter
-    @Value("${kakao.client-id}")
-    private String clientId;
+  @Getter
+  @Value("${kakao.client-id}")
+  private String clientId;
 
-    private final OAuthKakaoService oAuthKakaoService;
-    private final RewardGrantService rewardGrantService;
-    private final JwtLogoutService jwtLogoutService;
-    private final JwtProvider jwtProvider;
-    private final TokenProvider tokenProvider;
-    private final OAuthTokenFactory tokenFactory;
-    private final MemberRepository memberRepository;
-    private final RefreshTokenRepository refreshTokenRepository;
-    private final AuthCookieProvider authCookieProvider;
-    private final SecurityProperties securityProperties;
+  private final OAuthKakaoService oAuthKakaoService;
+  private final RewardGrantService rewardGrantService;
+  private final JwtLogoutService jwtLogoutService;
+  private final JwtProvider jwtProvider;
+  private final TokenProvider tokenProvider;
+  private final OAuthTokenFactory tokenFactory;
+  private final MemberRepository memberRepository;
+  private final RefreshTokenRepository refreshTokenRepository;
+  private final AuthCookieProvider authCookieProvider;
+  private final SecurityProperties securityProperties;
 
-    public String getRedirectUrl(String origin) {
-        if (origin == null || origin.isBlank()) {
-            origin = "https://leafresh.app";
-        }
-
-        if (!securityProperties.getAllowedOrigins().contains(origin)) {
-            log.warn("허용되지 않은 origin 요청: {}", origin);
-            throw new CustomException(GlobalErrorCode.INVALID_ORIGIN);
-        }
-
-        String encodedRedirectUri = origin + "/member/kakao/callback";
-
-        return "https://kauth.kakao.com/oauth/authorize" +
-                "?client_id=" + clientId +
-                "&redirect_uri=" + encodedRedirectUri +
-                "&response_type=code";
+  public String getRedirectUrl(String origin) {
+    if (origin == null || origin.isBlank()) {
+      origin = "https://leafresh.app";
     }
 
-    @Transactional
-    public OAuthTokenResponseDto loginWithKakao(String authorizationCode, String redirectUri) {
-        log.info("[OAuthLoginService] 카카오 로그인 시작 - code={}, redirectUri={}", authorizationCode, redirectUri);
-
-        try {
-            OAuthUserInfoDto userInfo = oAuthKakaoService.getUserInfo(authorizationCode, redirectUri);
-            Optional<Member> optionalMember = memberRepository.findByEmail(userInfo.getEmail());
-
-            if (optionalMember.isPresent()) {
-                return createTokenResponseForExistingMember(optionalMember.get(), userInfo);
-            }
-
-            return createResponseForNewUser(userInfo);
-        } catch (CustomException e) {
-            throw e;
-        } catch (Exception e) {
-            throw new CustomException(MemberErrorCode.KAKAO_LOGIN_FAILED, e.getMessage());
-        }
+    if (!securityProperties.getAllowedOrigins().contains(origin)) {
+      log.warn("허용되지 않은 origin 요청: {}", origin);
+      throw new CustomException(GlobalErrorCode.INVALID_ORIGIN);
     }
 
-    @Transactional
-    public void logout(String accessToken, String refreshToken) {
-        jwtLogoutService.logout(accessToken, refreshToken);
+    String encodedRedirectUri = origin + "/member/kakao/callback";
+
+    return "https://kauth.kakao.com/oauth/authorize"
+        + "?client_id="
+        + clientId
+        + "&redirect_uri="
+        + encodedRedirectUri
+        + "&response_type=code";
+  }
+
+  @Transactional
+  public OAuthTokenResponseDto loginWithKakao(String authorizationCode, String redirectUri) {
+    log.info(
+        "[OAuthLoginService] 카카오 로그인 시작 - code={}, redirectUri={}", authorizationCode, redirectUri);
+
+    try {
+      OAuthUserInfoDto userInfo = oAuthKakaoService.getUserInfo(authorizationCode, redirectUri);
+      Optional<Member> optionalMember = memberRepository.findByEmail(userInfo.getEmail());
+
+      if (optionalMember.isPresent()) {
+        return createTokenResponseForExistingMember(optionalMember.get(), userInfo);
+      }
+
+      return createResponseForNewUser(userInfo);
+    } catch (CustomException e) {
+      throw e;
+    } catch (Exception e) {
+      throw new CustomException(MemberErrorCode.KAKAO_LOGIN_FAILED, e.getMessage());
+    }
+  }
+
+  @Transactional
+  public void logout(String accessToken, String refreshToken) {
+    jwtLogoutService.logout(accessToken, refreshToken);
+  }
+
+  public OAuthTokenResponseDto reissueToken(String refreshToken) {
+    String memberId = tokenProvider.getSubject(refreshToken);
+    RefreshToken savedToken = validateRefreshToken(refreshToken, memberId);
+    Member member = findMemberOrThrow(Long.parseLong(memberId));
+
+    TokenDto tokenDto =
+        jwtProvider.generateTokenDto(member.getId(), createAuthentication(member).getAuthorities());
+    return tokenFactory.create(member, tokenDto);
+  }
+
+  public ResponseCookie createAccessTokenCookie(String accessToken, Long expiresIn) {
+    return authCookieProvider.createAccessTokenCookie(accessToken);
+  }
+
+  private OAuthTokenResponseDto createTokenResponseForExistingMember(
+      Member member, OAuthUserInfoDto userInfo) {
+    Authentication authentication = createAuthentication(member);
+    TokenDto tokenDto =
+        jwtProvider.generateTokenDto(member.getId(), authentication.getAuthorities());
+
+    saveRefreshToken(member.getId(), tokenDto.getRefreshToken());
+
+    rewardGrantService.grantDailyLoginReward(member);
+
+    return tokenFactory.create(member, tokenDto);
+  }
+
+  private Authentication createAuthentication(Member member) {
+    UserDetails userDetails =
+        new User(
+            member.getId().toString(),
+            "",
+            List.of(new SimpleGrantedAuthority(member.getRole().name())));
+    return new UsernamePasswordAuthenticationToken(userDetails, "", userDetails.getAuthorities());
+  }
+
+  private void saveRefreshToken(Long memberId, String refreshTokenValue) {
+    RefreshToken refreshToken =
+        RefreshToken.builder().rtKey(String.valueOf(memberId)).rtValue(refreshTokenValue).build();
+    refreshTokenRepository.save(refreshToken);
+  }
+
+  private OAuthTokenResponseDto createResponseForNewUser(OAuthUserInfoDto userInfo) {
+    return OAuthTokenResponseDto.builder()
+        .nickname("사용자" + System.currentTimeMillis())
+        .imageUrl(userInfo.getProfileImageUrl())
+        .accessToken(null)
+        .refreshToken(null)
+        .accessTokenExpiresIn(null)
+        .grantType("NONE")
+        .providerId(userInfo.getProviderId())
+        .email(userInfo.getEmail())
+        .build();
+  }
+
+  private RefreshToken validateRefreshToken(String refreshToken, String memberId) {
+    if (!tokenProvider.validateToken(refreshToken)) {
+      throw new CustomException(GlobalErrorCode.INVALID_TOKEN);
     }
 
-    public OAuthTokenResponseDto reissueToken(String refreshToken) {
-        String memberId = tokenProvider.getSubject(refreshToken);
-        RefreshToken savedToken = validateRefreshToken(refreshToken, memberId);
-        Member member = findMemberOrThrow(Long.parseLong(memberId));
+    RefreshToken saved =
+        refreshTokenRepository
+            .findById(memberId)
+            .orElseThrow(() -> new CustomException(GlobalErrorCode.REFRESH_TOKEN_NOT_FOUND));
 
-        TokenDto tokenDto = jwtProvider.generateTokenDto(member.getId(), createAuthentication(member).getAuthorities());
-        return tokenFactory.create(member, tokenDto);
+    if (!saved.getRtValue().equals(refreshToken)) {
+      throw new CustomException(GlobalErrorCode.INVALID_TOKEN);
     }
 
-    public ResponseCookie createAccessTokenCookie(String accessToken, Long expiresIn) {
-        return authCookieProvider.createAccessTokenCookie(accessToken);
-    }
+    return saved;
+  }
 
-    private OAuthTokenResponseDto createTokenResponseForExistingMember(Member member, OAuthUserInfoDto userInfo) {
-        Authentication authentication = createAuthentication(member);
-        TokenDto tokenDto = jwtProvider.generateTokenDto(member.getId(), authentication.getAuthorities());
-
-        saveRefreshToken(member.getId(), tokenDto.getRefreshToken());
-
-        rewardGrantService.grantDailyLoginReward(member);
-
-        return tokenFactory.create(member, tokenDto);
-    }
-
-    private Authentication createAuthentication(Member member) {
-        UserDetails userDetails = new User(
-                member.getId().toString(),
-                "",
-                List.of(new SimpleGrantedAuthority(member.getRole().name()))
-        );
-        return new UsernamePasswordAuthenticationToken(userDetails, "", userDetails.getAuthorities());
-    }
-
-    private void saveRefreshToken(Long memberId, String refreshTokenValue) {
-        RefreshToken refreshToken = RefreshToken.builder()
-                .rtKey(String.valueOf(memberId))
-                .rtValue(refreshTokenValue)
-                .build();
-        refreshTokenRepository.save(refreshToken);
-    }
-
-    private OAuthTokenResponseDto createResponseForNewUser(OAuthUserInfoDto userInfo) {
-        return OAuthTokenResponseDto.builder()
-                .nickname("사용자" + System.currentTimeMillis())
-                .imageUrl(userInfo.getProfileImageUrl())
-                .accessToken(null)
-                .refreshToken(null)
-                .accessTokenExpiresIn(null)
-                .grantType("NONE")
-                .providerId(userInfo.getProviderId())
-                .email(userInfo.getEmail())
-                .build();
-    }
-
-    private RefreshToken validateRefreshToken(String refreshToken, String memberId) {
-        if (!tokenProvider.validateToken(refreshToken)) {
-            throw new CustomException(GlobalErrorCode.INVALID_TOKEN);
-        }
-
-        RefreshToken saved = refreshTokenRepository.findById(memberId)
-                .orElseThrow(() -> new CustomException(GlobalErrorCode.REFRESH_TOKEN_NOT_FOUND));
-
-        if (!saved.getRtValue().equals(refreshToken)) {
-            throw new CustomException(GlobalErrorCode.INVALID_TOKEN);
-        }
-
-        return saved;
-    }
-
-    private Member findMemberOrThrow(Long memberId) {
-        return memberRepository.findById(memberId)
-                .orElseThrow(() -> new CustomException(MemberErrorCode.MEMBER_NOT_FOUND));
-    }
+  private Member findMemberOrThrow(Long memberId) {
+    return memberRepository
+        .findById(memberId)
+        .orElseThrow(() -> new CustomException(MemberErrorCode.MEMBER_NOT_FOUND));
+  }
 }

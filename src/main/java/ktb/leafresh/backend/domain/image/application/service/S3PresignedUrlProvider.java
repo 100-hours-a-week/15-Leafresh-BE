@@ -22,33 +22,36 @@ import java.util.List;
 @RequiredArgsConstructor
 public class S3PresignedUrlProvider implements PresignedUrlProvider {
 
-    private final AmazonS3 amazonS3;
+  private final AmazonS3 amazonS3;
 
-    @Value("${aws.s3.bucket}")
-    private String bucketName;
+  @Value("${aws.s3.bucket}")
+  private String bucketName;
 
-    private static final List<String> ALLOWED_CONTENT_TYPES = List.of("image/png", "image/jpeg", "image/jpg", "image/webp");
+  private static final List<String> ALLOWED_CONTENT_TYPES =
+      List.of("image/png", "image/jpeg", "image/jpg", "image/webp");
 
-    @Override
-    public PresignedUrlResponseDto generatePresignedUrl(String fileName, String contentType) {
-        validateContentType(contentType);
+  @Override
+  public PresignedUrlResponseDto generatePresignedUrl(String fileName, String contentType) {
+    validateContentType(contentType);
 
-        Date expiration = new Date(System.currentTimeMillis() + 3 * 60 * 1000);
+    Date expiration = new Date(System.currentTimeMillis() + 3 * 60 * 1000);
 
-        GeneratePresignedUrlRequest request = new GeneratePresignedUrlRequest(bucketName, fileName)
-                .withMethod(HttpMethod.PUT)
-                .withContentType(contentType)
-                .withExpiration(expiration);
+    GeneratePresignedUrlRequest request =
+        new GeneratePresignedUrlRequest(bucketName, fileName)
+            .withMethod(HttpMethod.PUT)
+            .withContentType(contentType)
+            .withExpiration(expiration);
 
-        URL uploadUrl = amazonS3.generatePresignedUrl(request);
-        String fileUrl = String.format("https://%s.s3.ap-northeast-2.amazonaws.com/%s", bucketName, fileName);
+    URL uploadUrl = amazonS3.generatePresignedUrl(request);
+    String fileUrl =
+        String.format("https://%s.s3.ap-northeast-2.amazonaws.com/%s", bucketName, fileName);
 
-        return new PresignedUrlResponseDto(uploadUrl.toString(), fileUrl);
+    return new PresignedUrlResponseDto(uploadUrl.toString(), fileUrl);
+  }
+
+  private void validateContentType(String contentType) {
+    if (!ALLOWED_CONTENT_TYPES.contains(contentType)) {
+      throw new CustomException(GlobalErrorCode.UNSUPPORTED_CONTENT_TYPE);
     }
-
-    private void validateContentType(String contentType) {
-        if (!ALLOWED_CONTENT_TYPES.contains(contentType)) {
-            throw new CustomException(GlobalErrorCode.UNSUPPORTED_CONTENT_TYPE);
-        }
-    }
+  }
 }

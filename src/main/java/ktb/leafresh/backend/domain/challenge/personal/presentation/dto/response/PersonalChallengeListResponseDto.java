@@ -6,5 +6,4 @@ import java.util.List;
 
 @Builder
 public record PersonalChallengeListResponseDto(
-        List<PersonalChallengeSummaryDto> personalChallenges
-) {}
+    List<PersonalChallengeSummaryDto> personalChallenges) {}

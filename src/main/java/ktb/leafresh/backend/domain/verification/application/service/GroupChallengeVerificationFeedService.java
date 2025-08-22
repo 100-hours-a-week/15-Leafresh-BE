@@ -23,44 +23,35 @@ import java.util.stream.Collectors;
 @Transactional(readOnly = true)
 public class GroupChallengeVerificationFeedService {
 
-    private final GroupChallengeVerificationFeedQueryRepository feedQueryRepository;
-    private final VerificationStatCacheService verificationStatCacheService;
-    private final LikeRepository likeRepository;
+  private final GroupChallengeVerificationFeedQueryRepository feedQueryRepository;
+  private final VerificationStatCacheService verificationStatCacheService;
+  private final LikeRepository likeRepository;
 
-    public CursorPaginationResult<GroupChallengeVerificationFeedSummaryDto> getGroupChallengeVerifications(
-            Long cursorId,
-            String cursorTimestamp,
-            int size,
-            String category,
-            Long loginMemberId
-    ) {
-        List<GroupChallengeVerification> verifications =
-                feedQueryRepository.findAllByFilter(category, cursorId, cursorTimestamp, size + 1);
+  public CursorPaginationResult<GroupChallengeVerificationFeedSummaryDto>
+      getGroupChallengeVerifications(
+          Long cursorId, String cursorTimestamp, int size, String category, Long loginMemberId) {
+    List<GroupChallengeVerification> verifications =
+        feedQueryRepository.findAllByFilter(category, cursorId, cursorTimestamp, size + 1);
 
-        List<Long> verificationIds = verifications.stream()
-                .map(GroupChallengeVerification::getId)
-                .toList();
+    List<Long> verificationIds =
+        verifications.stream().map(GroupChallengeVerification::getId).toList();
 
-        Map<Long, Map<Object, Object>> redisStats = verificationIds.stream()
-                .collect(Collectors.toMap(
-                        id -> id,
-                        id -> verificationStatCacheService.getStats(id)
-                ));
+    Map<Long, Map<Object, Object>> redisStats =
+        verificationIds.stream()
+            .collect(Collectors.toMap(id -> id, id -> verificationStatCacheService.getStats(id)));
 
-        Set<Long> likedIds = loginMemberId != null
-                ? likeRepository.findLikedVerificationIdsByMemberId(loginMemberId, verificationIds)
-                : Set.of();
+    Set<Long> likedIds =
+        loginMemberId != null
+            ? likeRepository.findLikedVerificationIdsByMemberId(loginMemberId, verificationIds)
+            : Set.of();
 
-        return CursorPaginationHelper.paginateWithTimestamp(
-                verifications,
-                size,
-                v -> GroupChallengeVerificationFeedSummaryDto.from(
-                        v,
-                        redisStats.get(v.getId()),
-                        likedIds.contains(v.getId())
-                ),
-                dto -> dto.id(),
-                dto -> dto.createdAt().toLocalDateTime()
-        );
-    }
+    return CursorPaginationHelper.paginateWithTimestamp(
+        verifications,
+        size,
+        v ->
+            GroupChallengeVerificationFeedSummaryDto.from(
+                v, redisStats.get(v.getId()), likedIds.contains(v.getId())),
+        dto -> dto.id(),
+        dto -> dto.createdAt().toLocalDateTime());
+  }
 }

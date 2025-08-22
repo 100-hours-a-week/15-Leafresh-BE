@@ -6,5 +6,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public interface NotificationReadQueryRepository {
-    List<Notification> findAllWithCursorAndMemberId(LocalDateTime cursorTimestamp, Long cursorId, int size, Long memberId);
+  List<Notification> findAllWithCursorAndMemberId(
+      LocalDateTime cursorTimestamp, Long cursorId, int size, Long memberId);
 }

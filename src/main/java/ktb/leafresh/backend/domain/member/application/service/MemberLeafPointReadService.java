@@ -14,18 +14,21 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class MemberLeafPointReadService {
 
-    private final MemberRepository memberRepository;
+  private final MemberRepository memberRepository;
 
-    public MemberLeafPointResponseDto getCurrentLeafPoints(Long memberId) {
-        Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> {
-                    log.warn("[나뭇잎 보유량 조회] 존재하지 않는 사용자 - memberId: {}", memberId);
-                    return new CustomException(MemberErrorCode.MEMBER_NOT_FOUND);
+  public MemberLeafPointResponseDto getCurrentLeafPoints(Long memberId) {
+    Member member =
+        memberRepository
+            .findById(memberId)
+            .orElseThrow(
+                () -> {
+                  log.warn("[나뭇잎 보유량 조회] 존재하지 않는 사용자 - memberId: {}", memberId);
+                  return new CustomException(MemberErrorCode.MEMBER_NOT_FOUND);
                 });
 
-        Integer leafPoints = member.getCurrentLeafPoints();
-        log.info("[나뭇잎 보유량 조회] 조회 성공 - memberId: {}, leafPoints: {}", memberId, leafPoints);
+    Integer leafPoints = member.getCurrentLeafPoints();
+    log.info("[나뭇잎 보유량 조회] 조회 성공 - memberId: {}, leafPoints: {}", memberId, leafPoints);
 
-        return new MemberLeafPointResponseDto(leafPoints);
-    }
+    return new MemberLeafPointResponseDto(leafPoints);
+  }
 }

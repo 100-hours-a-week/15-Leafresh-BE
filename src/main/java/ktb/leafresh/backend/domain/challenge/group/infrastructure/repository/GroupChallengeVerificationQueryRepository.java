@@ -8,11 +8,14 @@ import java.util.Map;
 import java.util.Optional;
 
 public interface GroupChallengeVerificationQueryRepository {
-    List<GroupChallengeVerification> findByChallengeId(Long challengeId, Long cursorId, String cursorTimestamp, int size);
+  List<GroupChallengeVerification> findByChallengeId(
+      Long challengeId, Long cursorId, String cursorTimestamp, int size);
 
-    List<GroupChallengeVerification> findByParticipantRecordId(Long participantRecordId);
+  List<GroupChallengeVerification> findByParticipantRecordId(Long participantRecordId);
 
-    Optional<GroupChallengeVerification> findByChallengeIdAndId(Long challengeId, Long verificationId);
+  Optional<GroupChallengeVerification> findByChallengeIdAndId(
+      Long challengeId, Long verificationId);
 
-    Map<Long, List<GroupChallengeParticipationSummaryDto.AchievementRecordDto>> findVerificationsGroupedByChallenge(List<Long> challengeIds, Long memberId);
+  Map<Long, List<GroupChallengeParticipationSummaryDto.AchievementRecordDto>>
+      findVerificationsGroupedByChallenge(List<Long> challengeIds, Long memberId);
 }

@@ -17,27 +17,33 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class MemberNicknameCheckController {
 
-    private final MemberNicknameCheckService memberNicknameCheckService;
+  private final MemberNicknameCheckService memberNicknameCheckService;
 
-    @Operation(
-            summary = "닉네임 중복 검사",
-            description = "닉네임이 이미 사용 중인지 확인합니다.",
-            responses = {
-                    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "중복 여부 반환"),
-                    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "닉네임이 없거나 형식 오류"),
-                    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "500", description = "서버 오류")
-            }
-    )
-    @ApiResponseConstants.ClientErrorResponses
-    @ApiResponseConstants.ServerErrorResponses
-    @GetMapping("/nickname")
-    public ResponseEntity<ApiResponse<NicknameCheckResponseDto>> checkNickname(
-            @RequestParam("input") String input) {
-        NicknameValidator.validate(input);
+  @Operation(
+      summary = "닉네임 중복 검사",
+      description = "닉네임이 이미 사용 중인지 확인합니다.",
+      responses = {
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            responseCode = "200",
+            description = "중복 여부 반환"),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            responseCode = "400",
+            description = "닉네임이 없거나 형식 오류"),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            responseCode = "500",
+            description = "서버 오류")
+      })
+  @ApiResponseConstants.ClientErrorResponses
+  @ApiResponseConstants.ServerErrorResponses
+  @GetMapping("/nickname")
+  public ResponseEntity<ApiResponse<NicknameCheckResponseDto>> checkNickname(
+      @RequestParam("input") String input) {
+    NicknameValidator.validate(input);
 
-        boolean isDuplicated = memberNicknameCheckService.isDuplicated(input);
-        String message = isDuplicated ? "이미 사용 중인 닉네임입니다." : "사용 가능한 닉네임입니다.";
+    boolean isDuplicated = memberNicknameCheckService.isDuplicated(input);
+    String message = isDuplicated ? "이미 사용 중인 닉네임입니다." : "사용 가능한 닉네임입니다.";
 
-        return ResponseEntity.ok(ApiResponse.success(message, new NicknameCheckResponseDto(isDuplicated)));
-    }
+    return ResponseEntity.ok(
+        ApiResponse.success(message, new NicknameCheckResponseDto(isDuplicated)));
+  }
 }

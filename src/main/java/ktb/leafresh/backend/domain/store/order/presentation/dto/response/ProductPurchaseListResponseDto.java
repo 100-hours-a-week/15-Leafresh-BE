@@ -11,15 +11,16 @@ import java.util.List;
 @Builder
 public class ProductPurchaseListResponseDto {
 
-    private final List<ProductPurchaseSummaryResponseDto> purchases;
-    private final boolean hasNext;
-    private final CursorInfo cursorInfo;
+  private final List<ProductPurchaseSummaryResponseDto> purchases;
+  private final boolean hasNext;
+  private final CursorInfo cursorInfo;
 
-    public static ProductPurchaseListResponseDto from(CursorPaginationResult<ProductPurchaseSummaryResponseDto> result) {
-        return ProductPurchaseListResponseDto.builder()
-                .purchases(result.items())
-                .hasNext(result.hasNext())
-                .cursorInfo(result.cursorInfo())
-                .build();
-    }
+  public static ProductPurchaseListResponseDto from(
+      CursorPaginationResult<ProductPurchaseSummaryResponseDto> result) {
+    return ProductPurchaseListResponseDto.builder()
+        .purchases(result.items())
+        .hasNext(result.hasNext())
+        .cursorInfo(result.cursorInfo())
+        .build();
+  }
 }

@@ -26,65 +26,73 @@ import java.time.LocalDateTime;
 @RequiredArgsConstructor
 public class TimedealOrderCreateService {
 
-    private final MemberRepository memberRepository;
-    private final TimedealPolicyRepository timedealPolicyRepository;
-    private final PurchaseIdempotencyKeyRepository idempotencyRepository;
-    private final StockRedisLuaService stockRedisLuaService;
-    private final PurchaseMessagePublisher purchaseMessagePublisher;
-    private final ProductCacheLockFacade productCacheLockFacade;
-    private final PointService pointService;
+  private final MemberRepository memberRepository;
+  private final TimedealPolicyRepository timedealPolicyRepository;
+  private final PurchaseIdempotencyKeyRepository idempotencyRepository;
+  private final StockRedisLuaService stockRedisLuaService;
+  private final PurchaseMessagePublisher purchaseMessagePublisher;
+  private final ProductCacheLockFacade productCacheLockFacade;
+  private final PointService pointService;
 
-    @DistributedLock(key = "'timedeal:stock:' + #dealId", waitTime = 3, leaseTime = 3)
-    @Transactional
-    public void create(Long memberId, Long dealId, int quantity, String idempotencyKey) {
-        // 1. 사용자 조회
-        Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new CustomException(MemberErrorCode.MEMBER_NOT_FOUND));
+  @DistributedLock(key = "'timedeal:stock:' + #dealId", waitTime = 3, leaseTime = 3)
+  @Transactional
+  public void create(Long memberId, Long dealId, int quantity, String idempotencyKey) {
+    // 1. 사용자 조회
+    Member member =
+        memberRepository
+            .findById(memberId)
+            .orElseThrow(() -> new CustomException(MemberErrorCode.MEMBER_NOT_FOUND));
 
-        // 2. Idempotency 키 저장
-        try {
-            idempotencyRepository.save(new PurchaseIdempotencyKey(member, idempotencyKey));
-        } catch (DataIntegrityViolationException e) {
-            throw new CustomException(PurchaseErrorCode.DUPLICATE_PURCHASE_REQUEST);
-        }
-
-        // 3. 타임딜 정책 조회
-        TimedealPolicy policy = timedealPolicyRepository.findById(dealId)
-                .orElseThrow(() -> new CustomException(TimedealErrorCode.PRODUCT_NOT_FOUND));
-
-        // 4. 구매 가능 시간 검증
-        LocalDateTime now = LocalDateTime.now();
-        if (now.isBefore(policy.getStartTime()) || now.isAfter(policy.getEndTime())) {
-            throw new CustomException(TimedealErrorCode.INVALID_STATUS);
-        }
-
-        // 5. 보유 포인트 검증
-        int totalPrice = policy.getDiscountedPrice() * quantity;
-        if (!pointService.hasEnoughPoints(memberId, totalPrice)) {
-            log.warn("[타임딜 포인트 부족] memberId={}, totalPrice={}", memberId, totalPrice);
-            throw new CustomException(PurchaseErrorCode.INSUFFICIENT_POINTS);
-        }
-
-        // 6. 재고 선점 (Redis Lua)
-        String redisKey = ProductCacheKeys.timedealStock(dealId);
-        Long result = stockRedisLuaService.decreaseStock(redisKey, quantity);
-
-        if (result == -1) throw new CustomException(ProductErrorCode.PRODUCT_NOT_FOUND);
-        if (result == -2) throw new CustomException(ProductErrorCode.OUT_OF_STOCK);
-
-        productCacheLockFacade.updateSingleTimedealCache(policy);
-
-        // 6. MQ 발행
-        purchaseMessagePublisher.publish(new PurchaseCommand(
-                memberId,
-                policy.getProduct().getId(), // 실제 상품 ID
-                policy.getId(),
-                quantity,
-                idempotencyKey,
-                now
-        ));
-
-        log.info("[타임딜 주문 큐 발행 완료] memberId={}, policyId={}, productId={}, quantity={}",
-                memberId, dealId, policy.getProduct().getId(), quantity);
+    // 2. Idempotency 키 저장
+    try {
+      idempotencyRepository.save(new PurchaseIdempotencyKey(member, idempotencyKey));
+    } catch (DataIntegrityViolationException e) {
+      throw new CustomException(PurchaseErrorCode.DUPLICATE_PURCHASE_REQUEST);
     }
+
+    // 3. 타임딜 정책 조회
+    TimedealPolicy policy =
+        timedealPolicyRepository
+            .findById(dealId)
+            .orElseThrow(() -> new CustomException(TimedealErrorCode.PRODUCT_NOT_FOUND));
+
+    // 4. 구매 가능 시간 검증
+    LocalDateTime now = LocalDateTime.now();
+    if (now.isBefore(policy.getStartTime()) || now.isAfter(policy.getEndTime())) {
+      throw new CustomException(TimedealErrorCode.INVALID_STATUS);
+    }
+
+    // 5. 보유 포인트 검증
+    int totalPrice = policy.getDiscountedPrice() * quantity;
+    if (!pointService.hasEnoughPoints(memberId, totalPrice)) {
+      log.warn("[타임딜 포인트 부족] memberId={}, totalPrice={}", memberId, totalPrice);
+      throw new CustomException(PurchaseErrorCode.INSUFFICIENT_POINTS);
+    }
+
+    // 6. 재고 선점 (Redis Lua)
+    String redisKey = ProductCacheKeys.timedealStock(dealId);
+    Long result = stockRedisLuaService.decreaseStock(redisKey, quantity);
+
+    if (result == -1) throw new CustomException(ProductErrorCode.PRODUCT_NOT_FOUND);
+    if (result == -2) throw new CustomException(ProductErrorCode.OUT_OF_STOCK);
+
+    productCacheLockFacade.updateSingleTimedealCache(policy);
+
+    // 6. MQ 발행
+    purchaseMessagePublisher.publish(
+        new PurchaseCommand(
+            memberId,
+            policy.getProduct().getId(), // 실제 상품 ID
+            policy.getId(),
+            quantity,
+            idempotencyKey,
+            now));
+
+    log.info(
+        "[타임딜 주문 큐 발행 완료] memberId={}, policyId={}, productId={}, quantity={}",
+        memberId,
+        dealId,
+        policy.getProduct().getId(),
+        quantity);
+  }
 }

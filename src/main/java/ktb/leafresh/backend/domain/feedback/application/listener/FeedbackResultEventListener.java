@@ -27,48 +27,51 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public class FeedbackResultEventListener {
 
-    private final FeedbackRepository feedbackRepository;
-    private final MemberRepository memberRepository;
-    private final RedisTemplate<String, Object> redisTemplate;
+  private final FeedbackRepository feedbackRepository;
+  private final MemberRepository memberRepository;
+  private final RedisTemplate<String, Object> redisTemplate;
 
-    @Async
-    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    public void handle(FeedbackCreatedEvent event) {
-        try {
-            log.info("[이벤트 수신] 피드백 저장 시작 memberId={}", event.memberId());
+  @Async
+  @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+  public void handle(FeedbackCreatedEvent event) {
+    try {
+      log.info("[이벤트 수신] 피드백 저장 시작 memberId={}", event.memberId());
 
-            Member member = memberRepository.findById(event.memberId())
-                    .orElseThrow(() -> new CustomException(MemberErrorCode.MEMBER_NOT_FOUND));
+      Member member =
+          memberRepository
+              .findById(event.memberId())
+              .orElseThrow(() -> new CustomException(MemberErrorCode.MEMBER_NOT_FOUND));
 
-            LocalDateTime weekMonday = LocalDate.now().with(DayOfWeek.MONDAY).minusWeeks(1).atStartOfDay();
-            Feedback feedback = Feedback.of(member, event.content(), weekMonday);
+      LocalDateTime weekMonday =
+          LocalDate.now().with(DayOfWeek.MONDAY).minusWeeks(1).atStartOfDay();
+      Feedback feedback = Feedback.of(member, event.content(), weekMonday);
 
-            feedbackRepository.save(feedback);
-            log.info("[피드백 저장 완료] memberId={}", event.memberId());
+      feedbackRepository.save(feedback);
+      log.info("[피드백 저장 완료] memberId={}", event.memberId());
 
-            // Redis 캐싱 (저장 시점 기준 이번 주 일요일 23:59:59까지 캐싱)
-            String key = generateKey(event.memberId());
-            LocalDate sunday = LocalDate.now().with(DayOfWeek.SUNDAY);
-            LocalDateTime expireAt = sunday.atTime(23, 59, 59);
-            Duration duration = Duration.between(LocalDateTime.now(), expireAt);
-            long ttlSeconds = Math.max(duration.getSeconds(), 0);
+      // Redis 캐싱 (저장 시점 기준 이번 주 일요일 23:59:59까지 캐싱)
+      String key = generateKey(event.memberId());
+      LocalDate sunday = LocalDate.now().with(DayOfWeek.SUNDAY);
+      LocalDateTime expireAt = sunday.atTime(23, 59, 59);
+      Duration duration = Duration.between(LocalDateTime.now(), expireAt);
+      long ttlSeconds = Math.max(duration.getSeconds(), 0);
 
-            // TTL이 0 이하인 경우 캐싱 생략
-            if (ttlSeconds <= 0) {
-                log.warn("[Redis 캐싱 생략] 이미 만료된 시간입니다. key={}", key);
-                return;
-            }
+      // TTL이 0 이하인 경우 캐싱 생략
+      if (ttlSeconds <= 0) {
+        log.warn("[Redis 캐싱 생략] 이미 만료된 시간입니다. key={}", key);
+        return;
+      }
 
-            redisTemplate.opsForValue().set(key, event.content(), ttlSeconds, TimeUnit.SECONDS);
-            log.info("[Redis 저장 완료] key={}, ttl(s)={}", key, ttlSeconds);
+      redisTemplate.opsForValue().set(key, event.content(), ttlSeconds, TimeUnit.SECONDS);
+      log.info("[Redis 저장 완료] key={}, ttl(s)={}", key, ttlSeconds);
 
-        } catch (Exception e) {
-            log.error("[피드백 저장 실패] error={}", e.getMessage(), e);
-            throw new CustomException(FeedbackErrorCode.FEEDBACK_SAVE_FAIL);
-        }
+    } catch (Exception e) {
+      log.error("[피드백 저장 실패] error={}", e.getMessage(), e);
+      throw new CustomException(FeedbackErrorCode.FEEDBACK_SAVE_FAIL);
     }
+  }
 
-    private String generateKey(Long memberId) {
-        return "feedback:result:" + memberId;
-    }
+  private String generateKey(Long memberId) {
+    return "feedback:result:" + memberId;
+  }
 }

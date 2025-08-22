@@ -18,61 +18,71 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class GroupVerificationLikeService {
 
-    private final GroupChallengeVerificationRepository verificationRepository;
-    private final LikeRepository likeRepository;
-    private final MemberRepository memberRepository;
-    private final VerificationStatRedisLuaService verificationStatRedisLuaService;
+  private final GroupChallengeVerificationRepository verificationRepository;
+  private final LikeRepository likeRepository;
+  private final MemberRepository memberRepository;
+  private final VerificationStatRedisLuaService verificationStatRedisLuaService;
 
-    @Transactional
-    public boolean likeVerification(Long verificationId, Long memberId) {
-        GroupChallengeVerification verification = verificationRepository.findByIdAndDeletedAtIsNull(verificationId)
-                .orElseThrow(() -> new CustomException(VerificationErrorCode.VERIFICATION_DETAIL_NOT_FOUND));
+  @Transactional
+  public boolean likeVerification(Long verificationId, Long memberId) {
+    GroupChallengeVerification verification =
+        verificationRepository
+            .findByIdAndDeletedAtIsNull(verificationId)
+            .orElseThrow(
+                () -> new CustomException(VerificationErrorCode.VERIFICATION_DETAIL_NOT_FOUND));
 
-        Member member = memberRepository.findByIdAndDeletedAtIsNull(memberId)
-                .orElseThrow(() -> new CustomException(GlobalErrorCode.UNAUTHORIZED));
+    Member member =
+        memberRepository
+            .findByIdAndDeletedAtIsNull(memberId)
+            .orElseThrow(() -> new CustomException(GlobalErrorCode.UNAUTHORIZED));
 
-        // 1. 삭제되지 않은 좋아요가 이미 있는 경우 → true 반환
-        if (likeRepository.existsByVerificationIdAndMemberIdAndDeletedAtIsNull(verificationId, memberId)) {
-            return true;
-        }
-
-        // 2. soft delete된 좋아요가 있는 경우 → 복구
-        Like like = likeRepository.findByVerificationIdAndMemberId(verificationId, memberId)
-                .orElse(null);
-
-        if (like != null && like.isDeleted()) {
-            like.restoreLike();
-            verificationStatRedisLuaService.increaseVerificationLikeCount(verificationId);
-            return true;
-        }
-
-        likeRepository.save(Like.builder()
-                .verification(verification)
-                .member(member)
-                .build());
-
-        verificationStatRedisLuaService.increaseVerificationLikeCount(verificationId);
-        return true;
+    // 1. 삭제되지 않은 좋아요가 이미 있는 경우 → true 반환
+    if (likeRepository.existsByVerificationIdAndMemberIdAndDeletedAtIsNull(
+        verificationId, memberId)) {
+      return true;
     }
 
-    @Transactional
-    public boolean cancelLike(Long verificationId, Long memberId) {
-        GroupChallengeVerification verification = verificationRepository.findByIdAndDeletedAtIsNull(verificationId)
-                .orElseThrow(() -> new CustomException(VerificationErrorCode.VERIFICATION_DETAIL_NOT_FOUND));
+    // 2. soft delete된 좋아요가 있는 경우 → 복구
+    Like like =
+        likeRepository.findByVerificationIdAndMemberId(verificationId, memberId).orElse(null);
 
-        Member member = memberRepository.findByIdAndDeletedAtIsNull(memberId)
-                .orElseThrow(() -> new CustomException(GlobalErrorCode.UNAUTHORIZED));
-
-        Like like = likeRepository.findByVerificationIdAndMemberIdAndDeletedAtIsNull(verificationId, memberId)
-                .orElse(null);
-
-        if (like == null) {
-            // 이미 취소된 상태여도 200 반환
-            return false;
-        }
-
-        like.softDelete();
-        verificationStatRedisLuaService.decreaseVerificationLikeCount(verificationId);
-        return false;
+    if (like != null && like.isDeleted()) {
+      like.restoreLike();
+      verificationStatRedisLuaService.increaseVerificationLikeCount(verificationId);
+      return true;
     }
+
+    likeRepository.save(Like.builder().verification(verification).member(member).build());
+
+    verificationStatRedisLuaService.increaseVerificationLikeCount(verificationId);
+    return true;
+  }
+
+  @Transactional
+  public boolean cancelLike(Long verificationId, Long memberId) {
+    GroupChallengeVerification verification =
+        verificationRepository
+            .findByIdAndDeletedAtIsNull(verificationId)
+            .orElseThrow(
+                () -> new CustomException(VerificationErrorCode.VERIFICATION_DETAIL_NOT_FOUND));
+
+    Member member =
+        memberRepository
+            .findByIdAndDeletedAtIsNull(memberId)
+            .orElseThrow(() -> new CustomException(GlobalErrorCode.UNAUTHORIZED));
+
+    Like like =
+        likeRepository
+            .findByVerificationIdAndMemberIdAndDeletedAtIsNull(verificationId, memberId)
+            .orElse(null);
+
+    if (like == null) {
+      // 이미 취소된 상태여도 200 반환
+      return false;
+    }
+
+    like.softDelete();
+    verificationStatRedisLuaService.decreaseVerificationLikeCount(verificationId);
+    return false;
+  }
 }

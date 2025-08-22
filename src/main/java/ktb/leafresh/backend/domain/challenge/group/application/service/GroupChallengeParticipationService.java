@@ -15,31 +15,41 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class GroupChallengeParticipationService {
 
-    private final GroupChallengeParticipantManager participantManager;
-    private final GroupChallengePromotionPolicy promotionPolicy;
+  private final GroupChallengeParticipantManager participantManager;
+  private final GroupChallengePromotionPolicy promotionPolicy;
 
-    @Transactional
-    public Long participate(Long memberId, Long challengeId) {
-        try {
-            return participantManager.participate(memberId, challengeId);
-        } catch (CustomException e) {
-            throw e;
-        } catch (Exception e) {
-            log.error("[단체 챌린지 참여 실패] challengeId={}, memberId={}, error={}", challengeId, memberId, e.getMessage(), e);
-            throw new CustomException(ChallengeErrorCode.GROUP_CHALLENGE_PARTICIPATION_FAILED);
-        }
+  @Transactional
+  public Long participate(Long memberId, Long challengeId) {
+    try {
+      return participantManager.participate(memberId, challengeId);
+    } catch (CustomException e) {
+      throw e;
+    } catch (Exception e) {
+      log.error(
+          "[단체 챌린지 참여 실패] challengeId={}, memberId={}, error={}",
+          challengeId,
+          memberId,
+          e.getMessage(),
+          e);
+      throw new CustomException(ChallengeErrorCode.GROUP_CHALLENGE_PARTICIPATION_FAILED);
     }
+  }
 
-    @Transactional
-    public void drop(Long memberId, Long challengeId) {
-        try {
-            participantManager.drop(memberId, challengeId);
-            promotionPolicy.promoteNextWaitingParticipant(challengeId);
-        } catch (CustomException e) {
-            throw e;
-        } catch (Exception e) {
-            log.error("[단체 챌린지 참여 취소 실패] challengeId={}, memberId={}, error={}", challengeId, memberId, e.getMessage(), e);
-            throw new CustomException(ChallengeErrorCode.GROUP_CHALLENGE_PARTICIPATION_FAILED);
-        }
+  @Transactional
+  public void drop(Long memberId, Long challengeId) {
+    try {
+      participantManager.drop(memberId, challengeId);
+      promotionPolicy.promoteNextWaitingParticipant(challengeId);
+    } catch (CustomException e) {
+      throw e;
+    } catch (Exception e) {
+      log.error(
+          "[단체 챌린지 참여 취소 실패] challengeId={}, memberId={}, error={}",
+          challengeId,
+          memberId,
+          e.getMessage(),
+          e);
+      throw new CustomException(ChallengeErrorCode.GROUP_CHALLENGE_PARTICIPATION_FAILED);
     }
+  }
 }

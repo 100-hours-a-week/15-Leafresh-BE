@@ -31,71 +31,80 @@ import java.time.format.DateTimeFormatter;
 @Service
 public class PersonalChallengeVerificationSubmitService {
 
-    private final MemberRepository memberRepository;
-    private final PersonalChallengeRepository personalChallengeRepository;
-    private final PersonalChallengeVerificationRepository verificationRepository;
-    private final VerificationSubmitValidator validator;
-    private final ApplicationEventPublisher eventPublisher;
-    private final StringRedisTemplate redisTemplate;
+  private final MemberRepository memberRepository;
+  private final PersonalChallengeRepository personalChallengeRepository;
+  private final PersonalChallengeVerificationRepository verificationRepository;
+  private final VerificationSubmitValidator validator;
+  private final ApplicationEventPublisher eventPublisher;
+  private final StringRedisTemplate redisTemplate;
 
-    private static final String TOTAL_VERIFICATION_COUNT_KEY = "leafresh:totalVerifications:count";
+  private static final String TOTAL_VERIFICATION_COUNT_KEY = "leafresh:totalVerifications:count";
 
+  @Transactional
+  public void submit(Long memberId, Long challengeId, PersonalChallengeVerificationRequestDto dto) {
+    validator.validate(dto.content());
 
-    @Transactional
-    public void submit(Long memberId, Long challengeId, PersonalChallengeVerificationRequestDto dto) {
-        validator.validate(dto.content());
+    Member member =
+        memberRepository
+            .findById(memberId)
+            .orElseThrow(() -> new CustomException(MemberErrorCode.MEMBER_NOT_FOUND));
 
-        Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new CustomException(MemberErrorCode.MEMBER_NOT_FOUND));
+    PersonalChallenge challenge =
+        personalChallengeRepository
+            .findById(challengeId)
+            .orElseThrow(
+                () -> new CustomException(ChallengeErrorCode.PERSONAL_CHALLENGE_NOT_FOUND));
 
-        PersonalChallenge challenge = personalChallengeRepository.findById(challengeId)
-                .orElseThrow(() -> new CustomException(ChallengeErrorCode.PERSONAL_CHALLENGE_NOT_FOUND));
+    LocalDateTime now = LocalDateTime.now();
+    boolean alreadySubmitted =
+        verificationRepository
+            .findTopByMemberIdAndPersonalChallengeIdAndCreatedAtBetween(
+                memberId,
+                challengeId,
+                now.toLocalDate().atStartOfDay(),
+                now.toLocalDate().atTime(23, 59, 59))
+            .isPresent();
 
-        LocalDateTime now = LocalDateTime.now();
-        boolean alreadySubmitted = verificationRepository
-                .findTopByMemberIdAndPersonalChallengeIdAndCreatedAtBetween(
-                        memberId, challengeId, now.toLocalDate().atStartOfDay(), now.toLocalDate().atTime(23, 59, 59)
-                )
-                .isPresent();
-
-        if (alreadySubmitted) {
-            throw new CustomException(VerificationErrorCode.ALREADY_SUBMITTED);
-        }
-
-        PersonalChallengeVerification verification = PersonalChallengeVerification.builder()
-                .member(member)
-                .personalChallenge(challenge)
-                .imageUrl(dto.imageUrl())
-                .content(dto.content())
-//                .submittedAt(now)
-                .status(ChallengeStatus.PENDING_APPROVAL)
-                .build();
-
-        verificationRepository.save(verification);
-
-        try {
-            AiVerificationRequestDto aiRequest = AiVerificationRequestDto.builder()
-                    .verificationId(verification.getId())
-                    .type(ChallengeType.PERSONAL)
-                    .imageUrl(dto.imageUrl())
-                    .memberId(memberId)
-                    .challengeId(challengeId)
-                    .date(now.format(DateTimeFormatter.ISO_LOCAL_DATE))
-                    .challengeName(challenge.getTitle())
-                    .challengeInfo(challenge.getDescription())
-                    .build();
-
-            eventPublisher.publishEvent(new VerificationCreatedEvent(aiRequest));
-
-        } catch (Exception e) {
-            throw new CustomException(VerificationErrorCode.AI_SERVER_ERROR);
-        }
-
-        try {
-            redisTemplate.opsForValue().increment(TOTAL_VERIFICATION_COUNT_KEY);
-            log.debug("[PersonalChallengeVerificationSubmitService] Redis 인증 수 캐시 1 증가 완료");
-        } catch (Exception e) {
-            log.warn("[PersonalChallengeVerificationSubmitService] Redis 인증 수 캐시 증가 실패", e);
-        }
+    if (alreadySubmitted) {
+      throw new CustomException(VerificationErrorCode.ALREADY_SUBMITTED);
     }
+
+    PersonalChallengeVerification verification =
+        PersonalChallengeVerification.builder()
+            .member(member)
+            .personalChallenge(challenge)
+            .imageUrl(dto.imageUrl())
+            .content(dto.content())
+            //                .submittedAt(now)
+            .status(ChallengeStatus.PENDING_APPROVAL)
+            .build();
+
+    verificationRepository.save(verification);
+
+    try {
+      AiVerificationRequestDto aiRequest =
+          AiVerificationRequestDto.builder()
+              .verificationId(verification.getId())
+              .type(ChallengeType.PERSONAL)
+              .imageUrl(dto.imageUrl())
+              .memberId(memberId)
+              .challengeId(challengeId)
+              .date(now.format(DateTimeFormatter.ISO_LOCAL_DATE))
+              .challengeName(challenge.getTitle())
+              .challengeInfo(challenge.getDescription())
+              .build();
+
+      eventPublisher.publishEvent(new VerificationCreatedEvent(aiRequest));
+
+    } catch (Exception e) {
+      throw new CustomException(VerificationErrorCode.AI_SERVER_ERROR);
+    }
+
+    try {
+      redisTemplate.opsForValue().increment(TOTAL_VERIFICATION_COUNT_KEY);
+      log.debug("[PersonalChallengeVerificationSubmitService] Redis 인증 수 캐시 1 증가 완료");
+    } catch (Exception e) {
+      log.warn("[PersonalChallengeVerificationSubmitService] Redis 인증 수 캐시 증가 실패", e);
+    }
+  }
 }

@@ -10,31 +10,31 @@ import java.util.List;
 
 @Builder
 public record PersonalChallengeDetailResponseDto(
-        Long id,
-        String title,
-        String description,
-        String thumbnailUrl,
-        DayOfWeek dayOfWeek,
-        LocalTime verificationStartTime,
-        LocalTime verificationEndTime,
-        Integer leafReward,
-        List<PersonalChallengeExampleImageDto> exampleImages,
-        ChallengeStatus status
-) {
-    public static PersonalChallengeDetailResponseDto of(PersonalChallenge challenge,
-                                                        List<PersonalChallengeExampleImageDto> images,
-                                                        ChallengeStatus status) {
-        return PersonalChallengeDetailResponseDto.builder()
-                .id(challenge.getId())
-                .title(challenge.getTitle())
-                .description(challenge.getDescription())
-                .thumbnailUrl(challenge.getImageUrl())
-                .dayOfWeek(challenge.getDayOfWeek())
-                .verificationStartTime(challenge.getVerificationStartTime())
-                .verificationEndTime(challenge.getVerificationEndTime())
-                .leafReward(challenge.getLeafReward())
-                .exampleImages(images)
-                .status(status)
-                .build();
-    }
+    Long id,
+    String title,
+    String description,
+    String thumbnailUrl,
+    DayOfWeek dayOfWeek,
+    LocalTime verificationStartTime,
+    LocalTime verificationEndTime,
+    Integer leafReward,
+    List<PersonalChallengeExampleImageDto> exampleImages,
+    ChallengeStatus status) {
+  public static PersonalChallengeDetailResponseDto of(
+      PersonalChallenge challenge,
+      List<PersonalChallengeExampleImageDto> images,
+      ChallengeStatus status) {
+    return PersonalChallengeDetailResponseDto.builder()
+        .id(challenge.getId())
+        .title(challenge.getTitle())
+        .description(challenge.getDescription())
+        .thumbnailUrl(challenge.getImageUrl())
+        .dayOfWeek(challenge.getDayOfWeek())
+        .verificationStartTime(challenge.getVerificationStartTime())
+        .verificationEndTime(challenge.getVerificationEndTime())
+        .leafReward(challenge.getLeafReward())
+        .exampleImages(images)
+        .status(status)
+        .build();
+  }
 }

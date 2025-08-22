@@ -7,13 +7,13 @@ import java.lang.annotation.*;
 
 @Documented
 @Constraint(validatedBy = ImageUrlValidator.class)
-@Target({ ElementType.FIELD, ElementType.PARAMETER })
+@Target({ElementType.FIELD, ElementType.PARAMETER})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface ValidImageUrl {
 
-    String message() default "유효하지 않은 이미지 URL입니다.";
+  String message() default "유효하지 않은 이미지 URL입니다.";
 
-    Class<?>[] groups() default {};
+  Class<?>[] groups() default {};
 
-    Class<? extends Payload>[] payload() default {};
+  Class<? extends Payload>[] payload() default {};
 }

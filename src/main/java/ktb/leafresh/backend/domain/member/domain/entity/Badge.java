@@ -15,23 +15,23 @@ import java.util.List;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Badge {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Long id;
 
-    @OneToMany(mappedBy = "badge", cascade = CascadeType.ALL)
-    private List<MemberBadge> memberBadges = new ArrayList<>();
+  @OneToMany(mappedBy = "badge", cascade = CascadeType.ALL)
+  private List<MemberBadge> memberBadges = new ArrayList<>();
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 20)
-    private BadgeType type;
+  @Enumerated(EnumType.STRING)
+  @Column(nullable = false, length = 20)
+  private BadgeType type;
 
-    @Column(nullable = false, length = 30)
-    private String name;
+  @Column(nullable = false, length = 30)
+  private String name;
 
-    @Column(name = "acquisition_condition", nullable = false, columnDefinition = "TEXT")
-    private String condition;
+  @Column(name = "acquisition_condition", nullable = false, columnDefinition = "TEXT")
+  private String condition;
 
-    @Column(nullable = false, length = 512)
-    private String imageUrl;
+  @Column(nullable = false, length = 512)
+  private String imageUrl;
 }

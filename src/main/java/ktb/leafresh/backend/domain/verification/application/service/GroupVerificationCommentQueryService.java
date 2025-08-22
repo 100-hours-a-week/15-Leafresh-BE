@@ -20,17 +20,21 @@ import java.util.List;
 @RequiredArgsConstructor
 public class GroupVerificationCommentQueryService {
 
-    private final GroupChallengeVerificationRepository verificationRepository;
-    private final CommentRepository commentRepository;
+  private final GroupChallengeVerificationRepository verificationRepository;
+  private final CommentRepository commentRepository;
 
-    @Transactional(readOnly = true)
-    public List<CommentSummaryResponseDto> getComments(Long challengeId, Long verificationId, Long loginMemberId) {
-        GroupChallengeVerification verification = verificationRepository.findByIdAndDeletedAtIsNull(verificationId)
-                .orElseThrow(() -> new CustomException(VerificationErrorCode.VERIFICATION_DETAIL_NOT_FOUND));
+  @Transactional(readOnly = true)
+  public List<CommentSummaryResponseDto> getComments(
+      Long challengeId, Long verificationId, Long loginMemberId) {
+    GroupChallengeVerification verification =
+        verificationRepository
+            .findByIdAndDeletedAtIsNull(verificationId)
+            .orElseThrow(
+                () -> new CustomException(VerificationErrorCode.VERIFICATION_DETAIL_NOT_FOUND));
 
-        // 인증 ID 기반 댓글 + 작성자 모두 fetch
-        List<Comment> comments = commentRepository.findAllByVerificationIdWithMember(verificationId);
+    // 인증 ID 기반 댓글 + 작성자 모두 fetch
+    List<Comment> comments = commentRepository.findAllByVerificationIdWithMember(verificationId);
 
-        return CommentHierarchyBuilder.build(comments, loginMemberId);
-    }
+    return CommentHierarchyBuilder.build(comments, loginMemberId);
+  }
 }

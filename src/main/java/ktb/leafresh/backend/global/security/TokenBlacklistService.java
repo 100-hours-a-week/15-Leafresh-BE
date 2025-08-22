@@ -14,28 +14,28 @@ import java.util.concurrent.TimeUnit;
 @RequiredArgsConstructor
 public class TokenBlacklistService {
 
-    private final StringRedisTemplate redisTemplate;
+  private final StringRedisTemplate redisTemplate;
 
-    private final Client bloomClient;
+  private final Client bloomClient;
 
-    @Value("${jwt.bloom-filter.key:accessTokenBlacklist}")
-    private String BLOOM_FILTER_NAME;
+  @Value("${jwt.bloom-filter.key:accessTokenBlacklist}")
+  private String BLOOM_FILTER_NAME;
 
-    public void blacklistAccessToken(String accessToken, long expirationTimeMillis) {
-        // Bloom Filter에 등록
-        bloomClient.add(BLOOM_FILTER_NAME, accessToken);
+  public void blacklistAccessToken(String accessToken, long expirationTimeMillis) {
+    // Bloom Filter에 등록
+    bloomClient.add(BLOOM_FILTER_NAME, accessToken);
 
-        // TTL 보장용 키 저장
-        String key = "blacklist:" + accessToken;
-        redisTemplate.opsForValue().set(key, "true", expirationTimeMillis, TimeUnit.MILLISECONDS);
+    // TTL 보장용 키 저장
+    String key = "blacklist:" + accessToken;
+    redisTemplate.opsForValue().set(key, "true", expirationTimeMillis, TimeUnit.MILLISECONDS);
 
-        log.info("[블랙리스트 등록 완료] token={}, TTL={}ms", accessToken, expirationTimeMillis);
-    }
+    log.info("[블랙리스트 등록 완료] token={}, TTL={}ms", accessToken, expirationTimeMillis);
+  }
 
-    public boolean isBlacklisted(String accessToken) {
-        boolean mightExist = bloomClient.exists(BLOOM_FILTER_NAME, accessToken);
-        if (!mightExist) return false;
+  public boolean isBlacklisted(String accessToken) {
+    boolean mightExist = bloomClient.exists(BLOOM_FILTER_NAME, accessToken);
+    if (!mightExist) return false;
 
-        return Boolean.TRUE.equals(redisTemplate.hasKey("blacklist:" + accessToken));
-    }
+    return Boolean.TRUE.equals(redisTemplate.hasKey("blacklist:" + accessToken));
+  }
 }

@@ -19,66 +19,66 @@ import java.util.List;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class GroupChallengeVerification extends BaseEntity {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "participant_record_id", nullable = false)
-    private GroupChallengeParticipantRecord participantRecord;
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "participant_record_id", nullable = false)
+  private GroupChallengeParticipantRecord participantRecord;
 
-    @OneToMany(mappedBy = "verification", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Like> likes = new ArrayList<>();
+  @OneToMany(mappedBy = "verification", cascade = CascadeType.ALL, orphanRemoval = true)
+  private List<Like> likes = new ArrayList<>();
 
-    @OneToMany(mappedBy = "verification", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Comment> comments = new ArrayList<>();
+  @OneToMany(mappedBy = "verification", cascade = CascadeType.ALL, orphanRemoval = true)
+  private List<Comment> comments = new ArrayList<>();
 
-    @Column(nullable = false, length = 512)
-    private String imageUrl;
+  @Column(nullable = false, length = 512)
+  private String imageUrl;
 
-    @Column(nullable = false)
-    private String content;
+  @Column(nullable = false)
+  private String content;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 20)
-    private ChallengeStatus status;
+  @Enumerated(EnumType.STRING)
+  @Column(nullable = false, length = 20)
+  private ChallengeStatus status;
 
-    @Column(name = "verified_at")
-    private LocalDateTime verifiedAt;
+  @Column(name = "verified_at")
+  private LocalDateTime verifiedAt;
 
-    @Column(nullable = false)
-    private boolean rewarded;
+  @Column(nullable = false)
+  private boolean rewarded;
 
-    @Column(name = "view_count", nullable = false)
-    @ColumnDefault("0")
-    private int viewCount;
+  @Column(name = "view_count", nullable = false)
+  @ColumnDefault("0")
+  private int viewCount;
 
-    @Column(name = "like_count", nullable = false)
-    @ColumnDefault("0")
-    private int likeCount;
+  @Column(name = "like_count", nullable = false)
+  @ColumnDefault("0")
+  private int likeCount;
 
-    @Column(name = "comment_count", nullable = false)
-    @ColumnDefault("0")
-    private int commentCount;
+  @Column(name = "comment_count", nullable = false)
+  @ColumnDefault("0")
+  private int commentCount;
 
-    @PrePersist
-    public void prePersist() {
-        this.rewarded = false;
-        this.viewCount = 0;
-        this.likeCount = 0;
-        this.commentCount = 0;
-    }
+  @PrePersist
+  public void prePersist() {
+    this.rewarded = false;
+    this.viewCount = 0;
+    this.likeCount = 0;
+    this.commentCount = 0;
+  }
 
-    public void markVerified(ChallengeStatus status) {
-        this.status = status;
-        this.verifiedAt = LocalDateTime.now();
-    }
+  public void markVerified(ChallengeStatus status) {
+    this.status = status;
+    this.verifiedAt = LocalDateTime.now();
+  }
 
-    public boolean isRewarded() {
-        return this.rewarded;
-    }
+  public boolean isRewarded() {
+    return this.rewarded;
+  }
 
-    public void markRewarded() {
-        this.rewarded = true;
-    }
+  public void markRewarded() {
+    this.rewarded = true;
+  }
 }

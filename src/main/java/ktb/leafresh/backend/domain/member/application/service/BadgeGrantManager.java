@@ -17,24 +17,29 @@ import java.util.List;
 @RequiredArgsConstructor
 public class BadgeGrantManager {
 
-    private final List<BadgeGrantPolicy> policies;
-    private final MemberBadgeRepository memberBadgeRepository;
+  private final List<BadgeGrantPolicy> policies;
+  private final MemberBadgeRepository memberBadgeRepository;
 
-    @Transactional
-    public void evaluateAllAndGrant(Member member) {
-        for (BadgeGrantPolicy policy : policies) {
-            List<Badge> newBadges = policy.evaluateAndGetNewBadges(member);
-            boolean grantedAny = false;
-            for (Badge badge : newBadges) {
-                if (!memberBadgeRepository.existsByMemberAndBadge(member, badge)) {
-                    memberBadgeRepository.save(MemberBadge.of(member, badge));
-                    log.info("[뱃지 지급] memberId={}, badgeName={}, policy={}", member.getId(), badge.getName(), policy.getClass().getSimpleName());
-                    grantedAny = true;
-                }
-            }
-            if (!grantedAny) {
-                log.debug("[뱃지 없음] memberId={}, policy={}", member.getId(), policy.getClass().getSimpleName());
-            }
+  @Transactional
+  public void evaluateAllAndGrant(Member member) {
+    for (BadgeGrantPolicy policy : policies) {
+      List<Badge> newBadges = policy.evaluateAndGetNewBadges(member);
+      boolean grantedAny = false;
+      for (Badge badge : newBadges) {
+        if (!memberBadgeRepository.existsByMemberAndBadge(member, badge)) {
+          memberBadgeRepository.save(MemberBadge.of(member, badge));
+          log.info(
+              "[뱃지 지급] memberId={}, badgeName={}, policy={}",
+              member.getId(),
+              badge.getName(),
+              policy.getClass().getSimpleName());
+          grantedAny = true;
         }
+      }
+      if (!grantedAny) {
+        log.debug(
+            "[뱃지 없음] memberId={}, policy={}", member.getId(), policy.getClass().getSimpleName());
+      }
     }
+  }
 }

@@ -21,27 +21,27 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class ProductCreateService {
 
-    private final ProductRepository productRepository;
-    private final ProductFactory productFactory;
-    private final ApplicationEventPublisher eventPublisher;
-    private final ProductCacheLockFacade productCacheLockFacade;
+  private final ProductRepository productRepository;
+  private final ProductFactory productFactory;
+  private final ApplicationEventPublisher eventPublisher;
+  private final ProductCacheLockFacade productCacheLockFacade;
 
-    @Transactional
-    public ProductCreateResponseDto createProduct(ProductCreateRequestDto dto) {
-        try {
-            log.info("일반 상품 생성 요청: {}", dto.name());
-            Product product = productFactory.create(dto);
-            productRepository.save(product);
+  @Transactional
+  public ProductCreateResponseDto createProduct(ProductCreateRequestDto dto) {
+    try {
+      log.info("일반 상품 생성 요청: {}", dto.name());
+      Product product = productFactory.create(dto);
+      productRepository.save(product);
 
-            productCacheLockFacade.cacheProductStock(product.getId(), product.getStock());
+      productCacheLockFacade.cacheProductStock(product.getId(), product.getStock());
 
-            eventPublisher.publishEvent(new ProductUpdatedEvent(product.getId(), false));
+      eventPublisher.publishEvent(new ProductUpdatedEvent(product.getId(), false));
 
-            log.info("상품 생성 완료 - id={}", product.getId());
-            return new ProductCreateResponseDto(product.getId());
-        } catch (Exception e) {
-            log.error("상품 생성 중 예외 발생", e);
-            throw new CustomException(ProductErrorCode.PRODUCT_CREATE_FAILED);
-        }
+      log.info("상품 생성 완료 - id={}", product.getId());
+      return new ProductCreateResponseDto(product.getId());
+    } catch (Exception e) {
+      log.error("상품 생성 중 예외 발생", e);
+      throw new CustomException(ProductErrorCode.PRODUCT_CREATE_FAILED);
     }
+  }
 }

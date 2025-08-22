@@ -5,7 +5,4 @@ import ktb.leafresh.backend.global.security.TokenDto;
 import lombok.Builder;
 
 @Builder
-public record OAuthSignupResult(
-        OAuthSignupResponseDto signupResponse,
-        TokenDto tokenDto
-) {}
+public record OAuthSignupResult(OAuthSignupResponseDto signupResponse, TokenDto tokenDto) {}

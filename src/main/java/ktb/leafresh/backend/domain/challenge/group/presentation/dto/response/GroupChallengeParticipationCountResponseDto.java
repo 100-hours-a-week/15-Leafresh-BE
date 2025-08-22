@@ -4,9 +4,9 @@ import lombok.Builder;
 
 @Builder
 public record GroupChallengeParticipationCountResponseDto(
-        GroupChallengeParticipationCountSummaryDto count
-) {
-    public static GroupChallengeParticipationCountResponseDto from(GroupChallengeParticipationCountSummaryDto summary) {
-        return new GroupChallengeParticipationCountResponseDto(summary);
-    }
+    GroupChallengeParticipationCountSummaryDto count) {
+  public static GroupChallengeParticipationCountResponseDto from(
+      GroupChallengeParticipationCountSummaryDto summary) {
+    return new GroupChallengeParticipationCountResponseDto(summary);
+  }
 }

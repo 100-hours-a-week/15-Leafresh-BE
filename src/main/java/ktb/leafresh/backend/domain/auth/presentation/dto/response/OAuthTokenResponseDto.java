@@ -4,12 +4,11 @@ import lombok.Builder;
 
 @Builder
 public record OAuthTokenResponseDto(
-        String grantType,
-        String accessToken,
-        Long accessTokenExpiresIn,
-        String refreshToken,
-        String nickname,
-        String imageUrl,
-        String providerId,
-        String email
-) {}
+    String grantType,
+    String accessToken,
+    Long accessTokenExpiresIn,
+    String refreshToken,
+    String nickname,
+    String imageUrl,
+    String providerId,
+    String email) {}

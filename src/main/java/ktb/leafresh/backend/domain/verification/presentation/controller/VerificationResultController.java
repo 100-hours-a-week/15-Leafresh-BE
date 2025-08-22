@@ -17,22 +17,22 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class VerificationResultController {
 
-    private final PersonalChallengeVerificationResultSaveService personalChallengeVerificationResultSaveService;
-    private final GroupChallengeVerificationResultSaveService groupChallengeVerificationResultSaveService;
+  private final PersonalChallengeVerificationResultSaveService
+      personalChallengeVerificationResultSaveService;
+  private final GroupChallengeVerificationResultSaveService
+      groupChallengeVerificationResultSaveService;
 
-    @PostMapping("/{verificationId}/result")
-    public ResponseEntity<ApiResponse<Void>> receiveResult(
-            @PathVariable Long verificationId,
-            @RequestBody @Validated VerificationResultRequestDto dto
-    ) {
-        log.info("[인증 결과 수신 API 호출] verificationId={}, result={}", verificationId, dto.result());
+  @PostMapping("/{verificationId}/result")
+  public ResponseEntity<ApiResponse<Void>> receiveResult(
+      @PathVariable Long verificationId, @RequestBody @Validated VerificationResultRequestDto dto) {
+    log.info("[인증 결과 수신 API 호출] verificationId={}, result={}", verificationId, dto.result());
 
-        if (dto.type() == ChallengeType.GROUP) {
-            groupChallengeVerificationResultSaveService.saveResult(verificationId, dto);
-        } else {
-            personalChallengeVerificationResultSaveService.saveResult(verificationId, dto);
-        }
-
-        return ResponseEntity.ok(ApiResponse.success("인증 결과 수신 완료"));
+    if (dto.type() == ChallengeType.GROUP) {
+      groupChallengeVerificationResultSaveService.saveResult(verificationId, dto);
+    } else {
+      personalChallengeVerificationResultSaveService.saveResult(verificationId, dto);
     }
+
+    return ResponseEntity.ok(ApiResponse.success("인증 결과 수신 완료"));
+  }
 }

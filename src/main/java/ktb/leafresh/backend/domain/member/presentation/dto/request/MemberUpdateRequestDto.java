@@ -10,13 +10,11 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class MemberUpdateRequestDto {
 
-        @Size(min = 1, max = 20, message = "닉네임은 1자 이상 20자 이하로 입력해주세요.")
-        @Pattern(
-                regexp = "^[a-zA-Z0-9가-힣]{1,20}$",
-                message = "닉네임은 특수문자 없이 1~20자의 영문, 숫자, 한글만 사용할 수 있습니다."
-        )
-        private String nickname;
+  @Size(min = 1, max = 20, message = "닉네임은 1자 이상 20자 이하로 입력해주세요.")
+  @Pattern(
+      regexp = "^[a-zA-Z0-9가-힣]{1,20}$",
+      message = "닉네임은 특수문자 없이 1~20자의 영문, 숫자, 한글만 사용할 수 있습니다.")
+  private String nickname;
 
-        @ValidImageUrl
-        private String imageUrl;
+  @ValidImageUrl private String imageUrl;
 }

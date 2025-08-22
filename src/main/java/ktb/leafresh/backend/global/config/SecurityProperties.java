@@ -12,5 +12,5 @@ import java.util.List;
 @Configuration
 @ConfigurationProperties(prefix = "security")
 public class SecurityProperties {
-    private List<String> allowedOrigins;
+  private List<String> allowedOrigins;
 }

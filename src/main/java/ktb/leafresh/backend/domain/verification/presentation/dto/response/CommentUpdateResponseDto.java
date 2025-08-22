@@ -11,25 +11,26 @@ import java.util.Objects;
 
 @Builder
 public record CommentUpdateResponseDto(
-        Long id,
-        String content,
-        OffsetDateTime updatedAt,
-        String nickname,
-        String profileImageUrl,
-        Long parentCommentId,
-        List<CommentUpdateResponseDto> replies,
-        boolean deleted
-) {
-    public static CommentUpdateResponseDto from(Comment comment, List<CommentUpdateResponseDto> replies) {
-        return CommentUpdateResponseDto.builder()
-                .id(comment.getId())
-                .content(comment.getContent())
-                .updatedAt(comment.getUpdatedAt().atOffset(ZoneOffset.UTC))
-                .nickname(comment.getMember().getNickname())
-                .profileImageUrl(comment.getMember().getImageUrl())
-                .parentCommentId(comment.getParentComment() != null ? comment.getParentComment().getId() : null)
-                .replies(replies)
-                .deleted(comment.getDeletedAt() != null)
-                .build();
-    }
+    Long id,
+    String content,
+    OffsetDateTime updatedAt,
+    String nickname,
+    String profileImageUrl,
+    Long parentCommentId,
+    List<CommentUpdateResponseDto> replies,
+    boolean deleted) {
+  public static CommentUpdateResponseDto from(
+      Comment comment, List<CommentUpdateResponseDto> replies) {
+    return CommentUpdateResponseDto.builder()
+        .id(comment.getId())
+        .content(comment.getContent())
+        .updatedAt(comment.getUpdatedAt().atOffset(ZoneOffset.UTC))
+        .nickname(comment.getMember().getNickname())
+        .profileImageUrl(comment.getMember().getImageUrl())
+        .parentCommentId(
+            comment.getParentComment() != null ? comment.getParentComment().getId() : null)
+        .replies(replies)
+        .deleted(comment.getDeletedAt() != null)
+        .build();
+  }
 }

@@ -19,25 +19,22 @@ import org.springframework.web.bind.annotation.*;
 @Slf4j
 public class TimedealAdminController {
 
-    private final TimedealCreateService timedealCreateService;
-    private final TimedealUpdateService timedealUpdateService;
+  private final TimedealCreateService timedealCreateService;
+  private final TimedealUpdateService timedealUpdateService;
 
-    @PreAuthorize("hasRole('ADMIN')")
-    @PostMapping
-    public ResponseEntity<ApiResponse<TimedealCreateResponseDto>> createTimedeal(
-            @Valid @RequestBody TimedealCreateRequestDto dto
-    ) {
-        TimedealCreateResponseDto response = timedealCreateService.create(dto);
-        return ResponseEntity.ok(ApiResponse.success("타임딜 상품이 등록되었습니다.", response));
-    }
+  @PreAuthorize("hasRole('ADMIN')")
+  @PostMapping
+  public ResponseEntity<ApiResponse<TimedealCreateResponseDto>> createTimedeal(
+      @Valid @RequestBody TimedealCreateRequestDto dto) {
+    TimedealCreateResponseDto response = timedealCreateService.create(dto);
+    return ResponseEntity.ok(ApiResponse.success("타임딜 상품이 등록되었습니다.", response));
+  }
 
-    @PreAuthorize("hasRole('ADMIN')")
-    @PatchMapping("/{dealId}")
-    public ResponseEntity<Void> updateTimedeal(
-            @PathVariable Long dealId,
-            @Valid @RequestBody TimedealUpdateRequestDto dto
-    ) {
-        timedealUpdateService.update(dealId, dto);
-        return ResponseEntity.noContent().build();
-    }
+  @PreAuthorize("hasRole('ADMIN')")
+  @PatchMapping("/{dealId}")
+  public ResponseEntity<Void> updateTimedeal(
+      @PathVariable Long dealId, @Valid @RequestBody TimedealUpdateRequestDto dto) {
+    timedealUpdateService.update(dealId, dto);
+    return ResponseEntity.noContent().build();
+  }
 }

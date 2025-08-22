@@ -33,105 +33,107 @@ import static org.mockito.BDDMockito.*;
 @DisplayName("GroupChallengeUpdateService 테스트")
 class GroupChallengeUpdateServiceTest {
 
-    @Mock
-    private GroupChallengeUpdater challengeUpdater;
+  @Mock private GroupChallengeUpdater challengeUpdater;
 
-    @Mock
-    private GroupChallengeExampleImageUpdater imageUpdater;
+  @Mock private GroupChallengeExampleImageUpdater imageUpdater;
 
-    @Mock
-    private GroupChallengeCategoryUpdater categoryUpdater;
+  @Mock private GroupChallengeCategoryUpdater categoryUpdater;
 
-    @Mock
-    private GroupChallengeDomainValidator domainValidator;
+  @Mock private GroupChallengeDomainValidator domainValidator;
 
-    @Mock
-    private GroupChallengeParticipantRecordRepository participantRecordRepository;
+  @Mock private GroupChallengeParticipantRecordRepository participantRecordRepository;
 
-    @InjectMocks private GroupChallengeUpdateService updateService;
+  @InjectMocks private GroupChallengeUpdateService updateService;
 
-    @Test
-    @DisplayName("참여자가 존재하면 수정 불가 예외를 던진다.")
-    void update_withParticipants_throwsException() {
-        // given
-        given(participantRecordRepository.existsByGroupChallengeIdAndDeletedAtIsNull(1L)).willReturn(true);
+  @Test
+  @DisplayName("참여자가 존재하면 수정 불가 예외를 던진다.")
+  void update_withParticipants_throwsException() {
+    // given
+    given(participantRecordRepository.existsByGroupChallengeIdAndDeletedAtIsNull(1L))
+        .willReturn(true);
 
-        // when & then
-        assertThatThrownBy(() -> updateService.update(1L, 1L, mock(GroupChallengeUpdateRequestDto.class)))
-                .isInstanceOf(CustomException.class)
-                .hasMessageContaining(ChallengeErrorCode.CHALLENGE_HAS_PARTICIPANTS_UPDATE_NOT_ALLOWED.getMessage());
-    }
+    // when & then
+    assertThatThrownBy(
+            () -> updateService.update(1L, 1L, mock(GroupChallengeUpdateRequestDto.class)))
+        .isInstanceOf(CustomException.class)
+        .hasMessageContaining(
+            ChallengeErrorCode.CHALLENGE_HAS_PARTICIPANTS_UPDATE_NOT_ALLOWED.getMessage());
+  }
 
-    @Test
-    @DisplayName("유효성 검사 및 업데이트 로직이 정상적으로 호출된다.")
-    void update_withoutParticipants_success() {
-        // given
-        var member = MemberFixture.of();
-        var category = GroupChallengeCategoryFixture.defaultCategory();
-        var challenge = GroupChallengeFixture.of(member, category);
+  @Test
+  @DisplayName("유효성 검사 및 업데이트 로직이 정상적으로 호출된다.")
+  void update_withoutParticipants_success() {
+    // given
+    var member = MemberFixture.of();
+    var category = GroupChallengeCategoryFixture.defaultCategory();
+    var challenge = GroupChallengeFixture.of(member, category);
 
-        var dto = createValidRequest();
+    var dto = createValidRequest();
 
-        given(participantRecordRepository.existsByGroupChallengeIdAndDeletedAtIsNull(1L)).willReturn(false);
-        willDoNothing().given(domainValidator).validate(dto);
-        given(challengeUpdater.updateChallengeInfo(1L, 1L, dto)).willReturn(challenge);
-        willDoNothing().given(categoryUpdater).updateCategory(challenge, dto.category());
-        willDoNothing().given(imageUpdater).updateImages(challenge, dto.exampleImages());
+    given(participantRecordRepository.existsByGroupChallengeIdAndDeletedAtIsNull(1L))
+        .willReturn(false);
+    willDoNothing().given(domainValidator).validate(dto);
+    given(challengeUpdater.updateChallengeInfo(1L, 1L, dto)).willReturn(challenge);
+    willDoNothing().given(categoryUpdater).updateCategory(challenge, dto.category());
+    willDoNothing().given(imageUpdater).updateImages(challenge, dto.exampleImages());
 
-        // when
-        updateService.update(1L, 1L, dto);
+    // when
+    updateService.update(1L, 1L, dto);
 
-        // then
-        then(domainValidator).should().validate(dto);
-        then(challengeUpdater).should().updateChallengeInfo(1L, 1L, dto);
-        then(categoryUpdater).should().updateCategory(challenge, dto.category());
-        then(imageUpdater).should().updateImages(challenge, dto.exampleImages());
-    }
+    // then
+    then(domainValidator).should().validate(dto);
+    then(challengeUpdater).should().updateChallengeInfo(1L, 1L, dto);
+    then(categoryUpdater).should().updateCategory(challenge, dto.category());
+    then(imageUpdater).should().updateImages(challenge, dto.exampleImages());
+  }
 
-    @Test
-    @DisplayName("SecurityException 발생 시 이미지 권한 에러로 변환된다.")
-    void update_throwsSecurityException_wrappedAsCustomException() {
-        // given
-        var dto = createValidRequest();
-        given(participantRecordRepository.existsByGroupChallengeIdAndDeletedAtIsNull(1L)).willReturn(false);
-        willThrow(SecurityException.class).given(domainValidator).validate(dto);
+  @Test
+  @DisplayName("SecurityException 발생 시 이미지 권한 에러로 변환된다.")
+  void update_throwsSecurityException_wrappedAsCustomException() {
+    // given
+    var dto = createValidRequest();
+    given(participantRecordRepository.existsByGroupChallengeIdAndDeletedAtIsNull(1L))
+        .willReturn(false);
+    willThrow(SecurityException.class).given(domainValidator).validate(dto);
 
-        // when & then
-        assertThatThrownBy(() -> updateService.update(1L, 1L, dto))
-                .isInstanceOf(CustomException.class)
-                .hasMessageContaining(ChallengeErrorCode.CHALLENGE_UPDATE_IMAGE_PERMISSION_DENIED.getMessage());
-    }
+    // when & then
+    assertThatThrownBy(() -> updateService.update(1L, 1L, dto))
+        .isInstanceOf(CustomException.class)
+        .hasMessageContaining(
+            ChallengeErrorCode.CHALLENGE_UPDATE_IMAGE_PERMISSION_DENIED.getMessage());
+  }
 
-    @Test
-    @DisplayName("알 수 없는 예외가 발생하면 서버 오류로 처리된다.")
-    void update_throwsUnknownException_wrappedAsCustomException() {
-        // given
-        var dto = createValidRequest();
-        given(participantRecordRepository.existsByGroupChallengeIdAndDeletedAtIsNull(1L)).willReturn(false);
-        willThrow(RuntimeException.class).given(domainValidator).validate(dto);
+  @Test
+  @DisplayName("알 수 없는 예외가 발생하면 서버 오류로 처리된다.")
+  void update_throwsUnknownException_wrappedAsCustomException() {
+    // given
+    var dto = createValidRequest();
+    given(participantRecordRepository.existsByGroupChallengeIdAndDeletedAtIsNull(1L))
+        .willReturn(false);
+    willThrow(RuntimeException.class).given(domainValidator).validate(dto);
 
-        // when & then
-        assertThatThrownBy(() -> updateService.update(1L, 1L, dto))
-                .isInstanceOf(CustomException.class)
-                .hasMessageContaining(ChallengeErrorCode.GROUP_CHALLENGE_UPDATE_FAILED.getMessage());
-    }
+    // when & then
+    assertThatThrownBy(() -> updateService.update(1L, 1L, dto))
+        .isInstanceOf(CustomException.class)
+        .hasMessageContaining(ChallengeErrorCode.GROUP_CHALLENGE_UPDATE_FAILED.getMessage());
+  }
 
-    private GroupChallengeUpdateRequestDto createValidRequest() {
-        return new GroupChallengeUpdateRequestDto(
-                "새 제목",
-                "새 설명",
-                "ZERO_WASTE",
-                100,
-                "https://dummy.image/thumbnail.png",
-                OffsetDateTime.parse("2024-01-01T00:00:00Z"),
-                OffsetDateTime.parse("2024-01-07T23:59:00Z"),
-                LocalTime.of(6, 0),
-                LocalTime.of(22, 0),
-                new ExampleImages(
-                        List.of(new ExampleImages.KeepImage(1L, 1)),
-                        List.of(new ExampleImages.NewImage("https://dummy.image/new.png", ExampleImageType.SUCCESS, "예시", 2)),
-                        List.of(3L)
-                )
-        );
-    }
+  private GroupChallengeUpdateRequestDto createValidRequest() {
+    return new GroupChallengeUpdateRequestDto(
+        "새 제목",
+        "새 설명",
+        "ZERO_WASTE",
+        100,
+        "https://dummy.image/thumbnail.png",
+        OffsetDateTime.parse("2024-01-01T00:00:00Z"),
+        OffsetDateTime.parse("2024-01-07T23:59:00Z"),
+        LocalTime.of(6, 0),
+        LocalTime.of(22, 0),
+        new ExampleImages(
+            List.of(new ExampleImages.KeepImage(1L, 1)),
+            List.of(
+                new ExampleImages.NewImage(
+                    "https://dummy.image/new.png", ExampleImageType.SUCCESS, "예시", 2)),
+            List.of(3L)));
+  }
 }

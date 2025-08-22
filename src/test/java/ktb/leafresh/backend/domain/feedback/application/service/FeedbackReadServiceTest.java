@@ -1,32 +1,32 @@
-//package ktb.leafresh.backend.domain.feedback.application.service;
+// package ktb.leafresh.backend.domain.feedback.application.service;
 //
-//import ktb.leafresh.backend.domain.feedback.domain.entity.Feedback;
-//import ktb.leafresh.backend.domain.feedback.infrastructure.repository.FeedbackRepository;
-//import ktb.leafresh.backend.domain.feedback.presentation.dto.response.FeedbackResponseDto;
-//import ktb.leafresh.backend.domain.member.domain.entity.Member;
-//import ktb.leafresh.backend.domain.member.infrastructure.repository.MemberRepository;
-//import ktb.leafresh.backend.global.exception.CustomException;
-//import ktb.leafresh.backend.global.exception.FeedbackErrorCode;
-//import ktb.leafresh.backend.global.exception.GlobalErrorCode;
-//import org.junit.jupiter.api.BeforeEach;
-//import org.junit.jupiter.api.DisplayName;
-//import org.junit.jupiter.api.Test;
-//import org.mockito.ArgumentCaptor;
-//import org.springframework.data.redis.core.RedisTemplate;
-//import org.springframework.data.redis.core.ValueOperations;
+// import ktb.leafresh.backend.domain.feedback.domain.entity.Feedback;
+// import ktb.leafresh.backend.domain.feedback.infrastructure.repository.FeedbackRepository;
+// import ktb.leafresh.backend.domain.feedback.presentation.dto.response.FeedbackResponseDto;
+// import ktb.leafresh.backend.domain.member.domain.entity.Member;
+// import ktb.leafresh.backend.domain.member.infrastructure.repository.MemberRepository;
+// import ktb.leafresh.backend.global.exception.CustomException;
+// import ktb.leafresh.backend.global.exception.FeedbackErrorCode;
+// import ktb.leafresh.backend.global.exception.GlobalErrorCode;
+// import org.junit.jupiter.api.BeforeEach;
+// import org.junit.jupiter.api.DisplayName;
+// import org.junit.jupiter.api.Test;
+// import org.mockito.ArgumentCaptor;
+// import org.springframework.data.redis.core.RedisTemplate;
+// import org.springframework.data.redis.core.ValueOperations;
 //
-//import java.time.DayOfWeek;
-//import java.time.LocalDate;
-//import java.time.LocalDateTime;
-//import java.util.Optional;
-//import java.util.concurrent.TimeUnit;
+// import java.time.DayOfWeek;
+// import java.time.LocalDate;
+// import java.time.LocalDateTime;
+// import java.util.Optional;
+// import java.util.concurrent.TimeUnit;
 //
-//import static ktb.leafresh.backend.support.fixture.FeedbackFixture.of;
-//import static ktb.leafresh.backend.support.fixture.MemberFixture.of;
-//import static org.assertj.core.api.Assertions.*;
-//import static org.mockito.Mockito.*;
+// import static ktb.leafresh.backend.support.fixture.FeedbackFixture.of;
+// import static ktb.leafresh.backend.support.fixture.MemberFixture.of;
+// import static org.assertj.core.api.Assertions.*;
+// import static org.mockito.Mockito.*;
 //
-//class FeedbackReadServiceTest {
+// class FeedbackReadServiceTest {
 //
 //    private FeedbackRepository feedbackRepository;
 //    private MemberRepository memberRepository;
@@ -77,7 +77,8 @@
 ////                .atStartOfDay();
 ////
 ////        Feedback feedback = of(member, "DB 피드백", lastWeekMonday);
-////        when(feedbackRepository.findFeedbackByMemberAndWeekMonday(eq(member), eq(lastWeekMonday)))
+////        when(feedbackRepository.findFeedbackByMemberAndWeekMonday(eq(member),
+// eq(lastWeekMonday)))
 ////                .thenReturn(Optional.of(feedback));
 ////
 ////        // when
@@ -102,7 +103,8 @@
 //        when(memberRepository.findById(memberId)).thenReturn(Optional.of(member));
 //        when(valueOperations.get(anyString())).thenReturn(null);
 //
-//        LocalDateTime lastWeekMonday = LocalDate.now().with(DayOfWeek.MONDAY).minusWeeks(1).atStartOfDay();
+//        LocalDateTime lastWeekMonday =
+// LocalDate.now().with(DayOfWeek.MONDAY).minusWeeks(1).atStartOfDay();
 //        when(feedbackRepository.findFeedbackByMemberAndWeekMonday(eq(member), eq(lastWeekMonday)))
 //                .thenReturn(Optional.empty());
 //
@@ -139,4 +141,4 @@
 //
 //        assertThat(ex.getErrorCode()).isEqualTo(FeedbackErrorCode.FEEDBACK_SERVER_ERROR);
 //    }
-//}
+// }

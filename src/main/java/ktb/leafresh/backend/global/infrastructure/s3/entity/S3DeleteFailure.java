@@ -14,21 +14,21 @@ import java.time.LocalDateTime;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class S3DeleteFailure extends BaseEntity {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Long id;
 
-    @Column(nullable = false, length = 512)
-    private String imageUrl;
+  @Column(nullable = false, length = 512)
+  private String imageUrl;
 
-    @Column(nullable = false)
-    private String reason;
+  @Column(nullable = false)
+  private String reason;
 
-    private Integer retryCount;
+  private Integer retryCount;
 
-    @Column(nullable = false)
-    private LocalDateTime lastFailedAt;
+  @Column(nullable = false)
+  private LocalDateTime lastFailedAt;
 
-    @Column(nullable = false)
-    private LocalDateTime scheduledRetryAt;
+  @Column(nullable = false)
+  private LocalDateTime scheduledRetryAt;
 }

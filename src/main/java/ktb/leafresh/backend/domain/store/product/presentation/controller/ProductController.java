@@ -20,28 +20,26 @@ import org.springframework.web.bind.annotation.RestController;
 @Slf4j
 public class ProductController {
 
-    private final ProductSearchReadService productSearchReadService;
+  private final ProductSearchReadService productSearchReadService;
 
-    @GetMapping
-    public ResponseEntity<ApiResponse<ProductListResponseDto>> getProducts(
-            @RequestParam(required = false) String input,
-            @RequestParam(required = false) Long cursorId,
-            @RequestParam(required = false) String cursorTimestamp,
-            @RequestParam(defaultValue = "12") int size
-    ) {
-        if ((cursorId == null) != (cursorTimestamp == null)) {
-            throw new CustomException(GlobalErrorCode.INVALID_CURSOR);
-        }
-
-        try {
-            ProductListResponseDto response = productSearchReadService.search(input, cursorId, cursorTimestamp, size);
-            String message = response.getProducts().isEmpty()
-                    ? "검색된 상품이 없습니다."
-                    : "상품 목록을 조회했습니다.";
-            return ResponseEntity.ok(ApiResponse.success(message, response));
-        } catch (Exception e) {
-            log.error("[상품 목록 조회 실패]", e);
-            throw new CustomException(ProductErrorCode.PRODUCT_CREATE_FAILED);
-        }
+  @GetMapping
+  public ResponseEntity<ApiResponse<ProductListResponseDto>> getProducts(
+      @RequestParam(required = false) String input,
+      @RequestParam(required = false) Long cursorId,
+      @RequestParam(required = false) String cursorTimestamp,
+      @RequestParam(defaultValue = "12") int size) {
+    if ((cursorId == null) != (cursorTimestamp == null)) {
+      throw new CustomException(GlobalErrorCode.INVALID_CURSOR);
     }
+
+    try {
+      ProductListResponseDto response =
+          productSearchReadService.search(input, cursorId, cursorTimestamp, size);
+      String message = response.getProducts().isEmpty() ? "검색된 상품이 없습니다." : "상품 목록을 조회했습니다.";
+      return ResponseEntity.ok(ApiResponse.success(message, response));
+    } catch (Exception e) {
+      log.error("[상품 목록 조회 실패]", e);
+      throw new CustomException(ProductErrorCode.PRODUCT_CREATE_FAILED);
+    }
+  }
 }

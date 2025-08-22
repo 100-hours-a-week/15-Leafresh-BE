@@ -30,132 +30,133 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name = "members", indexes = {
-        @Index(name = "idx_member_deleted_at", columnList = "deleted_at")
-})
+@Table(
+    name = "members",
+    indexes = {@Index(name = "idx_member_deleted_at", columnList = "deleted_at")})
 @Getter
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Member extends BaseEntity {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "tree_level_id", nullable = false)
-    private TreeLevel treeLevel;
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "tree_level_id", nullable = false)
+  private TreeLevel treeLevel;
 
-    @Builder.Default
-    @OneToMany(mappedBy = "member", cascade = CascadeType.ALL)
-    private List<OAuth> auths = new ArrayList<>();
+  @Builder.Default
+  @OneToMany(mappedBy = "member", cascade = CascadeType.ALL)
+  private List<OAuth> auths = new ArrayList<>();
 
-    @OneToMany(mappedBy = "member", cascade = CascadeType.ALL)
-    private List<MemberBadge> memberBadges = new ArrayList<>();
+  @OneToMany(mappedBy = "member", cascade = CascadeType.ALL)
+  private List<MemberBadge> memberBadges = new ArrayList<>();
 
-    @OneToMany(mappedBy = "member", cascade = CascadeType.ALL)
-    private List<GroupChallenge> groupChallenges = new ArrayList<>();
+  @OneToMany(mappedBy = "member", cascade = CascadeType.ALL)
+  private List<GroupChallenge> groupChallenges = new ArrayList<>();
 
-    @OneToMany(mappedBy = "member", cascade = CascadeType.ALL)
-    private List<GroupChallengeParticipantRecord> groupChallengeParticipantRecords = new ArrayList<>();
+  @OneToMany(mappedBy = "member", cascade = CascadeType.ALL)
+  private List<GroupChallengeParticipantRecord> groupChallengeParticipantRecords =
+      new ArrayList<>();
 
-    @OneToMany(mappedBy = "member", cascade = CascadeType.ALL)
-    private List<PersonalChallengeVerification> personalChallengeVerifications = new ArrayList<>();
+  @OneToMany(mappedBy = "member", cascade = CascadeType.ALL)
+  private List<PersonalChallengeVerification> personalChallengeVerifications = new ArrayList<>();
 
-    @OneToMany(mappedBy = "member", cascade = CascadeType.ALL)
-    private List<Comment> comments = new ArrayList<>();
+  @OneToMany(mappedBy = "member", cascade = CascadeType.ALL)
+  private List<Comment> comments = new ArrayList<>();
 
-    @OneToMany(mappedBy = "member", cascade = CascadeType.ALL)
-    private List<Like> likes = new ArrayList<>();
+  @OneToMany(mappedBy = "member", cascade = CascadeType.ALL)
+  private List<Like> likes = new ArrayList<>();
 
-    @OneToMany(mappedBy = "member", cascade = CascadeType.ALL)
-    private List<Notification> notifications = new ArrayList<>();
+  @OneToMany(mappedBy = "member", cascade = CascadeType.ALL)
+  private List<Notification> notifications = new ArrayList<>();
 
-    @OneToMany(mappedBy = "member", cascade = CascadeType.ALL)
-    private List<ProductPurchase> productPurchases = new ArrayList<>();
+  @OneToMany(mappedBy = "member", cascade = CascadeType.ALL)
+  private List<ProductPurchase> productPurchases = new ArrayList<>();
 
-    @OneToMany(mappedBy = "member", cascade = CascadeType.ALL)
-    private List<PurchaseIdempotencyKey> purchaseIdempotencyKeys = new ArrayList<>();
+  @OneToMany(mappedBy = "member", cascade = CascadeType.ALL)
+  private List<PurchaseIdempotencyKey> purchaseIdempotencyKeys = new ArrayList<>();
 
-    @OneToMany(mappedBy = "member", cascade = CascadeType.ALL)
-    private List<PurchaseFailureLog> purchaseFailureLogs = new ArrayList<>();
+  @OneToMany(mappedBy = "member", cascade = CascadeType.ALL)
+  private List<PurchaseFailureLog> purchaseFailureLogs = new ArrayList<>();
 
-    @OneToMany(mappedBy = "member", cascade = CascadeType.ALL)
-    private List<Feedback> feedbacks = new ArrayList<>();
+  @OneToMany(mappedBy = "member", cascade = CascadeType.ALL)
+  private List<Feedback> feedbacks = new ArrayList<>();
 
-    @OneToMany(mappedBy = "member", cascade = CascadeType.ALL)
-    private List<VerificationFailureLog> verificationFailureLogs = new ArrayList<>();
+  @OneToMany(mappedBy = "member", cascade = CascadeType.ALL)
+  private List<VerificationFailureLog> verificationFailureLogs = new ArrayList<>();
 
-    @OneToMany(mappedBy = "member", cascade = CascadeType.ALL)
-    private List<FeedbackFailureLog> feedbackFailureLogs = new ArrayList<>();
+  @OneToMany(mappedBy = "member", cascade = CascadeType.ALL)
+  private List<FeedbackFailureLog> feedbackFailureLogs = new ArrayList<>();
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 20)
-    private LoginType loginType;
+  @Enumerated(EnumType.STRING)
+  @Column(nullable = false, length = 20)
+  private LoginType loginType;
 
-    @Column(nullable = false, unique = true, length = 128)
-    private String email;
+  @Column(nullable = false, unique = true, length = 128)
+  private String email;
 
-    @Column(length = 255)
-    private String password;
+  @Column(length = 255)
+  private String password;
 
-    @Column(nullable = false, unique = true, length = 20)
-    private String nickname;
+  @Column(nullable = false, unique = true, length = 20)
+  private String nickname;
 
-    @Column(nullable = false, length = 512)
-    private String imageUrl;
+  @Column(nullable = false, length = 512)
+  private String imageUrl;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 20)
-    private Role role;
+  @Enumerated(EnumType.STRING)
+  @Column(nullable = false, length = 20)
+  private Role role;
 
-    @Column(nullable = false)
-    private Boolean activated;
+  @Column(nullable = false)
+  private Boolean activated;
 
-    @Column(nullable = false)
-    private Integer totalLeafPoints;
+  @Column(nullable = false)
+  private Integer totalLeafPoints;
 
-    @Column(nullable = false)
-    private Integer currentLeafPoints;
+  @Column(nullable = false)
+  private Integer currentLeafPoints;
 
-    @Column(name = "last_login_rewarded_at")
-    private LocalDateTime lastLoginRewardedAt;
+  @Column(name = "last_login_rewarded_at")
+  private LocalDateTime lastLoginRewardedAt;
 
-    @PrePersist
-    public void prePersist() {
-        if (activated == null) activated = true;
-        if (totalLeafPoints == null) totalLeafPoints = 0;
-        if (currentLeafPoints == null) currentLeafPoints = 0;
-    }
+  @PrePersist
+  public void prePersist() {
+    if (activated == null) activated = true;
+    if (totalLeafPoints == null) totalLeafPoints = 0;
+    if (currentLeafPoints == null) currentLeafPoints = 0;
+  }
 
-    public void addLeafPoints(int amount) {
-        this.currentLeafPoints += amount;
-        this.totalLeafPoints += amount;
-    }
+  public void addLeafPoints(int amount) {
+    this.currentLeafPoints += amount;
+    this.totalLeafPoints += amount;
+  }
 
-    public boolean hasReceivedLoginRewardToday() {
-        return lastLoginRewardedAt != null &&
-                lastLoginRewardedAt.toLocalDate().isEqual(LocalDate.now());
-    }
+  public boolean hasReceivedLoginRewardToday() {
+    return lastLoginRewardedAt != null
+        && lastLoginRewardedAt.toLocalDate().isEqual(LocalDate.now());
+  }
 
-    public void updateLastLoginRewardedAt() {
-        this.lastLoginRewardedAt = LocalDateTime.now();
-    }
+  public void updateLastLoginRewardedAt() {
+    this.lastLoginRewardedAt = LocalDateTime.now();
+  }
 
-    public void updateNickname(String nickname) {
-        this.nickname = nickname;
-    }
+  public void updateNickname(String nickname) {
+    this.nickname = nickname;
+  }
 
-    public void updateImageUrl(String imageUrl) {
-        this.imageUrl = imageUrl;
-    }
+  public void updateImageUrl(String imageUrl) {
+    this.imageUrl = imageUrl;
+  }
 
-    public void updateCurrentLeafPoints(int newPoints) {
-        this.currentLeafPoints = newPoints;
-    }
+  public void updateCurrentLeafPoints(int newPoints) {
+    this.currentLeafPoints = newPoints;
+  }
 
-    public void updateTreeLevel(TreeLevel newTreeLevel) {
-        this.treeLevel = newTreeLevel;
-    }
+  public void updateTreeLevel(TreeLevel newTreeLevel) {
+    this.treeLevel = newTreeLevel;
+  }
 }

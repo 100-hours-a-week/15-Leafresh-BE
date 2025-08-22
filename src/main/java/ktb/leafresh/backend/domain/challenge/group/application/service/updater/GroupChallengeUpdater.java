@@ -13,21 +13,29 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class GroupChallengeUpdater {
 
-    private final GroupChallengeRepository repository;
+  private final GroupChallengeRepository repository;
 
-    public GroupChallenge updateChallengeInfo(Long memberId, Long challengeId, GroupChallengeUpdateRequestDto dto) {
-        GroupChallenge challenge = repository.findById(challengeId)
-                .orElseThrow(() -> new CustomException(ChallengeErrorCode.GROUP_CHALLENGE_NOT_FOUND));
+  public GroupChallenge updateChallengeInfo(
+      Long memberId, Long challengeId, GroupChallengeUpdateRequestDto dto) {
+    GroupChallenge challenge =
+        repository
+            .findById(challengeId)
+            .orElseThrow(() -> new CustomException(ChallengeErrorCode.GROUP_CHALLENGE_NOT_FOUND));
 
-        if (!challenge.getMember().getId().equals(memberId)) {
-            throw new CustomException(GlobalErrorCode.ACCESS_DENIED);
-        }
-
-        challenge.updateInfo(
-                dto.title(), dto.description(), dto.thumbnailImageUrl(), dto.maxParticipantCount(),
-                dto.startDate(), dto.endDate(), dto.verificationStartTime(), dto.verificationEndTime()
-        );
-
-        return challenge;
+    if (!challenge.getMember().getId().equals(memberId)) {
+      throw new CustomException(GlobalErrorCode.ACCESS_DENIED);
     }
+
+    challenge.updateInfo(
+        dto.title(),
+        dto.description(),
+        dto.thumbnailImageUrl(),
+        dto.maxParticipantCount(),
+        dto.startDate(),
+        dto.endDate(),
+        dto.verificationStartTime(),
+        dto.verificationEndTime());
+
+    return challenge;
+  }
 }

@@ -5,5 +5,4 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface PurchaseFailureLogRepository extends JpaRepository<PurchaseFailureLog, Long> {
-}
+public interface PurchaseFailureLogRepository extends JpaRepository<PurchaseFailureLog, Long> {}

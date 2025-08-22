@@ -7,30 +7,32 @@ import lombok.*;
 
 @Entity
 @Table(
-        name = "purchase_idempotency_keys",
-        uniqueConstraints = @UniqueConstraint(name = "uk_member_id_key", columnNames = {"member_id", "idempotency_key"}),
-        indexes = @Index(name = "idx_purchase_idempotency_key_deleted", columnList = "deleted_at")
-)
+    name = "purchase_idempotency_keys",
+    uniqueConstraints =
+        @UniqueConstraint(
+            name = "uk_member_id_key",
+            columnNames = {"member_id", "idempotency_key"}),
+    indexes = @Index(name = "idx_purchase_idempotency_key_deleted", columnList = "deleted_at"))
 @Getter
 @Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 public class PurchaseIdempotencyKey extends BaseEntity {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "member_id", nullable = false)
-    private Member member;
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "member_id", nullable = false)
+  private Member member;
 
-    // 중복 방지 키 (e.g. 클라이언트가 생성한 UUID)
-    @Column(name = "idempotency_key", nullable = false, length = 255)
-    private String idempotencyKey;
+  // 중복 방지 키 (e.g. 클라이언트가 생성한 UUID)
+  @Column(name = "idempotency_key", nullable = false, length = 255)
+  private String idempotencyKey;
 
-    public PurchaseIdempotencyKey(Member member, String idempotencyKey) {
-        this.member = member;
-        this.idempotencyKey = idempotencyKey;
-    }
+  public PurchaseIdempotencyKey(Member member, String idempotencyKey) {
+    this.member = member;
+    this.idempotencyKey = idempotencyKey;
+  }
 }

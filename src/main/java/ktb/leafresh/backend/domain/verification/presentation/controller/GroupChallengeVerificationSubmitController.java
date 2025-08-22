@@ -24,49 +24,49 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class GroupChallengeVerificationSubmitController {
 
-    private final GroupChallengeVerificationSubmitService submitService;
-    private final GroupChallengeVerificationResultQueryService resultQueryService;
+  private final GroupChallengeVerificationSubmitService submitService;
+  private final GroupChallengeVerificationResultQueryService resultQueryService;
 
-    @PostMapping("/{challengeId}/verifications")
-    public ResponseEntity<ApiResponse<Void>> submitVerification(
-            @AuthenticationPrincipal CustomUserDetails userDetails,
-            @PathVariable Long challengeId,
-            @RequestBody GroupChallengeVerificationRequestDto requestDto
-    ) {
-        log.info("[단체 인증 제출 요청] challengeId={}, imageUrl={}, content={}",
-                challengeId, requestDto.imageUrl(), requestDto.content());
+  @PostMapping("/{challengeId}/verifications")
+  public ResponseEntity<ApiResponse<Void>> submitVerification(
+      @AuthenticationPrincipal CustomUserDetails userDetails,
+      @PathVariable Long challengeId,
+      @RequestBody GroupChallengeVerificationRequestDto requestDto) {
+    log.info(
+        "[단체 인증 제출 요청] challengeId={}, imageUrl={}, content={}",
+        challengeId,
+        requestDto.imageUrl(),
+        requestDto.content());
 
-        if (userDetails == null) {
-            throw new CustomException(GlobalErrorCode.UNAUTHORIZED);
-        }
-
-        Long memberId = userDetails.getMemberId();
-        log.info("[단체 인증 제출] memberId={}", memberId);
-
-        submitService.submit(memberId, challengeId, requestDto);
-        log.info("[단체 인증 제출 완료] challengeId={}, memberId={}", challengeId, memberId);
-
-        return ResponseEntity.ok(ApiResponse.success("단체 챌린지 인증 제출이 완료되었습니다."));
+    if (userDetails == null) {
+      throw new CustomException(GlobalErrorCode.UNAUTHORIZED);
     }
 
-    @GetMapping("/{challengeId}/verification/result")
-    public ResponseEntity<ApiResponse<Map<String, String>>> getVerificationResult(
-            @AuthenticationPrincipal CustomUserDetails userDetails,
-            @PathVariable Long challengeId
-    ) {
-        if (userDetails == null) {
-            throw new CustomException(GlobalErrorCode.UNAUTHORIZED);
-        }
+    Long memberId = userDetails.getMemberId();
+    log.info("[단체 인증 제출] memberId={}", memberId);
 
-        Long memberId = userDetails.getMemberId();
-        ChallengeStatus status = resultQueryService.getLatestStatus(memberId, challengeId);
+    submitService.submit(memberId, challengeId, requestDto);
+    log.info("[단체 인증 제출 완료] challengeId={}, memberId={}", challengeId, memberId);
 
-        Map<String, String> data = Map.of("status", status.name());
-        String message = ChallengeStatusMessageResolver.resolveMessage(status);
+    return ResponseEntity.ok(ApiResponse.success("단체 챌린지 인증 제출이 완료되었습니다."));
+  }
 
-        HttpStatus httpStatus = (status == ChallengeStatus.PENDING_APPROVAL)
-                ? HttpStatus.ACCEPTED : HttpStatus.OK;
-
-        return ResponseEntity.status(httpStatus).body(ApiResponse.success(message, data));
+  @GetMapping("/{challengeId}/verification/result")
+  public ResponseEntity<ApiResponse<Map<String, String>>> getVerificationResult(
+      @AuthenticationPrincipal CustomUserDetails userDetails, @PathVariable Long challengeId) {
+    if (userDetails == null) {
+      throw new CustomException(GlobalErrorCode.UNAUTHORIZED);
     }
+
+    Long memberId = userDetails.getMemberId();
+    ChallengeStatus status = resultQueryService.getLatestStatus(memberId, challengeId);
+
+    Map<String, String> data = Map.of("status", status.name());
+    String message = ChallengeStatusMessageResolver.resolveMessage(status);
+
+    HttpStatus httpStatus =
+        (status == ChallengeStatus.PENDING_APPROVAL) ? HttpStatus.ACCEPTED : HttpStatus.OK;
+
+    return ResponseEntity.status(httpStatus).body(ApiResponse.success(message, data));
+  }
 }

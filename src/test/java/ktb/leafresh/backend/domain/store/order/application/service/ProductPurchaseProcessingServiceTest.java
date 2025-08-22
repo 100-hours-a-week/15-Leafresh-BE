@@ -36,140 +36,141 @@ import static org.mockito.BDDMockito.*;
 @ExtendWith(MockitoExtension.class)
 class ProductPurchaseProcessingServiceTest {
 
-    @Mock
-    private MemberRepository memberRepository;
+  @Mock private MemberRepository memberRepository;
 
-    @Mock
-    private ProductRepository productRepository;
+  @Mock private ProductRepository productRepository;
 
-    @Mock
-    private TimedealPolicyRepository timedealPolicyRepository;
+  @Mock private TimedealPolicyRepository timedealPolicyRepository;
 
-    @Mock
-    private PurchaseFailureLogRepository failureLogRepository;
+  @Mock private PurchaseFailureLogRepository failureLogRepository;
 
-    @Mock
-    private PurchaseProcessor purchaseProcessor;
+  @Mock private PurchaseProcessor purchaseProcessor;
 
-    @InjectMocks
-    private ProductPurchaseProcessingService service;
+  @InjectMocks private ProductPurchaseProcessingService service;
 
-    private Member member;
-    private Product product;
-    private TimedealPolicy timedeal;
+  private Member member;
+  private Product product;
+  private TimedealPolicy timedeal;
 
-    private static final Long MEMBER_ID = 1L;
-    private static final Long PRODUCT_ID = 10L;
-    private static final Long TIMEDEAL_ID = 100L;
-    private static final int QUANTITY = 2;
+  private static final Long MEMBER_ID = 1L;
+  private static final Long PRODUCT_ID = 10L;
+  private static final Long TIMEDEAL_ID = 100L;
+  private static final int QUANTITY = 2;
 
-    @BeforeEach
-    void setUp() {
-        member = MemberFixture.of();
-        product = ProductFixture.createDefaultProduct();
-        ReflectionTestUtils.setField(product, "timedealPolicies", List.of());
-        timedeal = TimedealPolicyFixture.createOngoingTimedeal(product);
-    }
+  @BeforeEach
+  void setUp() {
+    member = MemberFixture.of();
+    product = ProductFixture.createDefaultProduct();
+    ReflectionTestUtils.setField(product, "timedealPolicies", List.of());
+    timedeal = TimedealPolicyFixture.createOngoingTimedeal(product);
+  }
 
-    @Test
-    @DisplayName("정상 요청 시 프로세스 처리된다 - 일반 구매")
-    void process_normalPurchase_success() {
-        // given
-        PurchaseCommand cmd = new PurchaseCommand(MEMBER_ID, PRODUCT_ID, null, QUANTITY, "key", null);
+  @Test
+  @DisplayName("정상 요청 시 프로세스 처리된다 - 일반 구매")
+  void process_normalPurchase_success() {
+    // given
+    PurchaseCommand cmd = new PurchaseCommand(MEMBER_ID, PRODUCT_ID, null, QUANTITY, "key", null);
 
-        given(memberRepository.findById(MEMBER_ID)).willReturn(Optional.of(member));
-        given(productRepository.findById(PRODUCT_ID)).willReturn(Optional.of(product));
+    given(memberRepository.findById(MEMBER_ID)).willReturn(Optional.of(member));
+    given(productRepository.findById(PRODUCT_ID)).willReturn(Optional.of(product));
 
-        // when
-        service.process(cmd);
+    // when
+    service.process(cmd);
 
-        // then
-        ArgumentCaptor<PurchaseProcessContext> captor = ArgumentCaptor.forClass(PurchaseProcessContext.class);
-        verify(purchaseProcessor).process(captor.capture());
+    // then
+    ArgumentCaptor<PurchaseProcessContext> captor =
+        ArgumentCaptor.forClass(PurchaseProcessContext.class);
+    verify(purchaseProcessor).process(captor.capture());
 
-        PurchaseProcessContext context = captor.getValue();
-        assertThat(context.member()).isEqualTo(member);
-        assertThat(context.product()).isEqualTo(product);
-        assertThat(context.purchaseType()).isEqualTo(PurchaseType.NORMAL);
-        assertThat(context.unitPrice()).isEqualTo(product.getPrice());
-        assertThat(context.quantity()).isEqualTo(QUANTITY);
-    }
+    PurchaseProcessContext context = captor.getValue();
+    assertThat(context.member()).isEqualTo(member);
+    assertThat(context.product()).isEqualTo(product);
+    assertThat(context.purchaseType()).isEqualTo(PurchaseType.NORMAL);
+    assertThat(context.unitPrice()).isEqualTo(product.getPrice());
+    assertThat(context.quantity()).isEqualTo(QUANTITY);
+  }
 
-    @Test
-    @DisplayName("정상 요청 시 프로세스 처리된다 - 타임딜 구매")
-    void process_timedealPurchase_success() {
-        // given
-        PurchaseCommand cmd = new PurchaseCommand(MEMBER_ID, PRODUCT_ID, TIMEDEAL_ID, QUANTITY, "key", null);
+  @Test
+  @DisplayName("정상 요청 시 프로세스 처리된다 - 타임딜 구매")
+  void process_timedealPurchase_success() {
+    // given
+    PurchaseCommand cmd =
+        new PurchaseCommand(MEMBER_ID, PRODUCT_ID, TIMEDEAL_ID, QUANTITY, "key", null);
 
-        ReflectionTestUtils.setField(product, "id", PRODUCT_ID);
-        ReflectionTestUtils.setField(timedeal, "id", TIMEDEAL_ID);
-        ReflectionTestUtils.setField(timedeal, "product", product);
+    ReflectionTestUtils.setField(product, "id", PRODUCT_ID);
+    ReflectionTestUtils.setField(timedeal, "id", TIMEDEAL_ID);
+    ReflectionTestUtils.setField(timedeal, "product", product);
 
-        given(memberRepository.findById(MEMBER_ID)).willReturn(Optional.of(member));
-        given(productRepository.findById(PRODUCT_ID)).willReturn(Optional.of(product));
-        given(timedealPolicyRepository.findById(TIMEDEAL_ID)).willReturn(Optional.of(timedeal));
+    given(memberRepository.findById(MEMBER_ID)).willReturn(Optional.of(member));
+    given(productRepository.findById(PRODUCT_ID)).willReturn(Optional.of(product));
+    given(timedealPolicyRepository.findById(TIMEDEAL_ID)).willReturn(Optional.of(timedeal));
 
-        // when
-        service.process(cmd);
+    // when
+    service.process(cmd);
 
-        // then
-        ArgumentCaptor<PurchaseProcessContext> captor = ArgumentCaptor.forClass(PurchaseProcessContext.class);
-        verify(purchaseProcessor).process(captor.capture());
+    // then
+    ArgumentCaptor<PurchaseProcessContext> captor =
+        ArgumentCaptor.forClass(PurchaseProcessContext.class);
+    verify(purchaseProcessor).process(captor.capture());
 
-        PurchaseProcessContext context = captor.getValue();
-        assertThat(context.purchaseType()).isEqualTo(PurchaseType.TIMEDEAL);
-        assertThat(context.unitPrice()).isEqualTo(timedeal.getDiscountedPrice());
-    }
+    PurchaseProcessContext context = captor.getValue();
+    assertThat(context.purchaseType()).isEqualTo(PurchaseType.TIMEDEAL);
+    assertThat(context.unitPrice()).isEqualTo(timedeal.getDiscountedPrice());
+  }
 
-    @Test
-    @DisplayName("존재하지 않는 회원일 경우 예외를 던지고 실패 로그를 저장한다")
-    void process_memberNotFound() {
-        // given
-        PurchaseCommand cmd = new PurchaseCommand(MEMBER_ID, PRODUCT_ID, null, QUANTITY, "key", null);
-        given(memberRepository.findById(MEMBER_ID)).willReturn(Optional.empty());
+  @Test
+  @DisplayName("존재하지 않는 회원일 경우 예외를 던지고 실패 로그를 저장한다")
+  void process_memberNotFound() {
+    // given
+    PurchaseCommand cmd = new PurchaseCommand(MEMBER_ID, PRODUCT_ID, null, QUANTITY, "key", null);
+    given(memberRepository.findById(MEMBER_ID)).willReturn(Optional.empty());
 
-        // when / then
-        assertThatThrownBy(() -> service.process(cmd))
-                .isInstanceOf(CustomException.class)
-                .hasMessageContaining(MemberErrorCode.MEMBER_NOT_FOUND.getMessage());
+    // when / then
+    assertThatThrownBy(() -> service.process(cmd))
+        .isInstanceOf(CustomException.class)
+        .hasMessageContaining(MemberErrorCode.MEMBER_NOT_FOUND.getMessage());
 
-        verify(failureLogRepository).save(any(PurchaseFailureLog.class));
-    }
+    verify(failureLogRepository).save(any(PurchaseFailureLog.class));
+  }
 
-    @Test
-    @DisplayName("존재하지 않는 상품일 경우 예외를 던지고 실패 로그를 저장한다")
-    void process_productNotFound() {
-        // given
-        PurchaseCommand cmd = new PurchaseCommand(MEMBER_ID, PRODUCT_ID, null, QUANTITY, "key", null);
-        given(memberRepository.findById(MEMBER_ID)).willReturn(Optional.of(member));
-        given(productRepository.findById(PRODUCT_ID)).willReturn(Optional.empty());
+  @Test
+  @DisplayName("존재하지 않는 상품일 경우 예외를 던지고 실패 로그를 저장한다")
+  void process_productNotFound() {
+    // given
+    PurchaseCommand cmd = new PurchaseCommand(MEMBER_ID, PRODUCT_ID, null, QUANTITY, "key", null);
+    given(memberRepository.findById(MEMBER_ID)).willReturn(Optional.of(member));
+    given(productRepository.findById(PRODUCT_ID)).willReturn(Optional.empty());
 
-        // when / then
-        assertThatThrownBy(() -> service.process(cmd))
-                .isInstanceOf(CustomException.class)
-                .hasMessageContaining(ProductErrorCode.PRODUCT_NOT_FOUND.getMessage());
+    // when / then
+    assertThatThrownBy(() -> service.process(cmd))
+        .isInstanceOf(CustomException.class)
+        .hasMessageContaining(ProductErrorCode.PRODUCT_NOT_FOUND.getMessage());
 
-        verify(failureLogRepository).save(any(PurchaseFailureLog.class));
-    }
+    verify(failureLogRepository).save(any(PurchaseFailureLog.class));
+  }
 
-    @Test
-    @DisplayName("ObjectMapper 오류가 발생해도 fallback JSON이 저장된다")
-    void process_fallbackOnJsonProcessingError() throws Exception {
-        // given
-        PurchaseCommand cmd = new PurchaseCommand(MEMBER_ID, PRODUCT_ID, null, QUANTITY, "key", null);
-        given(memberRepository.findById(MEMBER_ID)).willReturn(Optional.of(member));
-        given(productRepository.findById(PRODUCT_ID)).willReturn(Optional.empty());
+  @Test
+  @DisplayName("ObjectMapper 오류가 발생해도 fallback JSON이 저장된다")
+  void process_fallbackOnJsonProcessingError() throws Exception {
+    // given
+    PurchaseCommand cmd = new PurchaseCommand(MEMBER_ID, PRODUCT_ID, null, QUANTITY, "key", null);
+    given(memberRepository.findById(MEMBER_ID)).willReturn(Optional.of(member));
+    given(productRepository.findById(PRODUCT_ID)).willReturn(Optional.empty());
 
-        // 강제로 ObjectMapper writeValueAsString 에러 유도
-        ProductPurchaseProcessingService brokenService = new ProductPurchaseProcessingService(
-                memberRepository, productRepository, timedealPolicyRepository, failureLogRepository, purchaseProcessor
-        ) {
-            protected void saveFailureLog(PurchaseCommand cmd, Exception e) {
-                throw new RuntimeException("ObjectMapper Error");
-            }
+    // 강제로 ObjectMapper writeValueAsString 에러 유도
+    ProductPurchaseProcessingService brokenService =
+        new ProductPurchaseProcessingService(
+            memberRepository,
+            productRepository,
+            timedealPolicyRepository,
+            failureLogRepository,
+            purchaseProcessor) {
+          protected void saveFailureLog(PurchaseCommand cmd, Exception e) {
+            throw new RuntimeException("ObjectMapper Error");
+          }
         };
 
-        // 예외는 그대로 던지되, 테스트에서는 실제 저장까지 확인하지 않음
-        assertThatThrownBy(() -> brokenService.process(cmd)).isInstanceOf(RuntimeException.class);
-    }
+    // 예외는 그대로 던지되, 테스트에서는 실제 저장까지 확인하지 않음
+    assertThatThrownBy(() -> brokenService.process(cmd)).isInstanceOf(RuntimeException.class);
+  }
 }

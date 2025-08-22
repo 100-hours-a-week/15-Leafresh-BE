@@ -6,5 +6,5 @@ import ktb.leafresh.backend.domain.member.domain.entity.Member;
 import java.util.List;
 
 public interface BadgeGrantPolicy {
-    List<Badge> evaluateAndGetNewBadges(Member member);
+  List<Badge> evaluateAndGetNewBadges(Member member);
 }

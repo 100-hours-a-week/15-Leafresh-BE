@@ -22,58 +22,57 @@ import java.util.Map;
 @Transactional(readOnly = true)
 public class GroupChallengeParticipationReadService {
 
-    private final GroupChallengeParticipationRecordQueryRepository groupChallengeParticipationRecordQueryRepository;
-    private final GroupChallengeVerificationQueryRepository groupChallengeVerificationQueryRepository;
+  private final GroupChallengeParticipationRecordQueryRepository
+      groupChallengeParticipationRecordQueryRepository;
+  private final GroupChallengeVerificationQueryRepository groupChallengeVerificationQueryRepository;
 
-    public GroupChallengeParticipationCountResponseDto getParticipationCounts(Long memberId) {
-        GroupChallengeParticipationCountSummaryDto summary =
-                groupChallengeParticipationRecordQueryRepository.countParticipationByStatus(memberId);
+  public GroupChallengeParticipationCountResponseDto getParticipationCounts(Long memberId) {
+    GroupChallengeParticipationCountSummaryDto summary =
+        groupChallengeParticipationRecordQueryRepository.countParticipationByStatus(memberId);
 
-        return GroupChallengeParticipationCountResponseDto.from(summary);
-    }
+    return GroupChallengeParticipationCountResponseDto.from(summary);
+  }
 
-    public GroupChallengeParticipationListResponseDto getParticipatedChallenges(
-            Long memberId, String status, Long cursorId, String cursorTimestamp, int size
-    ) {
-        List<GroupChallengeParticipationDto> dtos =
-                groupChallengeParticipationRecordQueryRepository
-                        .findParticipatedByStatus(memberId, status, cursorId, cursorTimestamp, size + 1);
+  public GroupChallengeParticipationListResponseDto getParticipatedChallenges(
+      Long memberId, String status, Long cursorId, String cursorTimestamp, int size) {
+    List<GroupChallengeParticipationDto> dtos =
+        groupChallengeParticipationRecordQueryRepository.findParticipatedByStatus(
+            memberId, status, cursorId, cursorTimestamp, size + 1);
 
-        List<Long> challengeIds = dtos.stream()
-                .map(GroupChallengeParticipationDto::getId)
-                .toList();
+    List<Long> challengeIds = dtos.stream().map(GroupChallengeParticipationDto::getId).toList();
 
-        Map<Long, List<GroupChallengeParticipationSummaryDto.AchievementRecordDto>> achievementRecordMap =
-                groupChallengeVerificationQueryRepository.findVerificationsGroupedByChallenge(challengeIds, memberId);
+    Map<Long, List<GroupChallengeParticipationSummaryDto.AchievementRecordDto>>
+        achievementRecordMap =
+            groupChallengeVerificationQueryRepository.findVerificationsGroupedByChallenge(
+                challengeIds, memberId);
 
-        CursorPaginationResult<GroupChallengeParticipationSummaryDto> page = CursorPaginationHelper.paginateWithTimestamp(
-                dtos,
-                size,
-                dto -> {
-                    OffsetDateTime startUtc = OffsetDateTime.of(dto.getStartDate(), ZoneOffset.UTC);
-                    OffsetDateTime endUtc = OffsetDateTime.of(dto.getEndDate(), ZoneOffset.UTC);
-                    OffsetDateTime createdUtc = OffsetDateTime.of(dto.getCreatedAt(), ZoneOffset.UTC);
+    CursorPaginationResult<GroupChallengeParticipationSummaryDto> page =
+        CursorPaginationHelper.paginateWithTimestamp(
+            dtos,
+            size,
+            dto -> {
+              OffsetDateTime startUtc = OffsetDateTime.of(dto.getStartDate(), ZoneOffset.UTC);
+              OffsetDateTime endUtc = OffsetDateTime.of(dto.getEndDate(), ZoneOffset.UTC);
+              OffsetDateTime createdUtc = OffsetDateTime.of(dto.getCreatedAt(), ZoneOffset.UTC);
 
-                    return GroupChallengeParticipationSummaryDto.of(
-                            dto.getId(),
-                            dto.getTitle(),
-                            dto.getThumbnailUrl(),
-                            startUtc,
-                            endUtc,
-                            dto.getSuccess(),
-                            dto.getTotal(),
-                            achievementRecordMap.getOrDefault(dto.getId(), List.of()),
-                            createdUtc
-                    );
-                },
-                GroupChallengeParticipationSummaryDto::id,
-                dto -> dto.createdAt().toLocalDateTime()
-        );
+              return GroupChallengeParticipationSummaryDto.of(
+                  dto.getId(),
+                  dto.getTitle(),
+                  dto.getThumbnailUrl(),
+                  startUtc,
+                  endUtc,
+                  dto.getSuccess(),
+                  dto.getTotal(),
+                  achievementRecordMap.getOrDefault(dto.getId(), List.of()),
+                  createdUtc);
+            },
+            GroupChallengeParticipationSummaryDto::id,
+            dto -> dto.createdAt().toLocalDateTime());
 
-        return GroupChallengeParticipationListResponseDto.builder()
-                .challenges(page.items())
-                .hasNext(page.hasNext())
-                .cursorInfo(page.cursorInfo())
-                .build();
-    }
+    return GroupChallengeParticipationListResponseDto.builder()
+        .challenges(page.items())
+        .hasNext(page.hasNext())
+        .cursorInfo(page.cursorInfo())
+        .build();
+  }
 }

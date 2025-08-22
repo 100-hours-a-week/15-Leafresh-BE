@@ -21,39 +21,38 @@ import org.springframework.web.bind.annotation.*;
 @Slf4j
 public class FeedbackResultController {
 
-    private final FeedbackResultService feedbackResultService;
-    private final FeedbackResultQueryService feedbackResultQueryService;
+  private final FeedbackResultService feedbackResultService;
+  private final FeedbackResultQueryService feedbackResultQueryService;
 
-    @PostMapping("/result")
-    public ResponseEntity<ApiResponse<Void>> receiveFeedbackResult(
-            @Valid @RequestBody FeedbackResultRequestDto requestDto) {
+  @PostMapping("/result")
+  public ResponseEntity<ApiResponse<Void>> receiveFeedbackResult(
+      @Valid @RequestBody FeedbackResultRequestDto requestDto) {
 
-        log.info("[피드백 결과 수신 요청] memberId={}, content={}", requestDto.memberId(), requestDto.content());
+    log.info("[피드백 결과 수신 요청] memberId={}, content={}", requestDto.memberId(), requestDto.content());
 
-        feedbackResultService.receiveFeedback(requestDto);
-        return ResponseEntity.ok(ApiResponse.success("피드백 결과 수신 완료"));
+    feedbackResultService.receiveFeedback(requestDto);
+    return ResponseEntity.ok(ApiResponse.success("피드백 결과 수신 완료"));
+  }
+
+  @GetMapping("/result")
+  public ResponseEntity<ApiResponse<FeedbackResponseDto>> getFeedbackResult(
+      @AuthenticationPrincipal CustomUserDetails userDetails) {
+    if (userDetails == null) {
+      throw new CustomException(GlobalErrorCode.UNAUTHORIZED);
     }
 
-    @GetMapping("/result")
-    public ResponseEntity<ApiResponse<FeedbackResponseDto>> getFeedbackResult(
-            @AuthenticationPrincipal CustomUserDetails userDetails
-    ) {
-        if (userDetails == null) {
-            throw new CustomException(GlobalErrorCode.UNAUTHORIZED);
-        }
+    Long memberId = userDetails.getMemberId();
+    log.info("[피드백 결과 조회 요청] memberId={}", memberId);
 
-        Long memberId = userDetails.getMemberId();
-        log.info("[피드백 결과 조회 요청] memberId={}", memberId);
+    //        FeedbackResponseDto response = feedbackResultQueryService.waitForFeedback(memberId);
+    FeedbackResponseDto response = feedbackResultQueryService.getFeedbackResult(memberId);
 
-//        FeedbackResponseDto response = feedbackResultQueryService.waitForFeedback(memberId);
-        FeedbackResponseDto response = feedbackResultQueryService.getFeedbackResult(memberId);
-
-        if (response.getContent() == null) {
-            log.info("[피드백 결과 없음] memberId={}", memberId);
-            return ResponseEntity.noContent().build();
-        }
-
-        log.info("[피드백 결과 반환] memberId={}, content={}", memberId, response.getContent());
-        return ResponseEntity.ok(ApiResponse.success("피드백 결과 수신 완료", response));
+    if (response.getContent() == null) {
+      log.info("[피드백 결과 없음] memberId={}", memberId);
+      return ResponseEntity.noContent().build();
     }
+
+    log.info("[피드백 결과 반환] memberId={}, content={}", memberId, response.getContent());
+    return ResponseEntity.ok(ApiResponse.success("피드백 결과 수신 완료", response));
+  }
 }

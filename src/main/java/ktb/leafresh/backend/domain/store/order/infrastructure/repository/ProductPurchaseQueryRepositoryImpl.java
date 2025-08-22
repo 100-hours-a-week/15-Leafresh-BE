@@ -16,30 +16,31 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ProductPurchaseQueryRepositoryImpl implements ProductPurchaseQueryRepository {
 
-    private final JPAQueryFactory queryFactory;
-    private final QProductPurchase purchase = QProductPurchase.productPurchase;
-    private final QProduct product = QProduct.product;
+  private final JPAQueryFactory queryFactory;
+  private final QProductPurchase purchase = QProductPurchase.productPurchase;
+  private final QProduct product = QProduct.product;
 
-    @Override
-    public List<ProductPurchase> findByMemberWithCursorAndSearch(Long memberId, String input, Long cursorId, String cursorTimestamp, int size) {
-        LocalDateTime ts = CursorConditionUtils.parseTimestamp(cursorTimestamp);
+  @Override
+  public List<ProductPurchase> findByMemberWithCursorAndSearch(
+      Long memberId, String input, Long cursorId, String cursorTimestamp, int size) {
+    LocalDateTime ts = CursorConditionUtils.parseTimestamp(cursorTimestamp);
 
-        return queryFactory
-                .selectFrom(purchase)
-                .join(purchase.product, product).fetchJoin()
-                .where(
-                        purchase.member.id.eq(memberId),
-                        CursorConditionUtils.ltCursorWithTimestamp(purchase.purchasedAt, purchase.id, ts, cursorId),
-                        likeInput(input)
-                )
-                .orderBy(purchase.purchasedAt.desc(), purchase.id.desc())
-                .limit(size + 1)
-                .fetch();
-    }
+    return queryFactory
+        .selectFrom(purchase)
+        .join(purchase.product, product)
+        .fetchJoin()
+        .where(
+            purchase.member.id.eq(memberId),
+            CursorConditionUtils.ltCursorWithTimestamp(
+                purchase.purchasedAt, purchase.id, ts, cursorId),
+            likeInput(input))
+        .orderBy(purchase.purchasedAt.desc(), purchase.id.desc())
+        .limit(size + 1)
+        .fetch();
+  }
 
-    private BooleanExpression likeInput(String input) {
-        if (input == null || input.trim().isEmpty()) return null;
-        return product.name.containsIgnoreCase(input)
-                .or(product.description.containsIgnoreCase(input));
-    }
+  private BooleanExpression likeInput(String input) {
+    if (input == null || input.trim().isEmpty()) return null;
+    return product.name.containsIgnoreCase(input).or(product.description.containsIgnoreCase(input));
+  }
 }

@@ -9,28 +9,26 @@ import java.time.LocalDateTime;
 
 public class GroupChallengeVerificationFixture {
 
-    private static final LocalDateTime FIXED_TIME = LocalDateTime.of(2024, 1, 1, 12, 0, 0);
+  private static final LocalDateTime FIXED_TIME = LocalDateTime.of(2024, 1, 1, 12, 0, 0);
 
-    /**
-     * 기본값으로 성공 인증을 생성합니다.
-     */
-    public static GroupChallengeVerification of(GroupChallengeParticipantRecord participantRecord) {
-        return of(participantRecord, ChallengeStatus.SUCCESS);
-    }
+  /** 기본값으로 성공 인증을 생성합니다. */
+  public static GroupChallengeVerification of(GroupChallengeParticipantRecord participantRecord) {
+    return of(participantRecord, ChallengeStatus.SUCCESS);
+  }
 
-    /**
-     * 지정된 인증 상태로 인증 객체를 생성합니다.
-     */
-    public static GroupChallengeVerification of(GroupChallengeParticipantRecord participantRecord, ChallengeStatus status) {
-        GroupChallengeVerification verification = GroupChallengeVerification.builder()
-                .participantRecord(participantRecord)
-                .imageUrl("https://dummy.image/verify.jpg")
-                .content("참여 인증")
-                .status(status)
-                .rewarded(true)
-                .build();
+  /** 지정된 인증 상태로 인증 객체를 생성합니다. */
+  public static GroupChallengeVerification of(
+      GroupChallengeParticipantRecord participantRecord, ChallengeStatus status) {
+    GroupChallengeVerification verification =
+        GroupChallengeVerification.builder()
+            .participantRecord(participantRecord)
+            .imageUrl("https://dummy.image/verify.jpg")
+            .content("참여 인증")
+            .status(status)
+            .rewarded(true)
+            .build();
 
-        ReflectionTestUtils.setField(verification, "createdAt", FIXED_TIME);
-        return verification;
-    }
+    ReflectionTestUtils.setField(verification, "createdAt", FIXED_TIME);
+    return verification;
+  }
 }

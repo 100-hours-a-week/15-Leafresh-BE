@@ -34,107 +34,103 @@ import org.springframework.test.util.ReflectionTestUtils;
 @ExtendWith(MockitoExtension.class)
 class GroupChallengeExampleImageUpdaterTest {
 
-    @Mock
-    private GroupChallengeExampleImageRepository imageRepository;
+  @Mock private GroupChallengeExampleImageRepository imageRepository;
 
-    @Mock
-    private ImageEntityUpdater imageEntityUpdater;
+  @Mock private ImageEntityUpdater imageEntityUpdater;
 
-    @InjectMocks
-    private GroupChallengeExampleImageUpdater updater;
+  @InjectMocks private GroupChallengeExampleImageUpdater updater;
 
-    private GroupChallenge challenge;
-    private Member member;
-    private GroupChallengeExampleImage existingImage;
+  private GroupChallenge challenge;
+  private Member member;
+  private GroupChallengeExampleImage existingImage;
 
-    @BeforeEach
-    void setUp() {
-        member = MemberFixture.of();
-        ReflectionTestUtils.setField(member, "id", 100L);
+  @BeforeEach
+  void setUp() {
+    member = MemberFixture.of();
+    ReflectionTestUtils.setField(member, "id", 100L);
 
-        GroupChallengeCategory category = GroupChallengeCategoryFixture.defaultCategory();
-        challenge = GroupChallengeFixture.of(member, category);
+    GroupChallengeCategory category = GroupChallengeCategoryFixture.defaultCategory();
+    challenge = GroupChallengeFixture.of(member, category);
 
-        existingImage = GroupChallengeExampleImage.of(challenge, "https://image.com/existing.png",
-                ExampleImageType.SUCCESS, "기존 이미지", 1);
-        ReflectionTestUtils.setField(existingImage, "id", 1L);
-    }
+    existingImage =
+        GroupChallengeExampleImage.of(
+            challenge, "https://image.com/existing.png", ExampleImageType.SUCCESS, "기존 이미지", 1);
+    ReflectionTestUtils.setField(existingImage, "id", 1L);
+  }
 
-    @Test
-    @DisplayName("예시 이미지 목록을 정상적으로 업데이트할 수 있다")
-    void updateImages_withValidInput_updatesImagesSuccessfully() {
-        // given
-        var keepImage = new GroupChallengeUpdateRequestDto.ExampleImages.KeepImage(1L, 2);
-        var newImage = new GroupChallengeUpdateRequestDto.ExampleImages.NewImage(
-                "https://image.com/new.png", ExampleImageType.FAILURE, "새 이미지", 3
-        );
-        var deletedIds = List.of(5L);
+  @Test
+  @DisplayName("예시 이미지 목록을 정상적으로 업데이트할 수 있다")
+  void updateImages_withValidInput_updatesImagesSuccessfully() {
+    // given
+    var keepImage = new GroupChallengeUpdateRequestDto.ExampleImages.KeepImage(1L, 2);
+    var newImage =
+        new GroupChallengeUpdateRequestDto.ExampleImages.NewImage(
+            "https://image.com/new.png", ExampleImageType.FAILURE, "새 이미지", 3);
+    var deletedIds = List.of(5L);
 
-        GroupChallengeUpdateRequestDto.ExampleImages exampleImages =
-                new GroupChallengeUpdateRequestDto.ExampleImages(
-                        List.of(keepImage),
-                        List.of(newImage),
-                        deletedIds
-                );
+    GroupChallengeUpdateRequestDto.ExampleImages exampleImages =
+        new GroupChallengeUpdateRequestDto.ExampleImages(
+            List.of(keepImage), List.of(newImage), deletedIds);
 
-        given(imageRepository.findById(1L)).willReturn(Optional.of(existingImage));
-        given(imageRepository.findById(5L)).willReturn(Optional.of(existingImage)); // 같은 owner로 간주
+    given(imageRepository.findById(1L)).willReturn(Optional.of(existingImage));
+    given(imageRepository.findById(5L)).willReturn(Optional.of(existingImage)); // 같은 owner로 간주
 
-        // when
-        updater.updateImages(challenge, exampleImages);
+    // when
+    updater.updateImages(challenge, exampleImages);
 
-        // then
-        verify(imageEntityUpdater).update(eq(challenge),
-                eq(List.of(new ImageEntityUpdater.KeepImage(1L, 2))),
-                argThat(newEntities -> newEntities.size() == 1 &&
-                        newEntities.get(0).getImageUrl().equals("https://image.com/new.png")),
-                eq(deletedIds),
-                eq(imageRepository)
-        );
-    }
+    // then
+    verify(imageEntityUpdater)
+        .update(
+            eq(challenge),
+            eq(List.of(new ImageEntityUpdater.KeepImage(1L, 2))),
+            argThat(
+                newEntities ->
+                    newEntities.size() == 1
+                        && newEntities.get(0).getImageUrl().equals("https://image.com/new.png")),
+            eq(deletedIds),
+            eq(imageRepository));
+  }
 
-    @Test
-    @DisplayName("keep 이미지의 소유자가 다르면 예외가 발생한다")
-    void updateImages_keepImageOwnedByOther_throwsException() {
-        // given
-        Member another = MemberFixture.of("other@leafresh.com", "다른사람");
-        ReflectionTestUtils.setField(another, "id", 200L);
+  @Test
+  @DisplayName("keep 이미지의 소유자가 다르면 예외가 발생한다")
+  void updateImages_keepImageOwnedByOther_throwsException() {
+    // given
+    Member another = MemberFixture.of("other@leafresh.com", "다른사람");
+    ReflectionTestUtils.setField(another, "id", 200L);
 
-        GroupChallenge otherChallenge = GroupChallengeFixture.of(another, GroupChallengeCategoryFixture.defaultCategory());
-        GroupChallengeExampleImage otherImage = GroupChallengeExampleImage.of(otherChallenge, "url", ExampleImageType.SUCCESS, "desc", 1);
-        ReflectionTestUtils.setField(otherImage, "id", 99L);
+    GroupChallenge otherChallenge =
+        GroupChallengeFixture.of(another, GroupChallengeCategoryFixture.defaultCategory());
+    GroupChallengeExampleImage otherImage =
+        GroupChallengeExampleImage.of(otherChallenge, "url", ExampleImageType.SUCCESS, "desc", 1);
+    ReflectionTestUtils.setField(otherImage, "id", 99L);
 
-        GroupChallengeUpdateRequestDto.ExampleImages exampleImages =
-                new GroupChallengeUpdateRequestDto.ExampleImages(
-                        List.of(new GroupChallengeUpdateRequestDto.ExampleImages.KeepImage(99L, 1)),
-                        List.of(),
-                        List.of()
-                );
+    GroupChallengeUpdateRequestDto.ExampleImages exampleImages =
+        new GroupChallengeUpdateRequestDto.ExampleImages(
+            List.of(new GroupChallengeUpdateRequestDto.ExampleImages.KeepImage(99L, 1)),
+            List.of(),
+            List.of());
 
-        given(imageRepository.findById(99L)).willReturn(Optional.of(otherImage));
+    given(imageRepository.findById(99L)).willReturn(Optional.of(otherImage));
 
-        // when & then
-        assertThatThrownBy(() -> updater.updateImages(challenge, exampleImages))
-                .isInstanceOf(CustomException.class)
-                .hasMessageContaining(ChallengeErrorCode.CHALLENGE_UPDATE_IMAGE_PERMISSION_DENIED.getMessage());
-    }
+    // when & then
+    assertThatThrownBy(() -> updater.updateImages(challenge, exampleImages))
+        .isInstanceOf(CustomException.class)
+        .hasMessageContaining(
+            ChallengeErrorCode.CHALLENGE_UPDATE_IMAGE_PERMISSION_DENIED.getMessage());
+  }
 
-    @Test
-    @DisplayName("deleted 이미지가 존재하지 않으면 예외가 발생한다")
-    void updateImages_deletedImageNotFound_throwsException() {
-        // given
-        GroupChallengeUpdateRequestDto.ExampleImages exampleImages =
-                new GroupChallengeUpdateRequestDto.ExampleImages(
-                        List.of(),
-                        List.of(),
-                        List.of(404L)
-                );
+  @Test
+  @DisplayName("deleted 이미지가 존재하지 않으면 예외가 발생한다")
+  void updateImages_deletedImageNotFound_throwsException() {
+    // given
+    GroupChallengeUpdateRequestDto.ExampleImages exampleImages =
+        new GroupChallengeUpdateRequestDto.ExampleImages(List.of(), List.of(), List.of(404L));
 
-        given(imageRepository.findById(404L)).willReturn(Optional.empty());
+    given(imageRepository.findById(404L)).willReturn(Optional.empty());
 
-        // when & then
-        assertThatThrownBy(() -> updater.updateImages(challenge, exampleImages))
-                .isInstanceOf(CustomException.class)
-                .hasMessageContaining(ChallengeErrorCode.GROUP_CHALLENGE_NOT_FOUND.getMessage());
-    }
+    // when & then
+    assertThatThrownBy(() -> updater.updateImages(challenge, exampleImages))
+        .isInstanceOf(CustomException.class)
+        .hasMessageContaining(ChallengeErrorCode.GROUP_CHALLENGE_NOT_FOUND.getMessage());
+  }
 }

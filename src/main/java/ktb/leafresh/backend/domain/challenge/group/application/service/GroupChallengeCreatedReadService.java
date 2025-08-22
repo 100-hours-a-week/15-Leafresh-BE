@@ -18,20 +18,18 @@ import java.util.List;
 @Transactional(readOnly = true)
 public class GroupChallengeCreatedReadService {
 
-    private final GroupChallengeCreatedQueryRepository createdRepository;
+  private final GroupChallengeCreatedQueryRepository createdRepository;
 
-    public CursorPaginationResult<CreatedGroupChallengeSummaryResponseDto> getCreatedChallengesByMember(
-            Long memberId, Long cursorId, String cursorTimestamp, int size
-    ) {
-        List<GroupChallenge> entities =
-                createdRepository.findCreatedByMember(memberId, cursorId, cursorTimestamp, size + 1);
+  public CursorPaginationResult<CreatedGroupChallengeSummaryResponseDto>
+      getCreatedChallengesByMember(Long memberId, Long cursorId, String cursorTimestamp, int size) {
+    List<GroupChallenge> entities =
+        createdRepository.findCreatedByMember(memberId, cursorId, cursorTimestamp, size + 1);
 
-        return CursorPaginationHelper.paginateWithTimestamp(
-                entities,
-                size,
-                CreatedGroupChallengeSummaryResponseDto::from,
-                CreatedGroupChallengeSummaryResponseDto::id,
-                dto -> dto.createdAt().toLocalDateTime()
-        );
-    }
+    return CursorPaginationHelper.paginateWithTimestamp(
+        entities,
+        size,
+        CreatedGroupChallengeSummaryResponseDto::from,
+        CreatedGroupChallengeSummaryResponseDto::id,
+        dto -> dto.createdAt().toLocalDateTime());
+  }
 }

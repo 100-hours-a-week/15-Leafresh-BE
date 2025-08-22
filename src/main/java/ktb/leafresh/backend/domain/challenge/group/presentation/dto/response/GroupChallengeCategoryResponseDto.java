@@ -8,7 +8,7 @@ import lombok.Getter;
 @Builder
 @AllArgsConstructor
 public class GroupChallengeCategoryResponseDto {
-    private String category;
-    private String label;
-    private String imageUrl;
+  private String category;
+  private String label;
+  private String imageUrl;
 }

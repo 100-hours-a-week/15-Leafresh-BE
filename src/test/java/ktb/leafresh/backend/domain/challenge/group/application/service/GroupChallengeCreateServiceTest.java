@@ -32,67 +32,61 @@ import static org.mockito.BDDMockito.*;
 @DisplayName("GroupChallengeCreateService 테스트")
 class GroupChallengeCreateServiceTest {
 
-    @Mock
-    private MemberRepository memberRepository;
+  @Mock private MemberRepository memberRepository;
 
-    @Mock
-    private GroupChallengeDomainValidator domainValidator;
+  @Mock private GroupChallengeDomainValidator domainValidator;
 
-    @Mock
-    private AiChallengePolicyValidator aiValidator;
+  @Mock private AiChallengePolicyValidator aiValidator;
 
-    @Mock
-    private GroupChallengeFactory factory;
+  @Mock private GroupChallengeFactory factory;
 
-    @Mock
-    private GroupChallengeExampleImageAssembler assembler;
+  @Mock private GroupChallengeExampleImageAssembler assembler;
 
-    @Mock
-    private GroupChallengeRepository groupChallengeRepository;
+  @Mock private GroupChallengeRepository groupChallengeRepository;
 
-    @InjectMocks private GroupChallengeCreateService createService;
+  @InjectMocks private GroupChallengeCreateService createService;
 
-    private Member member;
-    private GroupChallenge challenge;
-    private GroupChallengeCreateRequestDto request;
+  private Member member;
+  private GroupChallenge challenge;
+  private GroupChallengeCreateRequestDto request;
 
-    @BeforeEach
-    void setUp() {
-        member = MemberFixture.of();
-        challenge = GroupChallengeFixture.of(member, GroupChallengeCategoryFixture.defaultCategory());
-        request = mock(GroupChallengeCreateRequestDto.class);
-    }
+  @BeforeEach
+  void setUp() {
+    member = MemberFixture.of();
+    challenge = GroupChallengeFixture.of(member, GroupChallengeCategoryFixture.defaultCategory());
+    request = mock(GroupChallengeCreateRequestDto.class);
+  }
 
-    @Test
-    @DisplayName("단체 챌린지 생성 성공 시 ID 반환")
-    void createGroupChallenge_withValidInput_returnsResponse() {
-        // given
-        Long memberId = 1L;
+  @Test
+  @DisplayName("단체 챌린지 생성 성공 시 ID 반환")
+  void createGroupChallenge_withValidInput_returnsResponse() {
+    // given
+    Long memberId = 1L;
 
-        given(memberRepository.findById(memberId)).willReturn(Optional.of(member));
-        willDoNothing().given(domainValidator).validate(request);
-        willDoNothing().given(aiValidator).validate(memberId, request);
-        given(factory.create(request, member)).willReturn(challenge);
-        willDoNothing().given(assembler).assemble(challenge, request);
-        given(groupChallengeRepository.save(challenge)).willReturn(challenge);
+    given(memberRepository.findById(memberId)).willReturn(Optional.of(member));
+    willDoNothing().given(domainValidator).validate(request);
+    willDoNothing().given(aiValidator).validate(memberId, request);
+    given(factory.create(request, member)).willReturn(challenge);
+    willDoNothing().given(assembler).assemble(challenge, request);
+    given(groupChallengeRepository.save(challenge)).willReturn(challenge);
 
-        // when
-        GroupChallengeCreateResponseDto response = createService.create(memberId, request);
+    // when
+    GroupChallengeCreateResponseDto response = createService.create(memberId, request);
 
-        // then
-        assertThat(response.id()).isEqualTo(challenge.getId());
-    }
+    // then
+    assertThat(response.id()).isEqualTo(challenge.getId());
+  }
 
-    @Test
-    @DisplayName("존재하지 않는 회원이면 예외 발생")
-    void createGroupChallenge_withInvalidMember_throwsException() {
-        // given
-        Long invalidMemberId = 999L;
-        given(memberRepository.findById(invalidMemberId)).willReturn(Optional.empty());
+  @Test
+  @DisplayName("존재하지 않는 회원이면 예외 발생")
+  void createGroupChallenge_withInvalidMember_throwsException() {
+    // given
+    Long invalidMemberId = 999L;
+    given(memberRepository.findById(invalidMemberId)).willReturn(Optional.empty());
 
-        // when & then
-        assertThatThrownBy(() -> createService.create(invalidMemberId, request))
-                .isInstanceOf(CustomException.class)
-                .hasMessageContaining(MemberErrorCode.MEMBER_NOT_FOUND.getMessage());
-    }
+    // when & then
+    assertThatThrownBy(() -> createService.create(invalidMemberId, request))
+        .isInstanceOf(CustomException.class)
+        .hasMessageContaining(MemberErrorCode.MEMBER_NOT_FOUND.getMessage());
+  }
 }

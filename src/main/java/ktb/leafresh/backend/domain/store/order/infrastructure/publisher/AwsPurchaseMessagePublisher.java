@@ -20,35 +20,36 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class AwsPurchaseMessagePublisher implements PurchaseMessagePublisher {
 
-    private final AmazonSQSAsync sqs;
-    private final ObjectMapper objectMapper;
+  private final AmazonSQSAsync sqs;
+  private final ObjectMapper objectMapper;
 
-    @Value("${aws.sqs.order-request-queue-url}")
-    private String queueUrl;
+  @Value("${aws.sqs.order-request-queue-url}")
+  private String queueUrl;
 
-    @Override
-    public void publish(PurchaseCommand command) {
-        try {
-            String message = objectMapper.writeValueAsString(command);
-            SendMessageRequest request = new SendMessageRequest()
-                    .withQueueUrl(queueUrl)
-                    .withMessageBody(message)
-                    .withMessageGroupId("purchase")
-                    .withMessageDeduplicationId(generateDeduplicationId(message, command.memberId()));
+  @Override
+  public void publish(PurchaseCommand command) {
+    try {
+      String message = objectMapper.writeValueAsString(command);
+      SendMessageRequest request =
+          new SendMessageRequest()
+              .withQueueUrl(queueUrl)
+              .withMessageBody(message)
+              .withMessageGroupId("purchase")
+              .withMessageDeduplicationId(generateDeduplicationId(message, command.memberId()));
 
-            sqs.sendMessage(request);
+      sqs.sendMessage(request);
 
-            log.info("[SQS 메시지 발행 성공] {}", message);
-        } catch (JsonProcessingException e) {
-            log.error("[SQS 직렬화 실패]", e);
-            throw new CustomException(PurchaseErrorCode.PURCHASE_SERIALIZATION_FAILED);
-        } catch (Exception e) {
-            log.error("[SQS 발행 실패]", e);
-            throw new CustomException(PurchaseErrorCode.PURCHASE_PUBLISH_FAILED);
-        }
+      log.info("[SQS 메시지 발행 성공] {}", message);
+    } catch (JsonProcessingException e) {
+      log.error("[SQS 직렬화 실패]", e);
+      throw new CustomException(PurchaseErrorCode.PURCHASE_SERIALIZATION_FAILED);
+    } catch (Exception e) {
+      log.error("[SQS 발행 실패]", e);
+      throw new CustomException(PurchaseErrorCode.PURCHASE_PUBLISH_FAILED);
     }
+  }
 
-    private String generateDeduplicationId(String body, Long memberId) {
-        return memberId + "-" + DigestUtils.sha256Hex(body);
-    }
+  private String generateDeduplicationId(String body, Long memberId) {
+    return memberId + "-" + DigestUtils.sha256Hex(body);
+  }
 }

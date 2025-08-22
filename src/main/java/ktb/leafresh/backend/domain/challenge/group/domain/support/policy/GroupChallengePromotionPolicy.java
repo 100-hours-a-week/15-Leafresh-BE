@@ -11,18 +11,19 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class GroupChallengePromotionPolicy {
 
-    private final GroupChallengeParticipantRecordRepository participantRepository;
+  private final GroupChallengeParticipantRecordRepository participantRepository;
 
-    /**
-     * 대기자 중 가장 오래된 사람을 ACTIVE로 승격시키고, 현재 인원 수 증가
-     */
-    @Transactional
-    public void promoteNextWaitingParticipant(Long challengeId) {
-        participantRepository.findFirstByGroupChallengeIdAndStatusOrderByCreatedAtAsc(challengeId, ParticipantStatus.WAITING)
-                .ifPresent(waiting -> {
-                    waiting.changeStatus(ParticipantStatus.ACTIVE);
-                    GroupChallenge challenge = waiting.getGroupChallenge();
-                    challenge.increaseParticipantCount();
-                });
-    }
+  /** 대기자 중 가장 오래된 사람을 ACTIVE로 승격시키고, 현재 인원 수 증가 */
+  @Transactional
+  public void promoteNextWaitingParticipant(Long challengeId) {
+    participantRepository
+        .findFirstByGroupChallengeIdAndStatusOrderByCreatedAtAsc(
+            challengeId, ParticipantStatus.WAITING)
+        .ifPresent(
+            waiting -> {
+              waiting.changeStatus(ParticipantStatus.ACTIVE);
+              GroupChallenge challenge = waiting.getGroupChallenge();
+              challenge.increaseParticipantCount();
+            });
+  }
 }

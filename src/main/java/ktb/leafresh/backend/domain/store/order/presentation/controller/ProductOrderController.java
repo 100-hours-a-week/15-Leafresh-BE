@@ -19,43 +19,52 @@ import org.springframework.web.bind.annotation.*;
 @Slf4j
 public class ProductOrderController {
 
-    private final ProductOrderCreateService productOrderCreateService;
-    private final TimedealOrderCreateService timedealOrderCreateService;
+  private final ProductOrderCreateService productOrderCreateService;
+  private final TimedealOrderCreateService timedealOrderCreateService;
 
-    @PostMapping("/products/{productId}")
-    public ResponseEntity<ApiResponse<Void>> createOrder(
-            @AuthenticationPrincipal CustomUserDetails userDetails,
-            @PathVariable Long productId,
-            @RequestBody ProductOrderCreateRequestDto request,
-            @RequestHeader("Idempotency-Key") String idempotencyKey
-    ) {
-        if (userDetails == null) {
-            throw new CustomException(GlobalErrorCode.UNAUTHORIZED);
-        }
-
-        Long memberId = userDetails.getMemberId();
-        log.info("[일반 상품 주문 요청] memberId={}, productId={}, quantity={}, key={}", memberId, productId, request.quantity(), idempotencyKey);
-
-        productOrderCreateService.create(memberId, productId, request.quantity(), idempotencyKey);
-
-        return ResponseEntity.noContent().build();
+  @PostMapping("/products/{productId}")
+  public ResponseEntity<ApiResponse<Void>> createOrder(
+      @AuthenticationPrincipal CustomUserDetails userDetails,
+      @PathVariable Long productId,
+      @RequestBody ProductOrderCreateRequestDto request,
+      @RequestHeader("Idempotency-Key") String idempotencyKey) {
+    if (userDetails == null) {
+      throw new CustomException(GlobalErrorCode.UNAUTHORIZED);
     }
 
-    @PostMapping("/timedeals/{dealId}")
-    public ResponseEntity<ApiResponse<Void>> createTimedealOrder(
-            @AuthenticationPrincipal CustomUserDetails userDetails,
-            @PathVariable Long dealId,
-            @RequestBody ProductOrderCreateRequestDto request,
-            @RequestHeader("Idempotency-Key") String idempotencyKey
-    ) {
-        if (userDetails == null) {
-            throw new CustomException(GlobalErrorCode.UNAUTHORIZED);
-        }
+    Long memberId = userDetails.getMemberId();
+    log.info(
+        "[일반 상품 주문 요청] memberId={}, productId={}, quantity={}, key={}",
+        memberId,
+        productId,
+        request.quantity(),
+        idempotencyKey);
 
-        Long memberId = userDetails.getMemberId();
-        log.info("[타임딜 상품 주문 요청] memberId={}, dealId={}, quantity={}, key={}", memberId, dealId, request.quantity(), idempotencyKey);
+    productOrderCreateService.create(memberId, productId, request.quantity(), idempotencyKey);
 
-        timedealOrderCreateService.create(userDetails.getMemberId(), dealId, request.quantity(), idempotencyKey);
-        return ResponseEntity.noContent().build();
+    return ResponseEntity.noContent().build();
+  }
+
+  @PostMapping("/timedeals/{dealId}")
+  public ResponseEntity<ApiResponse<Void>> createTimedealOrder(
+      @AuthenticationPrincipal CustomUserDetails userDetails,
+      @PathVariable Long dealId,
+      @RequestBody ProductOrderCreateRequestDto request,
+      @RequestHeader("Idempotency-Key") String idempotencyKey) {
+    if (userDetails == null) {
+      throw new CustomException(GlobalErrorCode.UNAUTHORIZED);
     }
+
+    Long memberId = userDetails.getMemberId();
+    log.info(
+        "[타임딜 상품 주문 요청] memberId={}, dealId={}, quantity={}, key={}",
+        memberId,
+        dealId,
+        request.quantity(),
+        idempotencyKey);
+
+    timedealOrderCreateService.create(
+        userDetails.getMemberId(), dealId, request.quantity(), idempotencyKey);
+    return ResponseEntity.noContent().build();
+  }
 }

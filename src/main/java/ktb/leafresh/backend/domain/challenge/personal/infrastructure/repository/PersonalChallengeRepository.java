@@ -10,11 +10,12 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public interface PersonalChallengeRepository extends JpaRepository<PersonalChallenge, Long> {
-    int countByDayOfWeek(DayOfWeek dayOfWeek);
+  int countByDayOfWeek(DayOfWeek dayOfWeek);
 
-    List<PersonalChallenge> findAllByDayOfWeek(DayOfWeek dayOfWeek);
+  List<PersonalChallenge> findAllByDayOfWeek(DayOfWeek dayOfWeek);
 
-    @Query("""
+  @Query(
+      """
     SELECT CASE WHEN COUNT(pc) > 0 THEN true ELSE false END
     FROM PersonalChallenge pc
     JOIN pc.verifications v
@@ -23,5 +24,6 @@ public interface PersonalChallengeRepository extends JpaRepository<PersonalChall
     AND v.createdAt >= :oneWeekAgo
     AND pc.deletedAt IS NULL
     """)
-    boolean existsSuccessInPastWeek(@Param("memberId") Long memberId, @Param("oneWeekAgo") LocalDateTime oneWeekAgo);
+  boolean existsSuccessInPastWeek(
+      @Param("memberId") Long memberId, @Param("oneWeekAgo") LocalDateTime oneWeekAgo);
 }

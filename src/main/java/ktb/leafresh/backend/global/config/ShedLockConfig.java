@@ -9,8 +9,8 @@ import org.springframework.data.redis.connection.RedisConnectionFactory;
 @Configuration
 public class ShedLockConfig {
 
-    @Bean
-    public LockProvider lockProvider(RedisConnectionFactory redisConnectionFactory) {
-        return new RedisLockProvider(redisConnectionFactory, "shedlock:"); // prefix 선택적
-    }
+  @Bean
+  public LockProvider lockProvider(RedisConnectionFactory redisConnectionFactory) {
+    return new RedisLockProvider(redisConnectionFactory, "shedlock:"); // prefix 선택적
+  }
 }

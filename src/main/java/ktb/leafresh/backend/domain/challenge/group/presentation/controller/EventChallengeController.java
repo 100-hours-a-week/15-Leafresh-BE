@@ -15,16 +15,19 @@ import java.util.List;
 @RequestMapping("/api/challenges/events")
 public class EventChallengeController {
 
-    private final EventChallengeReadService eventChallengeReadService;
+  private final EventChallengeReadService eventChallengeReadService;
 
-    @GetMapping
-    public ResponseEntity<ApiResponse<HashMap<String, List<EventChallengeResponseDto>>>> getEventChallenges() {
-        List<EventChallengeResponseDto> challenges = eventChallengeReadService.getEventChallenges();
-        return ResponseEntity.ok(ApiResponse.success(
-                "이벤트 챌린지 목록 조회에 성공하였습니다.",
-                new HashMap<>() {{
-                    put("eventChallenges", challenges);
-                }}
-        ));
-    }
+  @GetMapping
+  public ResponseEntity<ApiResponse<HashMap<String, List<EventChallengeResponseDto>>>>
+      getEventChallenges() {
+    List<EventChallengeResponseDto> challenges = eventChallengeReadService.getEventChallenges();
+    return ResponseEntity.ok(
+        ApiResponse.success(
+            "이벤트 챌린지 목록 조회에 성공하였습니다.",
+            new HashMap<>() {
+              {
+                put("eventChallenges", challenges);
+              }
+            }));
+  }
 }

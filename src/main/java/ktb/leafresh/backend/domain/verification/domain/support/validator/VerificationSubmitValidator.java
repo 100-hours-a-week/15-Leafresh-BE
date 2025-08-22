@@ -10,9 +10,9 @@ import org.springframework.util.StringUtils;
 @Component
 public class VerificationSubmitValidator {
 
-    public void validate(String content) {
-        if (!StringUtils.hasText(content)) {
-            throw new CustomException(VerificationErrorCode.CONTENT_REQUIRED);
-        }
+  public void validate(String content) {
+    if (!StringUtils.hasText(content)) {
+      throw new CustomException(VerificationErrorCode.CONTENT_REQUIRED);
     }
+  }
 }

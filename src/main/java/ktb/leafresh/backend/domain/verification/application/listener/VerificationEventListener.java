@@ -15,31 +15,31 @@ import org.springframework.scheduling.annotation.Async;
 @RequiredArgsConstructor
 public class VerificationEventListener {
 
-//    private final AiVerificationClient aiClient;
-//
-//    @Async
-//    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-//    public void handle(VerificationCreatedEvent event) {
-//        try {
-//            log.info("[이벤트 리스너] 인증 정보 저장 커밋 완료. AI 서버로 전송 시작");
-//            aiClient.verifyImage(event.requestDto());
-//            log.info("[이벤트 리스너] AI 요청 완료");
-//        } catch (Exception e) {
-//            log.error("[이벤트 리스너] AI 요청 중 예외 발생: {}", e.getMessage(), e);
-//            // → retry 메커니즘이 있다면 여기에 큐 또는 재시도 등록 로직 삽입
-//        }
-//    }
+  //    private final AiVerificationClient aiClient;
+  //
+  //    @Async
+  //    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+  //    public void handle(VerificationCreatedEvent event) {
+  //        try {
+  //            log.info("[이벤트 리스너] 인증 정보 저장 커밋 완료. AI 서버로 전송 시작");
+  //            aiClient.verifyImage(event.requestDto());
+  //            log.info("[이벤트 리스너] AI 요청 완료");
+  //        } catch (Exception e) {
+  //            log.error("[이벤트 리스너] AI 요청 중 예외 발생: {}", e.getMessage(), e);
+  //            // → retry 메커니즘이 있다면 여기에 큐 또는 재시도 등록 로직 삽입
+  //        }
+  //    }
 
-    private final AiVerificationPublisher imagePublisher;
+  private final AiVerificationPublisher imagePublisher;
 
-    @Async
-    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    public void handle(VerificationCreatedEvent event) {
-        try {
-            log.info("[이벤트 리스너] 인증 정보 저장 커밋 완료. Pub/Sub 전송 시작");
-            imagePublisher.publishAsyncWithRetry(event.requestDto());
-        } catch (Exception e) {
-            log.error("[이벤트 리스너] 인증 요청 실패: {}", e.getMessage(), e);
-        }
+  @Async
+  @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+  public void handle(VerificationCreatedEvent event) {
+    try {
+      log.info("[이벤트 리스너] 인증 정보 저장 커밋 완료. Pub/Sub 전송 시작");
+      imagePublisher.publishAsyncWithRetry(event.requestDto());
+    } catch (Exception e) {
+      log.error("[이벤트 리스너] 인증 요청 실패: {}", e.getMessage(), e);
     }
+  }
 }

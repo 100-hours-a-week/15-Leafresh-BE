@@ -5,5 +5,6 @@ import ktb.leafresh.backend.domain.verification.domain.entity.GroupChallengeVeri
 import java.util.List;
 
 public interface GroupChallengeVerificationFeedQueryRepository {
-    List<GroupChallengeVerification> findAllByFilter(String category, Long cursorId, String cursorTimestamp, int size);
+  List<GroupChallengeVerification> findAllByFilter(
+      String category, Long cursorId, String cursorTimestamp, int size);
 }

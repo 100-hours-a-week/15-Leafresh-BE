@@ -30,65 +30,72 @@ import java.time.format.DateTimeFormatter;
 @Service
 public class GroupChallengeVerificationSubmitService {
 
-    private final GroupChallengeRepository groupChallengeRepository;
-    private final GroupChallengeParticipantRecordRepository recordRepository;
-    private final GroupChallengeVerificationRepository verificationRepository;
-    private final VerificationSubmitValidator validator;
-    private final StringRedisTemplate redisTemplate;
-    private final AiVerificationPublisher pubSubPublisher;
+  private final GroupChallengeRepository groupChallengeRepository;
+  private final GroupChallengeParticipantRecordRepository recordRepository;
+  private final GroupChallengeVerificationRepository verificationRepository;
+  private final VerificationSubmitValidator validator;
+  private final StringRedisTemplate redisTemplate;
+  private final AiVerificationPublisher pubSubPublisher;
 
-    private static final String TOTAL_VERIFICATION_COUNT_KEY = "leafresh:totalVerifications:count";
+  private static final String TOTAL_VERIFICATION_COUNT_KEY = "leafresh:totalVerifications:count";
 
-    @Transactional
-    public void submit(Long memberId, Long challengeId, GroupChallengeVerificationRequestDto dto) {
-        validator.validate(dto.content());
+  @Transactional
+  public void submit(Long memberId, Long challengeId, GroupChallengeVerificationRequestDto dto) {
+    validator.validate(dto.content());
 
-        GroupChallenge challenge = groupChallengeRepository.findById(challengeId)
-                .orElseThrow(() -> new CustomException(ChallengeErrorCode.GROUP_CHALLENGE_NOT_FOUND));
+    GroupChallenge challenge =
+        groupChallengeRepository
+            .findById(challengeId)
+            .orElseThrow(() -> new CustomException(ChallengeErrorCode.GROUP_CHALLENGE_NOT_FOUND));
 
-        GroupChallengeParticipantRecord record = recordRepository
-                .findByGroupChallengeIdAndMemberIdAndDeletedAtIsNull(challengeId, memberId)
-                .orElseThrow(() -> new CustomException(ChallengeErrorCode.GROUP_CHALLENGE_RECORD_NOT_FOUND));
+    GroupChallengeParticipantRecord record =
+        recordRepository
+            .findByGroupChallengeIdAndMemberIdAndDeletedAtIsNull(challengeId, memberId)
+            .orElseThrow(
+                () -> new CustomException(ChallengeErrorCode.GROUP_CHALLENGE_RECORD_NOT_FOUND));
 
-        LocalDateTime now = LocalDateTime.now();
-        boolean alreadySubmitted = verificationRepository
-                .findTopByParticipantRecord_Member_IdAndParticipantRecord_GroupChallenge_IdOrderByCreatedAtDesc(
-                        memberId, challengeId)
-                .filter(v -> v.getCreatedAt().toLocalDate().equals(now.toLocalDate()))
-                .isPresent();
+    LocalDateTime now = LocalDateTime.now();
+    boolean alreadySubmitted =
+        verificationRepository
+            .findTopByParticipantRecord_Member_IdAndParticipantRecord_GroupChallenge_IdOrderByCreatedAtDesc(
+                memberId, challengeId)
+            .filter(v -> v.getCreatedAt().toLocalDate().equals(now.toLocalDate()))
+            .isPresent();
 
-        if (alreadySubmitted) {
-            throw new CustomException(VerificationErrorCode.ALREADY_SUBMITTED);
-        }
-
-        GroupChallengeVerification verification = GroupChallengeVerification.builder()
-                .participantRecord(record)
-                .imageUrl(dto.imageUrl())
-                .content(dto.content())
-                .status(ChallengeStatus.PENDING_APPROVAL)
-                .build();
-
-        verificationRepository.save(verification);
-
-        AiVerificationRequestDto aiRequest = AiVerificationRequestDto.builder()
-                .verificationId(verification.getId())
-                .type(ChallengeType.GROUP)
-                .imageUrl(dto.imageUrl())
-                .memberId(memberId)
-                .challengeId(challengeId)
-                .date(now.format(DateTimeFormatter.ISO_LOCAL_DATE))
-                .challengeName(challenge.getTitle())
-                .challengeInfo(challenge.getDescription())
-                .build();
-
-        // 비동기 발행 (재시도 내장)
-        pubSubPublisher.publishAsyncWithRetry(aiRequest);
-
-        try {
-            redisTemplate.opsForValue().increment(TOTAL_VERIFICATION_COUNT_KEY);
-            log.debug("[GroupChallengeVerificationSubmitService] Redis 인증 수 캐시 1 증가 완료");
-        } catch (Exception e) {
-            log.warn("[GroupChallengeVerificationSubmitService] Redis 인증 수 캐시 증가 실패", e);
-        }
+    if (alreadySubmitted) {
+      throw new CustomException(VerificationErrorCode.ALREADY_SUBMITTED);
     }
+
+    GroupChallengeVerification verification =
+        GroupChallengeVerification.builder()
+            .participantRecord(record)
+            .imageUrl(dto.imageUrl())
+            .content(dto.content())
+            .status(ChallengeStatus.PENDING_APPROVAL)
+            .build();
+
+    verificationRepository.save(verification);
+
+    AiVerificationRequestDto aiRequest =
+        AiVerificationRequestDto.builder()
+            .verificationId(verification.getId())
+            .type(ChallengeType.GROUP)
+            .imageUrl(dto.imageUrl())
+            .memberId(memberId)
+            .challengeId(challengeId)
+            .date(now.format(DateTimeFormatter.ISO_LOCAL_DATE))
+            .challengeName(challenge.getTitle())
+            .challengeInfo(challenge.getDescription())
+            .build();
+
+    // 비동기 발행 (재시도 내장)
+    pubSubPublisher.publishAsyncWithRetry(aiRequest);
+
+    try {
+      redisTemplate.opsForValue().increment(TOTAL_VERIFICATION_COUNT_KEY);
+      log.debug("[GroupChallengeVerificationSubmitService] Redis 인증 수 캐시 1 증가 완료");
+    } catch (Exception e) {
+      log.warn("[GroupChallengeVerificationSubmitService] Redis 인증 수 캐시 증가 실패", e);
+    }
+  }
 }

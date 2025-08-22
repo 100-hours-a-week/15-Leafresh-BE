@@ -9,10 +9,10 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class VerificationCountQueryService {
 
-    private final GroupChallengeVerificationRepository groupRepo;
-    private final PersonalChallengeVerificationRepository personalRepo;
+  private final GroupChallengeVerificationRepository groupRepo;
+  private final PersonalChallengeVerificationRepository personalRepo;
 
-    public int getTotalVerificationCountFromDB() {
-        return groupRepo.countAll() + personalRepo.countAll();
-    }
+  public int getTotalVerificationCountFromDB() {
+    return groupRepo.countAll() + personalRepo.countAll();
+  }
 }

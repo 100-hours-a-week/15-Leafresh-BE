@@ -17,34 +17,37 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class PersonalChallengeStreakBadgePolicy implements BadgeGrantPolicy {
 
-    private final PersonalChallengeVerificationRepository personalVerificationRepository;
-    private final BadgeRepository badgeRepository;
-    private final MemberBadgeRepository memberBadgeRepository;
+  private final PersonalChallengeVerificationRepository personalVerificationRepository;
+  private final BadgeRepository badgeRepository;
+  private final MemberBadgeRepository memberBadgeRepository;
 
-    // 연속 인증 기준 → 뱃지명
-    private static final Map<Integer, String> streakToBadgeName = Map.of(
-            3, "새싹 실천러",
-            7, "일주일의 습관",
-            14, "반달 에코러",
-            30, "한 달 챌린지 완주자"
-    );
+  // 연속 인증 기준 → 뱃지명
+  private static final Map<Integer, String> streakToBadgeName =
+      Map.of(
+          3, "새싹 실천러",
+          7, "일주일의 습관",
+          14, "반달 에코러",
+          30, "한 달 챌린지 완주자");
 
-    @Override
-    public List<Badge> evaluateAndGetNewBadges(Member member) {
-        List<Badge> newBadges = new ArrayList<>();
+  @Override
+  public List<Badge> evaluateAndGetNewBadges(Member member) {
+    List<Badge> newBadges = new ArrayList<>();
 
-        int streakDays = personalVerificationRepository.countConsecutiveSuccessDays(member.getId());
+    int streakDays = personalVerificationRepository.countConsecutiveSuccessDays(member.getId());
 
-        for (Map.Entry<Integer, String> entry : streakToBadgeName.entrySet()) {
-            if (streakDays >= entry.getKey()) {
-                badgeRepository.findByName(entry.getValue()).ifPresent(badge -> {
-                    if (!memberBadgeRepository.existsByMemberAndBadge(member, badge)) {
-                        newBadges.add(badge);
-                    }
+    for (Map.Entry<Integer, String> entry : streakToBadgeName.entrySet()) {
+      if (streakDays >= entry.getKey()) {
+        badgeRepository
+            .findByName(entry.getValue())
+            .ifPresent(
+                badge -> {
+                  if (!memberBadgeRepository.existsByMemberAndBadge(member, badge)) {
+                    newBadges.add(badge);
+                  }
                 });
-            }
-        }
-
-        return newBadges;
+      }
     }
+
+    return newBadges;
+  }
 }

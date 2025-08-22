@@ -8,9 +8,10 @@ import java.util.Optional;
 
 public interface TreeLevelRepository extends JpaRepository<TreeLevel, Long> {
 
-    Optional<TreeLevel> findByName(TreeLevelName name);
+  Optional<TreeLevel> findByName(TreeLevelName name);
 
-    Optional<TreeLevel> findFirstByMinLeafPointGreaterThanOrderByMinLeafPointAsc(int minLeafPoint);
+  Optional<TreeLevel> findFirstByMinLeafPointGreaterThanOrderByMinLeafPointAsc(int minLeafPoint);
 
-    Optional<TreeLevel> findFirstByMinLeafPointLessThanEqualOrderByMinLeafPointDesc(int totalLeafPoints);
+  Optional<TreeLevel> findFirstByMinLeafPointLessThanEqualOrderByMinLeafPointDesc(
+      int totalLeafPoints);
 }

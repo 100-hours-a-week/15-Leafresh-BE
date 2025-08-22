@@ -13,20 +13,21 @@ import org.springframework.context.annotation.Profile;
 @Profile("eks")
 public class AwsS3Config {
 
-    @Value("${cloud.aws.credentials.access-key}")
-    private String accessKey;
+  @Value("${cloud.aws.credentials.access-key}")
+  private String accessKey;
 
-    @Value("${cloud.aws.credentials.secret-key}")
-    private String secretKey;
+  @Value("${cloud.aws.credentials.secret-key}")
+  private String secretKey;
 
-    @Value("${cloud.aws.region.static}")
-    private String region;
+  @Value("${cloud.aws.region.static}")
+  private String region;
 
-    @Bean
-    public AmazonS3 amazonS3() {
-        return AmazonS3ClientBuilder.standard()
-                .withCredentials(new AWSStaticCredentialsProvider(new BasicAWSCredentials(accessKey, secretKey)))
-                .withRegion(region)
-                .build();
-    }
+  @Bean
+  public AmazonS3 amazonS3() {
+    return AmazonS3ClientBuilder.standard()
+        .withCredentials(
+            new AWSStaticCredentialsProvider(new BasicAWSCredentials(accessKey, secretKey)))
+        .withRegion(region)
+        .build();
+  }
 }

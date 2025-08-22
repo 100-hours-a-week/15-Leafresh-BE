@@ -27,48 +27,51 @@ import static org.mockito.Mockito.*;
 @DisplayName("EventChallengeReadService 테스트")
 class EventChallengeReadServiceTest {
 
-    @Mock
-    private GroupChallengeRepository groupChallengeRepository;
+  @Mock private GroupChallengeRepository groupChallengeRepository;
 
-    @InjectMocks
-    private EventChallengeReadService eventChallengeReadService;
+  @InjectMocks private EventChallengeReadService eventChallengeReadService;
 
-    private GroupChallenge challenge;
+  private GroupChallenge challenge;
 
-    @BeforeEach
-    void setUp() {
-        challenge = of(mock(ktb.leafresh.backend.domain.member.domain.entity.Member.class), of("ETC"), "챌린지 제목", true);
-    }
+  @BeforeEach
+  void setUp() {
+    challenge =
+        of(
+            mock(ktb.leafresh.backend.domain.member.domain.entity.Member.class),
+            of("ETC"),
+            "챌린지 제목",
+            true);
+  }
 
-    @Test
-    @DisplayName("2주 이내의 이벤트 챌린지 목록을 조회할 수 있다")
-    void getEventChallenges_withinTwoWeeks_returnsDtoList() {
-        // given
-        LocalDateTime now = LocalDateTime.now();
-        given(groupChallengeRepository.findEventChallengesWithinRange(any(), any()))
-                .willReturn(List.of(challenge));
+  @Test
+  @DisplayName("2주 이내의 이벤트 챌린지 목록을 조회할 수 있다")
+  void getEventChallenges_withinTwoWeeks_returnsDtoList() {
+    // given
+    LocalDateTime now = LocalDateTime.now();
+    given(groupChallengeRepository.findEventChallengesWithinRange(any(), any()))
+        .willReturn(List.of(challenge));
 
-        // when
-        List<EventChallengeResponseDto> result = eventChallengeReadService.getEventChallenges();
+    // when
+    List<EventChallengeResponseDto> result = eventChallengeReadService.getEventChallenges();
 
-        // then
-        assertThat(result).hasSize(1);
-        assertThat(result.get(0).id()).isEqualTo(challenge.getId());
-        assertThat(result.get(0).title()).isEqualTo(challenge.getTitle());
-        assertThat(result.get(0).description()).isEqualTo(challenge.getDescription());
-        assertThat(result.get(0).thumbnailUrl()).isEqualTo(challenge.getImageUrl());
-    }
+    // then
+    assertThat(result).hasSize(1);
+    assertThat(result.get(0).id()).isEqualTo(challenge.getId());
+    assertThat(result.get(0).title()).isEqualTo(challenge.getTitle());
+    assertThat(result.get(0).description()).isEqualTo(challenge.getDescription());
+    assertThat(result.get(0).thumbnailUrl()).isEqualTo(challenge.getImageUrl());
+  }
 
-    @Test
-    @DisplayName("조회 중 예외가 발생하면 CustomException이 발생한다")
-    void getEventChallenges_whenExceptionThrown_throwsCustomException() {
-        // given
-        given(groupChallengeRepository.findEventChallengesWithinRange(any(), any()))
-                .willThrow(new RuntimeException("DB 오류"));
+  @Test
+  @DisplayName("조회 중 예외가 발생하면 CustomException이 발생한다")
+  void getEventChallenges_whenExceptionThrown_throwsCustomException() {
+    // given
+    given(groupChallengeRepository.findEventChallengesWithinRange(any(), any()))
+        .willThrow(new RuntimeException("DB 오류"));
 
-        // when & then
-        assertThatThrownBy(() -> eventChallengeReadService.getEventChallenges())
-                .isInstanceOf(CustomException.class)
-                .hasMessageContaining(ChallengeErrorCode.EVENT_CHALLENGE_READ_FAILED.getMessage());
-    }
+    // when & then
+    assertThatThrownBy(() -> eventChallengeReadService.getEventChallenges())
+        .isInstanceOf(CustomException.class)
+        .hasMessageContaining(ChallengeErrorCode.EVENT_CHALLENGE_READ_FAILED.getMessage());
+  }
 }

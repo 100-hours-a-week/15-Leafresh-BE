@@ -12,11 +12,14 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class GroupChallengeCategoryUpdater {
 
-    private final GroupChallengeCategoryRepository repository;
+  private final GroupChallengeCategoryRepository repository;
 
-    public void updateCategory(GroupChallenge challenge, String categoryName) {
-        GroupChallengeCategory newCategory = repository.findByName(categoryName)
-                .orElseThrow(() -> new CustomException(ChallengeErrorCode.CHALLENGE_CATEGORY_NOT_FOUND));
-        challenge.changeCategory(newCategory);
-    }
+  public void updateCategory(GroupChallenge challenge, String categoryName) {
+    GroupChallengeCategory newCategory =
+        repository
+            .findByName(categoryName)
+            .orElseThrow(
+                () -> new CustomException(ChallengeErrorCode.CHALLENGE_CATEGORY_NOT_FOUND));
+    challenge.changeCategory(newCategory);
+  }
 }

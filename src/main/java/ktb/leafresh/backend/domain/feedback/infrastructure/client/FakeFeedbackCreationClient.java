@@ -10,8 +10,8 @@ import org.springframework.stereotype.Component;
 @Profile("local")
 public class FakeFeedbackCreationClient implements FeedbackCreationClient {
 
-    @Override
-    public void requestWeeklyFeedback(AiFeedbackCreationRequestDto requestDto) {
-        log.info("[FAKE 피드백 요청] 로컬 환경에서는 요청을 전송하지 않습니다. 요청 DTO: {}", requestDto);
-    }
+  @Override
+  public void requestWeeklyFeedback(AiFeedbackCreationRequestDto requestDto) {
+    log.info("[FAKE 피드백 요청] 로컬 환경에서는 요청을 전송하지 않습니다. 요청 DTO: {}", requestDto);
+  }
 }

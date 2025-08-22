@@ -5,8 +5,4 @@ import lombok.Builder;
 import java.util.List;
 
 @Builder
-public record CursorPaginationResult<T>(
-        List<T> items,
-        boolean hasNext,
-        CursorInfo cursorInfo
-) {}
+public record CursorPaginationResult<T>(List<T> items, boolean hasNext, CursorInfo cursorInfo) {}

@@ -16,41 +16,41 @@ import java.io.IOException;
 @Profile("!eks")
 public class PubSubPublisherConfig {
 
-    private final Environment environment;
+  private final Environment environment;
 
-    @Bean(name = "purchasePubSubPublisher")
-    public Publisher purchasePubSubPublisher() throws IOException {
-        String projectId = environment.getProperty("gcp.project-id");
-        String topicId = environment.getProperty("gcp.pubsub.topics.order");
+  @Bean(name = "purchasePubSubPublisher")
+  public Publisher purchasePubSubPublisher() throws IOException {
+    String projectId = environment.getProperty("gcp.project-id");
+    String topicId = environment.getProperty("gcp.pubsub.topics.order");
 
-        TopicName topicName = TopicName.of(projectId, topicId);
+    TopicName topicName = TopicName.of(projectId, topicId);
 
-        return Publisher.newBuilder(topicName)
-                .setCredentialsProvider(GoogleCredentials::getApplicationDefault)
-                .build();
-    }
+    return Publisher.newBuilder(topicName)
+        .setCredentialsProvider(GoogleCredentials::getApplicationDefault)
+        .build();
+  }
 
-    @Bean(name = "imageVerificationPubSubPublisher")
-    public Publisher imageVerificationPublisher() throws IOException {
-        String projectId = environment.getProperty("gcp.project-id");
-        String topicId = environment.getProperty("gcp.pubsub.topics.image-verification");
+  @Bean(name = "imageVerificationPubSubPublisher")
+  public Publisher imageVerificationPublisher() throws IOException {
+    String projectId = environment.getProperty("gcp.project-id");
+    String topicId = environment.getProperty("gcp.pubsub.topics.image-verification");
 
-        TopicName topicName = TopicName.of(projectId, topicId);
+    TopicName topicName = TopicName.of(projectId, topicId);
 
-        return Publisher.newBuilder(topicName)
-                .setCredentialsProvider(GoogleCredentials::getApplicationDefault)
-                .build();
-    }
+    return Publisher.newBuilder(topicName)
+        .setCredentialsProvider(GoogleCredentials::getApplicationDefault)
+        .build();
+  }
 
-    @Bean(name = "feedbackPubSubPublisher")
-    public Publisher feedbackPubSubPublisher() throws IOException {
-        String projectId = environment.getProperty("gcp.project-id");
-        String topicId = environment.getProperty("gcp.pubsub.topics.feedback");
+  @Bean(name = "feedbackPubSubPublisher")
+  public Publisher feedbackPubSubPublisher() throws IOException {
+    String projectId = environment.getProperty("gcp.project-id");
+    String topicId = environment.getProperty("gcp.pubsub.topics.feedback");
 
-        TopicName topicName = TopicName.of(projectId, topicId);
+    TopicName topicName = TopicName.of(projectId, topicId);
 
-        return Publisher.newBuilder(topicName)
-                .setCredentialsProvider(GoogleCredentials::getApplicationDefault)
-                .build();
-    }
+    return Publisher.newBuilder(topicName)
+        .setCredentialsProvider(GoogleCredentials::getApplicationDefault)
+        .build();
+  }
 }

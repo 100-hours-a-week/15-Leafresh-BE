@@ -34,123 +34,111 @@ import org.springframework.dao.DataIntegrityViolationException;
 @ExtendWith(MockitoExtension.class)
 class ProductOrderCreateServiceTest {
 
-    @Mock
-    private MemberRepository memberRepository;
+  @Mock private MemberRepository memberRepository;
 
-    @Mock
-    private ProductRepository productRepository;
+  @Mock private ProductRepository productRepository;
 
-    @Mock
-    private PurchaseIdempotencyKeyRepository idempotencyRepository;
+  @Mock private PurchaseIdempotencyKeyRepository idempotencyRepository;
 
-    @Mock
-    private StockRedisLuaService stockRedisLuaService;
+  @Mock private StockRedisLuaService stockRedisLuaService;
 
-    @Mock
-    private PurchaseMessagePublisher purchaseMessagePublisher;
+  @Mock private PurchaseMessagePublisher purchaseMessagePublisher;
 
-    @Mock
-    private ProductCacheLockFacade productCacheLockFacade;
+  @Mock private ProductCacheLockFacade productCacheLockFacade;
 
-    @Mock
-    private PointService pointService;
+  @Mock private PointService pointService;
 
-    @InjectMocks
-    private ProductOrderCreateService productOrderCreateService;
+  @InjectMocks private ProductOrderCreateService productOrderCreateService;
 
-    private Member member;
-    private Product product;
+  private Member member;
+  private Product product;
 
-    @BeforeEach
-    void setUp() {
-        member = MemberFixture.of();
-        product = ProductFixture.createDefaultProduct();
+  @BeforeEach
+  void setUp() {
+    member = MemberFixture.of();
+    product = ProductFixture.createDefaultProduct();
+  }
+
+  @Nested
+  @DisplayName("create")
+  class Create {
+
+    @Test
+    @DisplayName("정상적인 주문 요청이면 메시지를 발행한다")
+    void create_success() {
+      // given
+      given(memberRepository.findById(1L)).willReturn(Optional.of(member));
+      given(productRepository.findById(10L)).willReturn(Optional.of(product));
+      given(pointService.hasEnoughPoints(eq(1L), anyInt())).willReturn(true);
+      given(stockRedisLuaService.decreaseStock("stock:product:10", 1)).willReturn(1L);
+
+      // when
+      productOrderCreateService.create(1L, 10L, 1, "idempotent-key");
+
+      // then
+      verify(idempotencyRepository).save(any(PurchaseIdempotencyKey.class));
+      verify(purchaseMessagePublisher).publish(any(PurchaseCommand.class));
     }
 
-    @Nested
-    @DisplayName("create")
-    class Create {
+    @Test
+    @DisplayName("존재하지 않는 회원이면 예외를 던진다")
+    void create_memberNotFound() {
+      given(memberRepository.findById(1L)).willReturn(Optional.empty());
 
-        @Test
-        @DisplayName("정상적인 주문 요청이면 메시지를 발행한다")
-        void create_success() {
-            // given
-            given(memberRepository.findById(1L)).willReturn(Optional.of(member));
-            given(productRepository.findById(10L)).willReturn(Optional.of(product));
-            given(pointService.hasEnoughPoints(eq(1L), anyInt())).willReturn(true);
-            given(stockRedisLuaService.decreaseStock("stock:product:10", 1)).willReturn(1L);
-
-            // when
-            productOrderCreateService.create(1L, 10L, 1, "idempotent-key");
-
-            // then
-            verify(idempotencyRepository).save(any(PurchaseIdempotencyKey.class));
-            verify(purchaseMessagePublisher).publish(any(PurchaseCommand.class));
-        }
-
-        @Test
-        @DisplayName("존재하지 않는 회원이면 예외를 던진다")
-        void create_memberNotFound() {
-            given(memberRepository.findById(1L)).willReturn(Optional.empty());
-
-            assertThatThrownBy(() ->
-                    productOrderCreateService.create(1L, 10L, 1, "key"))
-                    .isInstanceOf(CustomException.class)
-                    .hasMessageContaining(MemberErrorCode.MEMBER_NOT_FOUND.getMessage());
-        }
-
-        @Test
-        @DisplayName("Idempotency 키가 중복되면 예외를 던진다")
-        void create_duplicateIdempotencyKey() {
-            given(memberRepository.findById(1L)).willReturn(Optional.of(member));
-            willThrow(new DataIntegrityViolationException("duplicate"))
-                    .given(idempotencyRepository).save(any());
-
-            assertThatThrownBy(() ->
-                    productOrderCreateService.create(1L, 10L, 1, "duplicate-key"))
-                    .isInstanceOf(CustomException.class)
-                    .hasMessageContaining(PurchaseErrorCode.DUPLICATE_PURCHASE_REQUEST.getMessage());
-        }
-
-        @Test
-        @DisplayName("존재하지 않는 상품이면 예외를 던진다")
-        void create_productNotFound() {
-            given(memberRepository.findById(1L)).willReturn(Optional.of(member));
-            given(idempotencyRepository.save(any())).willReturn(null);
-            given(productRepository.findById(10L)).willReturn(Optional.empty());
-
-            assertThatThrownBy(() ->
-                    productOrderCreateService.create(1L, 10L, 1, "key"))
-                    .isInstanceOf(CustomException.class)
-                    .hasMessageContaining(ProductErrorCode.PRODUCT_NOT_FOUND.getMessage());
-        }
-
-        @Test
-        @DisplayName("Redis 재고가 -1이면 PRODUCT_NOT_FOUND 예외를 던진다")
-        void create_redisReturnsMinusOne() {
-            given(memberRepository.findById(1L)).willReturn(Optional.of(member));
-            given(productRepository.findById(10L)).willReturn(Optional.of(product));
-            given(pointService.hasEnoughPoints(eq(1L), anyInt())).willReturn(true);
-            given(stockRedisLuaService.decreaseStock(any(), anyInt())).willReturn(-1L);
-
-            assertThatThrownBy(() ->
-                    productOrderCreateService.create(1L, 10L, 1, "key"))
-                    .isInstanceOf(CustomException.class)
-                    .hasMessageContaining(ProductErrorCode.PRODUCT_NOT_FOUND.getMessage());
-        }
-
-        @Test
-        @DisplayName("Redis 재고가 -2이면 OUT_OF_STOCK 예외를 던진다")
-        void create_redisReturnsMinusTwo() {
-            given(memberRepository.findById(1L)).willReturn(Optional.of(member));
-            given(productRepository.findById(10L)).willReturn(Optional.of(product));
-            given(pointService.hasEnoughPoints(eq(1L), anyInt())).willReturn(true);
-            given(stockRedisLuaService.decreaseStock(any(), anyInt())).willReturn(-2L);
-
-            assertThatThrownBy(() ->
-                    productOrderCreateService.create(1L, 10L, 1, "key"))
-                    .isInstanceOf(CustomException.class)
-                    .hasMessageContaining(ProductErrorCode.OUT_OF_STOCK.getMessage());
-        }
+      assertThatThrownBy(() -> productOrderCreateService.create(1L, 10L, 1, "key"))
+          .isInstanceOf(CustomException.class)
+          .hasMessageContaining(MemberErrorCode.MEMBER_NOT_FOUND.getMessage());
     }
+
+    @Test
+    @DisplayName("Idempotency 키가 중복되면 예외를 던진다")
+    void create_duplicateIdempotencyKey() {
+      given(memberRepository.findById(1L)).willReturn(Optional.of(member));
+      willThrow(new DataIntegrityViolationException("duplicate"))
+          .given(idempotencyRepository)
+          .save(any());
+
+      assertThatThrownBy(() -> productOrderCreateService.create(1L, 10L, 1, "duplicate-key"))
+          .isInstanceOf(CustomException.class)
+          .hasMessageContaining(PurchaseErrorCode.DUPLICATE_PURCHASE_REQUEST.getMessage());
+    }
+
+    @Test
+    @DisplayName("존재하지 않는 상품이면 예외를 던진다")
+    void create_productNotFound() {
+      given(memberRepository.findById(1L)).willReturn(Optional.of(member));
+      given(idempotencyRepository.save(any())).willReturn(null);
+      given(productRepository.findById(10L)).willReturn(Optional.empty());
+
+      assertThatThrownBy(() -> productOrderCreateService.create(1L, 10L, 1, "key"))
+          .isInstanceOf(CustomException.class)
+          .hasMessageContaining(ProductErrorCode.PRODUCT_NOT_FOUND.getMessage());
+    }
+
+    @Test
+    @DisplayName("Redis 재고가 -1이면 PRODUCT_NOT_FOUND 예외를 던진다")
+    void create_redisReturnsMinusOne() {
+      given(memberRepository.findById(1L)).willReturn(Optional.of(member));
+      given(productRepository.findById(10L)).willReturn(Optional.of(product));
+      given(pointService.hasEnoughPoints(eq(1L), anyInt())).willReturn(true);
+      given(stockRedisLuaService.decreaseStock(any(), anyInt())).willReturn(-1L);
+
+      assertThatThrownBy(() -> productOrderCreateService.create(1L, 10L, 1, "key"))
+          .isInstanceOf(CustomException.class)
+          .hasMessageContaining(ProductErrorCode.PRODUCT_NOT_FOUND.getMessage());
+    }
+
+    @Test
+    @DisplayName("Redis 재고가 -2이면 OUT_OF_STOCK 예외를 던진다")
+    void create_redisReturnsMinusTwo() {
+      given(memberRepository.findById(1L)).willReturn(Optional.of(member));
+      given(productRepository.findById(10L)).willReturn(Optional.of(product));
+      given(pointService.hasEnoughPoints(eq(1L), anyInt())).willReturn(true);
+      given(stockRedisLuaService.decreaseStock(any(), anyInt())).willReturn(-2L);
+
+      assertThatThrownBy(() -> productOrderCreateService.create(1L, 10L, 1, "key"))
+          .isInstanceOf(CustomException.class)
+          .hasMessageContaining(ProductErrorCode.OUT_OF_STOCK.getMessage());
+    }
+  }
 }

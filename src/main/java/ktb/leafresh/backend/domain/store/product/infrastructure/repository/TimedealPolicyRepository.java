@@ -10,24 +10,29 @@ import java.util.List;
 
 public interface TimedealPolicyRepository extends JpaRepository<TimedealPolicy, Long> {
 
-    @Query("SELECT CASE WHEN COUNT(t) > 0 THEN true ELSE false END FROM TimedealPolicy t " +
-            "WHERE t.product.id = :productId " +
-            "AND t.deletedAt IS NULL " +
-            "AND (t.startTime < :endTime AND t.endTime > :startTime)")
-    boolean existsByProductIdAndTimeOverlap(@Param("productId") Long productId,
-                                            @Param("startTime") LocalDateTime startTime,
-                                            @Param("endTime") LocalDateTime endTime);
+  @Query(
+      "SELECT CASE WHEN COUNT(t) > 0 THEN true ELSE false END FROM TimedealPolicy t "
+          + "WHERE t.product.id = :productId "
+          + "AND t.deletedAt IS NULL "
+          + "AND (t.startTime < :endTime AND t.endTime > :startTime)")
+  boolean existsByProductIdAndTimeOverlap(
+      @Param("productId") Long productId,
+      @Param("startTime") LocalDateTime startTime,
+      @Param("endTime") LocalDateTime endTime);
 
-    @Query("SELECT CASE WHEN COUNT(t) > 0 THEN true ELSE false END FROM TimedealPolicy t " +
-            "WHERE t.product.id = :productId " +
-            "AND t.deletedAt IS NULL " +
-            "AND t.id != :dealId " +
-            "AND (t.startTime < :endTime AND t.endTime > :startTime)")
-    boolean existsByProductIdAndTimeOverlapExceptSelf(@Param("productId") Long productId,
-                                                      @Param("startTime") LocalDateTime startTime,
-                                                      @Param("endTime") LocalDateTime endTime,
-                                                      @Param("dealId") Long dealId);
+  @Query(
+      "SELECT CASE WHEN COUNT(t) > 0 THEN true ELSE false END FROM TimedealPolicy t "
+          + "WHERE t.product.id = :productId "
+          + "AND t.deletedAt IS NULL "
+          + "AND t.id != :dealId "
+          + "AND (t.startTime < :endTime AND t.endTime > :startTime)")
+  boolean existsByProductIdAndTimeOverlapExceptSelf(
+      @Param("productId") Long productId,
+      @Param("startTime") LocalDateTime startTime,
+      @Param("endTime") LocalDateTime endTime,
+      @Param("dealId") Long dealId);
 
-    @Query("SELECT t FROM TimedealPolicy t JOIN FETCH t.product WHERE t.endTime > :now AND t.deletedAt IS NULL")
-    List<TimedealPolicy> findAllValidWithProduct(@Param("now") LocalDateTime now);
+  @Query(
+      "SELECT t FROM TimedealPolicy t JOIN FETCH t.product WHERE t.endTime > :now AND t.deletedAt IS NULL")
+  List<TimedealPolicy> findAllValidWithProduct(@Param("now") LocalDateTime now);
 }

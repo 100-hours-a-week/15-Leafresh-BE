@@ -6,14 +6,14 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class ProductFactory {
-    public Product create(ProductCreateRequestDto dto) {
-        return Product.builder()
-                .name(dto.name())
-                .description(dto.description())
-                .imageUrl(dto.imageUrl())
-                .price(dto.price())
-                .stock(dto.stock())
-                .status(dto.status())
-                .build();
-    }
+  public Product create(ProductCreateRequestDto dto) {
+    return Product.builder()
+        .name(dto.name())
+        .description(dto.description())
+        .imageUrl(dto.imageUrl())
+        .price(dto.price())
+        .stock(dto.stock())
+        .status(dto.status())
+        .build();
+  }
 }

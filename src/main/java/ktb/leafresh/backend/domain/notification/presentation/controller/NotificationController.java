@@ -19,52 +19,51 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/members/notifications")
 public class NotificationController {
 
-    private final NotificationReadService notificationReadService;
+  private final NotificationReadService notificationReadService;
 
-    @GetMapping
-    public ResponseEntity<ApiResponse<NotificationListResponse>> getNotifications(
-            @AuthenticationPrincipal CustomUserDetails userDetails,
-            @RequestParam(required = false) Long cursorId,
-            @RequestParam(required = false) String cursorTimestamp,
-            @RequestParam(defaultValue = "12") int size
-    ) {
-        if (userDetails == null) {
-            throw new CustomException(GlobalErrorCode.UNAUTHORIZED);
-        }
-
-        if ((cursorId == null) != (cursorTimestamp == null)) {
-            throw new CustomException(GlobalErrorCode.INVALID_CURSOR);
-        }
-
-        try {
-            Long memberId = userDetails.getMemberId();
-            CursorPaginationResult<NotificationSummaryResponse> result =
-                    notificationReadService.getNotifications(memberId, cursorId, cursorTimestamp, size);
-
-            return ResponseEntity.ok(ApiResponse.success("알림 조회에 성공했습니다.", NotificationListResponse.from(result)));
-        } catch (CustomException e) {
-            throw e;
-        } catch (Exception e) {
-            throw new CustomException(NotificationErrorCode.NOTIFICATION_READ_FAILED);
-        }
+  @GetMapping
+  public ResponseEntity<ApiResponse<NotificationListResponse>> getNotifications(
+      @AuthenticationPrincipal CustomUserDetails userDetails,
+      @RequestParam(required = false) Long cursorId,
+      @RequestParam(required = false) String cursorTimestamp,
+      @RequestParam(defaultValue = "12") int size) {
+    if (userDetails == null) {
+      throw new CustomException(GlobalErrorCode.UNAUTHORIZED);
     }
 
-    @PatchMapping
-    public ResponseEntity<Void> markAllNotificationsAsRead(
-            @AuthenticationPrincipal CustomUserDetails userDetails
-    ) {
-        if (userDetails == null) {
-            throw new CustomException(GlobalErrorCode.UNAUTHORIZED);
-        }
-
-        try {
-            Long memberId = userDetails.getMemberId();
-            notificationReadService.markAllAsRead(memberId);
-            return ResponseEntity.noContent().build();
-        } catch (CustomException e) {
-            throw e;
-        } catch (Exception e) {
-            throw new CustomException(NotificationErrorCode.NOTIFICATION_MARK_READ_FAILED);
-        }
+    if ((cursorId == null) != (cursorTimestamp == null)) {
+      throw new CustomException(GlobalErrorCode.INVALID_CURSOR);
     }
+
+    try {
+      Long memberId = userDetails.getMemberId();
+      CursorPaginationResult<NotificationSummaryResponse> result =
+          notificationReadService.getNotifications(memberId, cursorId, cursorTimestamp, size);
+
+      return ResponseEntity.ok(
+          ApiResponse.success("알림 조회에 성공했습니다.", NotificationListResponse.from(result)));
+    } catch (CustomException e) {
+      throw e;
+    } catch (Exception e) {
+      throw new CustomException(NotificationErrorCode.NOTIFICATION_READ_FAILED);
+    }
+  }
+
+  @PatchMapping
+  public ResponseEntity<Void> markAllNotificationsAsRead(
+      @AuthenticationPrincipal CustomUserDetails userDetails) {
+    if (userDetails == null) {
+      throw new CustomException(GlobalErrorCode.UNAUTHORIZED);
+    }
+
+    try {
+      Long memberId = userDetails.getMemberId();
+      notificationReadService.markAllAsRead(memberId);
+      return ResponseEntity.noContent().build();
+    } catch (CustomException e) {
+      throw e;
+    } catch (Exception e) {
+      throw new CustomException(NotificationErrorCode.NOTIFICATION_MARK_READ_FAILED);
+    }
+  }
 }

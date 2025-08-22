@@ -22,64 +22,64 @@ import static org.mockito.Mockito.*;
 
 class BadgeGrantManagerTest {
 
-    @Mock private BadgeGrantPolicy policy1;
-    @Mock private BadgeGrantPolicy policy2;
-    @Mock private MemberBadgeRepository memberBadgeRepository;
+  @Mock private BadgeGrantPolicy policy1;
+  @Mock private BadgeGrantPolicy policy2;
+  @Mock private MemberBadgeRepository memberBadgeRepository;
 
-    @InjectMocks private BadgeGrantManager badgeGrantManager;
+  @InjectMocks private BadgeGrantManager badgeGrantManager;
 
-    private Member member;
-    private Badge badge1;
-    private Badge badge2;
+  private Member member;
+  private Badge badge1;
+  private Badge badge2;
 
-    @BeforeEach
-    void setUp() {
-        MockitoAnnotations.openMocks(this);
-        badgeGrantManager = new BadgeGrantManager(List.of(policy1, policy2), memberBadgeRepository);
-        member = MemberFixture.of();
-        badge1 = BadgeFixture.of("지속가능 전도사");
-        badge2 = BadgeFixture.of("에코 슈퍼루키");
-    }
+  @BeforeEach
+  void setUp() {
+    MockitoAnnotations.openMocks(this);
+    badgeGrantManager = new BadgeGrantManager(List.of(policy1, policy2), memberBadgeRepository);
+    member = MemberFixture.of();
+    badge1 = BadgeFixture.of("지속가능 전도사");
+    badge2 = BadgeFixture.of("에코 슈퍼루키");
+  }
 
-    @Test
-    @DisplayName("정책별 새 뱃지가 존재할 경우 저장됨")
-    void evaluateAllAndGrant_success() {
-        // given
-        given(policy1.evaluateAndGetNewBadges(member)).willReturn(List.of(badge1));
-        given(policy2.evaluateAndGetNewBadges(member)).willReturn(List.of(badge2));
-        given(memberBadgeRepository.existsByMemberAndBadge(member, badge1)).willReturn(false);
-        given(memberBadgeRepository.existsByMemberAndBadge(member, badge2)).willReturn(false);
+  @Test
+  @DisplayName("정책별 새 뱃지가 존재할 경우 저장됨")
+  void evaluateAllAndGrant_success() {
+    // given
+    given(policy1.evaluateAndGetNewBadges(member)).willReturn(List.of(badge1));
+    given(policy2.evaluateAndGetNewBadges(member)).willReturn(List.of(badge2));
+    given(memberBadgeRepository.existsByMemberAndBadge(member, badge1)).willReturn(false);
+    given(memberBadgeRepository.existsByMemberAndBadge(member, badge2)).willReturn(false);
 
-        // when & then
-        assertThatCode(() -> badgeGrantManager.evaluateAllAndGrant(member)).doesNotThrowAnyException();
-        verify(memberBadgeRepository, times(2)).save(any(MemberBadge.class));
-    }
+    // when & then
+    assertThatCode(() -> badgeGrantManager.evaluateAllAndGrant(member)).doesNotThrowAnyException();
+    verify(memberBadgeRepository, times(2)).save(any(MemberBadge.class));
+  }
 
-    @Test
-    @DisplayName("이미 보유한 뱃지는 저장되지 않음")
-    void evaluateAllAndGrant_alreadyOwnedBadge() {
-        // given
-        given(policy1.evaluateAndGetNewBadges(member)).willReturn(List.of(badge1));
-        given(memberBadgeRepository.existsByMemberAndBadge(member, badge1)).willReturn(true);
+  @Test
+  @DisplayName("이미 보유한 뱃지는 저장되지 않음")
+  void evaluateAllAndGrant_alreadyOwnedBadge() {
+    // given
+    given(policy1.evaluateAndGetNewBadges(member)).willReturn(List.of(badge1));
+    given(memberBadgeRepository.existsByMemberAndBadge(member, badge1)).willReturn(true);
 
-        // when
-        badgeGrantManager.evaluateAllAndGrant(member);
+    // when
+    badgeGrantManager.evaluateAllAndGrant(member);
 
-        // then
-        verify(memberBadgeRepository, never()).save(any());
-    }
+    // then
+    verify(memberBadgeRepository, never()).save(any());
+  }
 
-    @Test
-    @DisplayName("뱃지가 아예 없는 경우에도 정상 처리")
-    void evaluateAllAndGrant_noBadges() {
-        // given
-        given(policy1.evaluateAndGetNewBadges(member)).willReturn(List.of());
-        given(policy2.evaluateAndGetNewBadges(member)).willReturn(List.of());
+  @Test
+  @DisplayName("뱃지가 아예 없는 경우에도 정상 처리")
+  void evaluateAllAndGrant_noBadges() {
+    // given
+    given(policy1.evaluateAndGetNewBadges(member)).willReturn(List.of());
+    given(policy2.evaluateAndGetNewBadges(member)).willReturn(List.of());
 
-        // when
-        badgeGrantManager.evaluateAllAndGrant(member);
+    // when
+    badgeGrantManager.evaluateAllAndGrant(member);
 
-        // then
-        verify(memberBadgeRepository, never()).save(any());
-    }
+    // then
+    verify(memberBadgeRepository, never()).save(any());
+  }
 }

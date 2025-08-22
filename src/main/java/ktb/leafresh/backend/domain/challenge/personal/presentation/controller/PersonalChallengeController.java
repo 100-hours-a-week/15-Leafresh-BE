@@ -19,36 +19,32 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/challenges/personal")
 public class PersonalChallengeController {
 
-    private final PersonalChallengeReadService readService;
+  private final PersonalChallengeReadService readService;
 
-    @GetMapping
-    public ResponseEntity<ApiResponse<PersonalChallengeListResponseDto>> getPersonalChallengesByDay(
-            @RequestParam DayOfWeek dayOfWeek
-    ) {
-        PersonalChallengeListResponseDto response = readService.getByDayOfWeek(dayOfWeek);
-        return ResponseEntity.ok(ApiResponse.success("개인챌린지 목록 조회에 성공하였습니다.", response));
+  @GetMapping
+  public ResponseEntity<ApiResponse<PersonalChallengeListResponseDto>> getPersonalChallengesByDay(
+      @RequestParam DayOfWeek dayOfWeek) {
+    PersonalChallengeListResponseDto response = readService.getByDayOfWeek(dayOfWeek);
+    return ResponseEntity.ok(ApiResponse.success("개인챌린지 목록 조회에 성공하였습니다.", response));
+  }
+
+  @GetMapping("/{challengeId}")
+  public ResponseEntity<ApiResponse<PersonalChallengeDetailResponseDto>> getPersonalChallengeDetail(
+      @PathVariable Long challengeId, @AuthenticationPrincipal CustomUserDetails userDetails) {
+    Long memberId = (userDetails != null) ? userDetails.getMemberId() : null;
+    PersonalChallengeDetailResponseDto response =
+        readService.getChallengeDetail(memberId, challengeId);
+    return ResponseEntity.ok(ApiResponse.success("개인 챌린지 상세 정보를 성공적으로 조회했습니다.", response));
+  }
+
+  @GetMapping("/{challengeId}/rules")
+  public ResponseEntity<ApiResponse<PersonalChallengeRuleResponseDto>> getPersonalChallengeRules(
+      @PathVariable Long challengeId, @AuthenticationPrincipal CustomUserDetails userDetails) {
+    if (userDetails == null) {
+      throw new CustomException(GlobalErrorCode.UNAUTHORIZED);
     }
 
-    @GetMapping("/{challengeId}")
-    public ResponseEntity<ApiResponse<PersonalChallengeDetailResponseDto>> getPersonalChallengeDetail(
-            @PathVariable Long challengeId,
-            @AuthenticationPrincipal CustomUserDetails userDetails
-    ) {
-        Long memberId = (userDetails != null) ? userDetails.getMemberId() : null;
-        PersonalChallengeDetailResponseDto response = readService.getChallengeDetail(memberId, challengeId);
-        return ResponseEntity.ok(ApiResponse.success("개인 챌린지 상세 정보를 성공적으로 조회했습니다.", response));
-    }
-
-    @GetMapping("/{challengeId}/rules")
-    public ResponseEntity<ApiResponse<PersonalChallengeRuleResponseDto>> getPersonalChallengeRules(
-            @PathVariable Long challengeId,
-            @AuthenticationPrincipal CustomUserDetails userDetails
-    ) {
-        if (userDetails == null) {
-            throw new CustomException(GlobalErrorCode.UNAUTHORIZED);
-        }
-
-        PersonalChallengeRuleResponseDto response = readService.getChallengeRules(challengeId);
-        return ResponseEntity.ok(ApiResponse.success("개인 챌린지 인증 규약 정보를 성공적으로 조회했습니다.", response));
-    }
+    PersonalChallengeRuleResponseDto response = readService.getChallengeRules(challengeId);
+    return ResponseEntity.ok(ApiResponse.success("개인 챌린지 인증 규약 정보를 성공적으로 조회했습니다.", response));
+  }
 }

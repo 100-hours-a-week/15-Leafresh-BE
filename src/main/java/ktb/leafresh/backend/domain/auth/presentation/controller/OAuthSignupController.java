@@ -26,38 +26,47 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class OAuthSignupController {
 
-    private final OAuthSignupService signupService;
-    private final AuthCookieProvider authCookieProvider;
+  private final OAuthSignupService signupService;
+  private final AuthCookieProvider authCookieProvider;
 
-    @Operation(
-            summary = "OAuth 회원가입",
-            description = "닉네임이 중복되지 않으면 회원 정보를 저장하고 토큰을 발급합니다.",
-            responses = {
-                    @io.swagger.v3.oas.annotations.responses.ApiResponse(
-                            responseCode = "200", description = "회원가입 성공",
-                            content = @Content(schema = @Schema(implementation = OAuthLoginResponseDto.class))
-                    ),
-                    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "잘못된 요청입니다."),
-                    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "409", description = "이미 사용 중인 닉네임입니다."),
-                    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "500", description = "서버 내부 오류입니다.")
-            }
-    )
-    @PostMapping
-    public ResponseEntity<ApiResponse<OAuthSignupResponseDto>> signup(
-            @RequestBody OAuthSignupRequestDto request,
-            HttpServletResponse response
-    ) {
-        log.info("회원가입 요청 수신 - email={}, provider={}, providerId={}, nickname={}",
-                request.email(), request.provider(), request.provider().id(), request.nickname());
+  @Operation(
+      summary = "OAuth 회원가입",
+      description = "닉네임이 중복되지 않으면 회원 정보를 저장하고 토큰을 발급합니다.",
+      responses = {
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            responseCode = "200",
+            description = "회원가입 성공",
+            content = @Content(schema = @Schema(implementation = OAuthLoginResponseDto.class))),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            responseCode = "400",
+            description = "잘못된 요청입니다."),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            responseCode = "409",
+            description = "이미 사용 중인 닉네임입니다."),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            responseCode = "500",
+            description = "서버 내부 오류입니다.")
+      })
+  @PostMapping
+  public ResponseEntity<ApiResponse<OAuthSignupResponseDto>> signup(
+      @RequestBody OAuthSignupRequestDto request, HttpServletResponse response) {
+    log.info(
+        "회원가입 요청 수신 - email={}, provider={}, providerId={}, nickname={}",
+        request.email(),
+        request.provider(),
+        request.provider().id(),
+        request.nickname());
 
-        OAuthSignupResult result = signupService.signup(request);
-        TokenDto tokenDto = result.tokenDto();
+    OAuthSignupResult result = signupService.signup(request);
+    TokenDto tokenDto = result.tokenDto();
 
-        response.addHeader(HttpHeaders.SET_COOKIE,
-                authCookieProvider.createAccessTokenCookie(tokenDto.getAccessToken()).toString());
-        response.addHeader(HttpHeaders.SET_COOKIE,
-                authCookieProvider.createRefreshTokenCookie(tokenDto.getRefreshToken()).toString());
+    response.addHeader(
+        HttpHeaders.SET_COOKIE,
+        authCookieProvider.createAccessTokenCookie(tokenDto.getAccessToken()).toString());
+    response.addHeader(
+        HttpHeaders.SET_COOKIE,
+        authCookieProvider.createRefreshTokenCookie(tokenDto.getRefreshToken()).toString());
 
-        return ResponseEntity.ok(ApiResponse.success("회원가입이 완료되었습니다.", result.signupResponse()));
-    }
+    return ResponseEntity.ok(ApiResponse.success("회원가입이 완료되었습니다.", result.signupResponse()));
+  }
 }

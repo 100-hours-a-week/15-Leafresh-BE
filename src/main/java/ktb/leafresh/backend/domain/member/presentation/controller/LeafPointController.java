@@ -11,11 +11,11 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class LeafPointController {
 
-    private final LeafPointReadService leafPointReadService;
+  private final LeafPointReadService leafPointReadService;
 
-    @GetMapping("/count")
-    public ApiResponse<TotalLeafPointResponseDto> getTotalLeafPoints() {
-        TotalLeafPointResponseDto result = leafPointReadService.getTotalLeafPoints();
-        return ApiResponse.success("누적 나뭇잎 수 조회에 성공했습니다.", result);
-    }
+  @GetMapping("/count")
+  public ApiResponse<TotalLeafPointResponseDto> getTotalLeafPoints() {
+    TotalLeafPointResponseDto result = leafPointReadService.getTotalLeafPoints();
+    return ApiResponse.success("누적 나뭇잎 수 조회에 성공했습니다.", result);
+  }
 }

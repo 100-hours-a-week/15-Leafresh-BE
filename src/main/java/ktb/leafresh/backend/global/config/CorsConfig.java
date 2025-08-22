@@ -13,20 +13,20 @@ import org.springframework.web.filter.CorsFilter;
 @RequiredArgsConstructor
 public class CorsConfig {
 
-    private final SecurityProperties securityProperties;
+  private final SecurityProperties securityProperties;
 
-    @Bean
-    public CorsFilter corsFilter() {
-        CorsConfiguration config = new CorsConfiguration();
-        config.setAllowCredentials(true);
-        securityProperties.getAllowedOrigins().forEach(config::addAllowedOriginPattern); // ★ 여기!
-        config.addAllowedHeader("*");
-        config.addAllowedMethod("*");
-        config.setMaxAge(3600L);
+  @Bean
+  public CorsFilter corsFilter() {
+    CorsConfiguration config = new CorsConfiguration();
+    config.setAllowCredentials(true);
+    securityProperties.getAllowedOrigins().forEach(config::addAllowedOriginPattern); // ★ 여기!
+    config.addAllowedHeader("*");
+    config.addAllowedMethod("*");
+    config.setMaxAge(3600L);
 
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", config);
+    UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+    source.registerCorsConfiguration("/**", config);
 
-        return new CorsFilter(source);
-    }
+    return new CorsFilter(source);
+  }
 }

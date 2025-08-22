@@ -16,26 +16,22 @@ import java.util.Map;
 @RequestMapping("/api/challenges/group/{challengeId}/participations")
 public class GroupChallengeParticipationController {
 
-    private final GroupChallengeParticipationService groupChallengeParticipationService;
+  private final GroupChallengeParticipationService groupChallengeParticipationService;
 
-    @PostMapping
-    public ResponseEntity<ApiResponse<Map<String, Long>>> participateGroupChallenge(
-            @AuthenticationPrincipal CustomUserDetails userDetails,
-            @PathVariable Long challengeId
-    ) {
-        Long memberId = userDetails.getMemberId();
-        Long recordId = groupChallengeParticipationService.participate(memberId, challengeId);
+  @PostMapping
+  public ResponseEntity<ApiResponse<Map<String, Long>>> participateGroupChallenge(
+      @AuthenticationPrincipal CustomUserDetails userDetails, @PathVariable Long challengeId) {
+    Long memberId = userDetails.getMemberId();
+    Long recordId = groupChallengeParticipationService.participate(memberId, challengeId);
 
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.created("단체 챌린지에 참여하였습니다.", Map.of("id", recordId)));
-    }
+    return ResponseEntity.status(HttpStatus.CREATED)
+        .body(ApiResponse.created("단체 챌린지에 참여하였습니다.", Map.of("id", recordId)));
+  }
 
-    @DeleteMapping
-    public ResponseEntity<ApiResponse<Void>> cancelParticipation(
-            @AuthenticationPrincipal CustomUserDetails userDetails,
-            @PathVariable Long challengeId
-    ) {
-        groupChallengeParticipationService.drop(userDetails.getMemberId(), challengeId);
-        return ResponseEntity.noContent().build();
-    }
+  @DeleteMapping
+  public ResponseEntity<ApiResponse<Void>> cancelParticipation(
+      @AuthenticationPrincipal CustomUserDetails userDetails, @PathVariable Long challengeId) {
+    groupChallengeParticipationService.drop(userDetails.getMemberId(), challengeId);
+    return ResponseEntity.noContent().build();
+  }
 }

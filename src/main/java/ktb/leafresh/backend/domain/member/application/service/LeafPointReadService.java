@@ -20,33 +20,31 @@ import java.util.concurrent.TimeUnit;
 @RequiredArgsConstructor
 public class LeafPointReadService {
 
-    private final StringRedisTemplate redisTemplate;
-    private final MemberLeafPointQueryRepository memberLeafPointQueryRepository;
+  private final StringRedisTemplate redisTemplate;
+  private final MemberLeafPointQueryRepository memberLeafPointQueryRepository;
 
-    private static final String TOTAL_LEAF_SUM_KEY = "leafresh:totalLeafPoints:sum";
+  private static final String TOTAL_LEAF_SUM_KEY = "leafresh:totalLeafPoints:sum";
 
-    @DistributedLock(key = "'leafresh:totalLeafPoints:sum'")
-    public TotalLeafPointResponseDto getTotalLeafPoints() {
-        try {
-            // 락 획득 후 재확인
-            String cached = redisTemplate.opsForValue().get(TOTAL_LEAF_SUM_KEY);
-            if (cached != null) {
-                log.debug("[LeafPointReadService] Redis cache hit after lock: {}", cached);
-                return new TotalLeafPointResponseDto(Integer.parseInt(cached));
-            }
+  @DistributedLock(key = "'leafresh:totalLeafPoints:sum'")
+  public TotalLeafPointResponseDto getTotalLeafPoints() {
+    try {
+      // 락 획득 후 재확인
+      String cached = redisTemplate.opsForValue().get(TOTAL_LEAF_SUM_KEY);
+      if (cached != null) {
+        log.debug("[LeafPointReadService] Redis cache hit after lock: {}", cached);
+        return new TotalLeafPointResponseDto(Integer.parseInt(cached));
+      }
 
-            int sum = memberLeafPointQueryRepository.getTotalLeafPointSum();
-            redisTemplate.opsForValue().set(
-                    TOTAL_LEAF_SUM_KEY,
-                    String.valueOf(sum),
-                    Duration.ofHours(24)
-            );
-            log.info("[LeafPointReadService] Redis cache set after DB fallback: {}", sum);
-            return new TotalLeafPointResponseDto(sum);
-        } catch (NumberFormatException e) {
-            throw new CustomException(LeafPointErrorCode.REDIS_FAILURE);
-        } catch (Exception e) {
-            throw new CustomException(LeafPointErrorCode.DB_QUERY_FAILED);
-        }
+      int sum = memberLeafPointQueryRepository.getTotalLeafPointSum();
+      redisTemplate
+          .opsForValue()
+          .set(TOTAL_LEAF_SUM_KEY, String.valueOf(sum), Duration.ofHours(24));
+      log.info("[LeafPointReadService] Redis cache set after DB fallback: {}", sum);
+      return new TotalLeafPointResponseDto(sum);
+    } catch (NumberFormatException e) {
+      throw new CustomException(LeafPointErrorCode.REDIS_FAILURE);
+    } catch (Exception e) {
+      throw new CustomException(LeafPointErrorCode.DB_QUERY_FAILED);
     }
+  }
 }

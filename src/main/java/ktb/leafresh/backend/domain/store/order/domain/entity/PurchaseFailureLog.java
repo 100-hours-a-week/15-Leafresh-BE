@@ -15,29 +15,29 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class PurchaseFailureLog {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Long id;
 
-    // 실패 발생한 사용자
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "member_id", nullable = false)
-    private Member member;
+  // 실패 발생한 사용자
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "member_id", nullable = false)
+  private Member member;
 
-    // 실패 발생한 상품
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "product_id", nullable = false)
-    private Product product;
+  // 실패 발생한 상품
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "product_id", nullable = false)
+  private Product product;
 
-    // 실패 사유
-    @Column(columnDefinition = "TEXT")
-    private String reason;
+  // 실패 사유
+  @Column(columnDefinition = "TEXT")
+  private String reason;
 
-    // 요청 본문 데이터 (백업용)
-    @Column(name = "request_body", columnDefinition = "JSON")
-    private String requestBody;
+  // 요청 본문 데이터 (백업용)
+  @Column(name = "request_body", columnDefinition = "JSON")
+  private String requestBody;
 
-    // 발생 시각
-    @Column(name = "occurred_at", nullable = false)
-    private LocalDateTime occurredAt;
+  // 발생 시각
+  @Column(name = "occurred_at", nullable = false)
+  private LocalDateTime occurredAt;
 }

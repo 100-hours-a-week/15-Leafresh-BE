@@ -18,69 +18,69 @@ import java.io.IOException;
 @Profile({"docker-local", "eks"})
 public class ChatbotSseStreamHandlerImpl implements ChatbotSseStreamHandler {
 
-    private final WebClient textAiWebClient;
+  private final WebClient textAiWebClient;
 
-    public ChatbotSseStreamHandlerImpl(@Qualifier("textAiWebClient") WebClient textAiWebClient) {
-        this.textAiWebClient = textAiWebClient;
-    }
+  public ChatbotSseStreamHandlerImpl(@Qualifier("textAiWebClient") WebClient textAiWebClient) {
+    this.textAiWebClient = textAiWebClient;
+  }
 
-    @Override
-    public void streamToEmitter(SseEmitter emitter, String uriWithQueryParams) {
-        Flux<ServerSentEvent<String>> eventStream = textAiWebClient.get()
-                .uri(uriWithQueryParams)
-                .accept(MediaType.TEXT_EVENT_STREAM)
-                .retrieve()
-                .bodyToFlux(new ParameterizedTypeReference<>() {});
+  @Override
+  public void streamToEmitter(SseEmitter emitter, String uriWithQueryParams) {
+    Flux<ServerSentEvent<String>> eventStream =
+        textAiWebClient
+            .get()
+            .uri(uriWithQueryParams)
+            .accept(MediaType.TEXT_EVENT_STREAM)
+            .retrieve()
+            .bodyToFlux(new ParameterizedTypeReference<>() {});
 
-        eventStream.subscribe(
-                event -> {
-                    String rawEventName = event.event();
-                    String eventName = (rawEventName == null || rawEventName.isBlank()) ? "message" : rawEventName;
+    eventStream.subscribe(
+        event -> {
+          String rawEventName = event.event();
+          String eventName =
+              (rawEventName == null || rawEventName.isBlank()) ? "message" : rawEventName;
 
-                    String data = event.data();
-                    if (data == null) {
-                        log.warn("[SSE 무효 이벤트 수신] event: {}, data: null", eventName);
-                        return;
-                    }
+          String data = event.data();
+          if (data == null) {
+            log.warn("[SSE 무효 이벤트 수신] event: {}, data: null", eventName);
+            return;
+          }
 
-                    try {
-                        if ("close".equalsIgnoreCase(eventName)) {
-                            log.info("[SSE 종료 이벤트 수신] event: close, data: {}", data);
+          try {
+            if ("close".equalsIgnoreCase(eventName)) {
+              log.info("[SSE 종료 이벤트 수신] event: close, data: {}", data);
 
-                            try {
-                                emitter.send(SseEmitter.event()
-                                        .name("close")
-                                        .data(data, MediaType.APPLICATION_JSON));
-                            } catch (IOException e) {
-                                log.warn("[SSE 종료 이벤트 전송 실패] {}", e.getMessage());
-                            }
+              try {
+                emitter.send(
+                    SseEmitter.event().name("close").data(data, MediaType.APPLICATION_JSON));
+              } catch (IOException e) {
+                log.warn("[SSE 종료 이벤트 전송 실패] {}", e.getMessage());
+              }
 
-                            emitter.complete();
-                            return;
-                        }
+              emitter.complete();
+              return;
+            }
 
-                        if (data.isBlank()) {
-                            log.debug("[SSE Keep-Alive 전송] event: {}, data: <빈 문자열>", eventName);
-                            emitter.send(SseEmitter.event().comment("ping"));
-                        } else {
-                            log.info("[SSE 응답 전달] event: {}, data: {}", eventName, data);
-                            emitter.send(SseEmitter.event()
-                                    .name(eventName)
-                                    .data(data, MediaType.APPLICATION_JSON));
-                        }
+            if (data.isBlank()) {
+              log.debug("[SSE Keep-Alive 전송] event: {}, data: <빈 문자열>", eventName);
+              emitter.send(SseEmitter.event().comment("ping"));
+            } else {
+              log.info("[SSE 응답 전달] event: {}, data: {}", eventName, data);
+              emitter.send(
+                  SseEmitter.event().name(eventName).data(data, MediaType.APPLICATION_JSON));
+            }
 
-                    } catch (IOException e) {
-                        log.warn("[SSE 전송 실패] {}", e.getMessage());
-                        emitter.completeWithError(e);
-                    }
-                },
-                error -> {
-                    log.error("[SSE 스트림 오류 발생]", error);
-                    emitter.completeWithError(error);
-                },
-                () -> {
-                    log.info("[SSE 스트림 종료 콜백 발생] → 무시됨 (event: close로만 종료)");
-                }
-        );
-    }
+          } catch (IOException e) {
+            log.warn("[SSE 전송 실패] {}", e.getMessage());
+            emitter.completeWithError(e);
+          }
+        },
+        error -> {
+          log.error("[SSE 스트림 오류 발생]", error);
+          emitter.completeWithError(error);
+        },
+        () -> {
+          log.info("[SSE 스트림 종료 콜백 발생] → 무시됨 (event: close로만 종료)");
+        });
+  }
 }

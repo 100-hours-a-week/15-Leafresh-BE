@@ -19,22 +19,26 @@ import java.util.List;
 @Transactional(readOnly = true)
 public class GroupChallengeSearchReadService {
 
-    private final GroupChallengeSearchQueryRepository searchRepository;
+  private final GroupChallengeSearchQueryRepository searchRepository;
 
-    public CursorPaginationResult<GroupChallengeSummaryResponseDto> getGroupChallenges(
-            String input, GroupChallengeCategoryName category, Long cursorId, String cursorTimestamp, int size) {
+  public CursorPaginationResult<GroupChallengeSummaryResponseDto> getGroupChallenges(
+      String input,
+      GroupChallengeCategoryName category,
+      Long cursorId,
+      String cursorTimestamp,
+      int size) {
 
-        String internalCategoryName = (category != null) ? category.name() : null;
+    String internalCategoryName = (category != null) ? category.name() : null;
 
-        List<GroupChallenge> challenges = searchRepository
-                .findByFilter(input, internalCategoryName, cursorId, cursorTimestamp, size + 1);
+    List<GroupChallenge> challenges =
+        searchRepository.findByFilter(
+            input, internalCategoryName, cursorId, cursorTimestamp, size + 1);
 
-        return CursorPaginationHelper.paginateWithTimestamp(
-                challenges,
-                size,
-                GroupChallengeSummaryResponseDto::from,
-                GroupChallengeSummaryResponseDto::id,
-                GroupChallengeSummaryResponseDto::createdAt
-        );
-    }
+    return CursorPaginationHelper.paginateWithTimestamp(
+        challenges,
+        size,
+        GroupChallengeSummaryResponseDto::from,
+        GroupChallengeSummaryResponseDto::id,
+        GroupChallengeSummaryResponseDto::createdAt);
+  }
 }

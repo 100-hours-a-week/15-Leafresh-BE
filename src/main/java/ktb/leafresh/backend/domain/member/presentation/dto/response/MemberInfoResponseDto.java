@@ -11,21 +11,21 @@ import lombok.Getter;
 @AllArgsConstructor
 public class MemberInfoResponseDto {
 
-    private String nickname;
-    private String email;
-    private String profileImageUrl;
-    private Long treeLevelId;
-    private String treeLevelName;
-    private String treeImageUrl;
+  private String nickname;
+  private String email;
+  private String profileImageUrl;
+  private Long treeLevelId;
+  private String treeLevelName;
+  private String treeImageUrl;
 
-    public static MemberInfoResponseDto of(Member member, TreeLevel treeLevel) {
-        return MemberInfoResponseDto.builder()
-                .nickname(member.getNickname())
-                .email(member.getEmail())
-                .profileImageUrl(member.getImageUrl())
-                .treeLevelId(treeLevel.getId())
-                .treeLevelName(treeLevel.getName().name())
-                .treeImageUrl(treeLevel.getImageUrl())
-                .build();
-    }
+  public static MemberInfoResponseDto of(Member member, TreeLevel treeLevel) {
+    return MemberInfoResponseDto.builder()
+        .nickname(member.getNickname())
+        .email(member.getEmail())
+        .profileImageUrl(member.getImageUrl())
+        .treeLevelId(treeLevel.getId())
+        .treeLevelName(treeLevel.getName().name())
+        .treeImageUrl(treeLevel.getImageUrl())
+        .build();
+  }
 }

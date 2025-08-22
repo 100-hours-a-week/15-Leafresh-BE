@@ -16,25 +16,28 @@ import java.time.ZoneId;
 @RequiredArgsConstructor
 public class GroupChallengeFactory {
 
-    private final GroupChallengeCategoryRepository categoryRepository;
+  private final GroupChallengeCategoryRepository categoryRepository;
 
-    public GroupChallenge create(GroupChallengeCreateRequestDto dto, Member member) {
-        GroupChallengeCategory category = categoryRepository.findByName(dto.category())
-                .orElseThrow(() -> new CustomException(ChallengeErrorCode.CHALLENGE_CATEGORY_NOT_FOUND));
+  public GroupChallenge create(GroupChallengeCreateRequestDto dto, Member member) {
+    GroupChallengeCategory category =
+        categoryRepository
+            .findByName(dto.category())
+            .orElseThrow(
+                () -> new CustomException(ChallengeErrorCode.CHALLENGE_CATEGORY_NOT_FOUND));
 
-        return GroupChallenge.builder()
-                .member(member)
-                .category(category)
-                .title(dto.title())
-                .description(dto.description())
-                .imageUrl(dto.thumbnailImageUrl())
-                .startDate(dto.startDate().atZoneSameInstant(ZoneId.of("Asia/Seoul")).toLocalDateTime())
-                .endDate(dto.endDate().atZoneSameInstant(ZoneId.of("Asia/Seoul")).toLocalDateTime())
-                .verificationStartTime(dto.verificationStartTime())
-                .verificationEndTime(dto.verificationEndTime())
-                .maxParticipantCount(dto.maxParticipantCount())
-                .currentParticipantCount(0)
-                .leafReward(200)
-                .build();
-    }
+    return GroupChallenge.builder()
+        .member(member)
+        .category(category)
+        .title(dto.title())
+        .description(dto.description())
+        .imageUrl(dto.thumbnailImageUrl())
+        .startDate(dto.startDate().atZoneSameInstant(ZoneId.of("Asia/Seoul")).toLocalDateTime())
+        .endDate(dto.endDate().atZoneSameInstant(ZoneId.of("Asia/Seoul")).toLocalDateTime())
+        .verificationStartTime(dto.verificationStartTime())
+        .verificationEndTime(dto.verificationEndTime())
+        .maxParticipantCount(dto.maxParticipantCount())
+        .currentParticipantCount(0)
+        .leafReward(200)
+        .build();
+  }
 }

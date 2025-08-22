@@ -8,15 +8,13 @@ import java.util.List;
 
 @Builder
 public record NotificationListResponse(
-        List<NotificationSummaryResponse> notifications,
-        boolean hasNext,
-        CursorInfo cursorInfo
-) {
-    public static NotificationListResponse from(CursorPaginationResult<NotificationSummaryResponse> result) {
-        return NotificationListResponse.builder()
-                .notifications(result.items())
-                .hasNext(result.hasNext())
-                .cursorInfo(result.cursorInfo())
-                .build();
-    }
+    List<NotificationSummaryResponse> notifications, boolean hasNext, CursorInfo cursorInfo) {
+  public static NotificationListResponse from(
+      CursorPaginationResult<NotificationSummaryResponse> result) {
+    return NotificationListResponse.builder()
+        .notifications(result.items())
+        .hasNext(result.hasNext())
+        .cursorInfo(result.cursorInfo())
+        .build();
+  }
 }

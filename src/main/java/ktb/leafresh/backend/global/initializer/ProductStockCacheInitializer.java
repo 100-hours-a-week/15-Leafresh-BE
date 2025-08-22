@@ -16,26 +16,24 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ProductStockCacheInitializer {
 
-    private final ProductRepository productRepository;
-    private final ProductCacheLockFacade productCacheLockFacade;
+  private final ProductRepository productRepository;
+  private final ProductCacheLockFacade productCacheLockFacade;
 
-    /**
-     * 서비스 시작 시 모든 상품 재고를 Redis에 캐싱
-     */
-    @PostConstruct
-    public void initProductStockCache() {
-        List<Product> products = productRepository.findAll();
+  /** 서비스 시작 시 모든 상품 재고를 Redis에 캐싱 */
+  @PostConstruct
+  public void initProductStockCache() {
+    List<Product> products = productRepository.findAll();
 
-        int successCount = 0;
-        for (Product product : products) {
-            try {
-                productCacheLockFacade.cacheProductStock(product.getId(), product.getStock());
-                successCount++;
-            } catch (Exception e) {
-                log.error("[ProductStockCacheInitializer] 캐시 등록 실패 - productId={}", product.getId(), e);
-            }
-        }
-
-        log.info("[ProductStockCacheInitializer] Redis 재고 캐시 초기화 완료 - 총 {}건", successCount);
+    int successCount = 0;
+    for (Product product : products) {
+      try {
+        productCacheLockFacade.cacheProductStock(product.getId(), product.getStock());
+        successCount++;
+      } catch (Exception e) {
+        log.error("[ProductStockCacheInitializer] 캐시 등록 실패 - productId={}", product.getId(), e);
+      }
     }
+
+    log.info("[ProductStockCacheInitializer] Redis 재고 캐시 초기화 완료 - 총 {}건", successCount);
+  }
 }

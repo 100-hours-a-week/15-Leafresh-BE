@@ -17,70 +17,81 @@ import static org.mockito.BDDMockito.*;
 @DisplayName("TreeLevelInitializer 테스트")
 class TreeLevelInitializerTest {
 
-    @Mock
-    private TreeLevelRepository treeLevelRepository;
+  @Mock private TreeLevelRepository treeLevelRepository;
 
-    @InjectMocks
-    private TreeLevelInitializer initializer;
+  @InjectMocks private TreeLevelInitializer initializer;
 
-    @Test
-    @DisplayName("모든 TreeLevel이 저장되어 있지 않으면 저장 로직이 실행된다")
-    void run_whenAllLevelsNotExist_thenSaveEach() {
-        // given
-        for (TreeLevelName name : TreeLevelName.values()) {
-            given(treeLevelRepository.findByName(name)).willReturn(Optional.empty());
-        }
-
-        // when
-        initializer.run();
-
-        // then
-        for (TreeLevelName name : TreeLevelName.values()) {
-            then(treeLevelRepository).should().save(
-                    argThat(treeLevel ->
-                            treeLevel.getName() == name &&
-                                    treeLevel.getMinLeafPoint() >= 0 &&
-                                    treeLevel.getImageUrl().contains(name.name()) &&
-                                    treeLevel.getDescription().contains("단계")
-                    )
-            );
-        }
+  @Test
+  @DisplayName("모든 TreeLevel이 저장되어 있지 않으면 저장 로직이 실행된다")
+  void run_whenAllLevelsNotExist_thenSaveEach() {
+    // given
+    for (TreeLevelName name : TreeLevelName.values()) {
+      given(treeLevelRepository.findByName(name)).willReturn(Optional.empty());
     }
 
-    @Test
-    @DisplayName("일부 TreeLevel만 저장되어 있는 경우 나머지만 저장된다")
-    void run_whenSomeLevelsExist_thenSaveMissingOnly() {
-        // given
-        given(treeLevelRepository.findByName(TreeLevelName.SPROUT)).willReturn(Optional.of(mock(TreeLevel.class)));
-        given(treeLevelRepository.findByName(TreeLevelName.YOUNG)).willReturn(Optional.empty());
-        given(treeLevelRepository.findByName(TreeLevelName.SMALL_TREE)).willReturn(Optional.empty());
-        given(treeLevelRepository.findByName(TreeLevelName.TREE)).willReturn(Optional.of(mock(TreeLevel.class)));
-        given(treeLevelRepository.findByName(TreeLevelName.BIG_TREE)).willReturn(Optional.empty());
+    // when
+    initializer.run();
 
-        // when
-        initializer.run();
+    // then
+    for (TreeLevelName name : TreeLevelName.values()) {
+      then(treeLevelRepository)
+          .should()
+          .save(
+              argThat(
+                  treeLevel ->
+                      treeLevel.getName() == name
+                          && treeLevel.getMinLeafPoint() >= 0
+                          && treeLevel.getImageUrl().contains(name.name())
+                          && treeLevel.getDescription().contains("단계")));
+    }
+  }
 
-        // then
-        then(treeLevelRepository).should(never()).save(argThat(treeLevel -> treeLevel.getName() == TreeLevelName.SPROUT));
-        then(treeLevelRepository).should(never()).save(argThat(treeLevel -> treeLevel.getName() == TreeLevelName.TREE));
+  @Test
+  @DisplayName("일부 TreeLevel만 저장되어 있는 경우 나머지만 저장된다")
+  void run_whenSomeLevelsExist_thenSaveMissingOnly() {
+    // given
+    given(treeLevelRepository.findByName(TreeLevelName.SPROUT))
+        .willReturn(Optional.of(mock(TreeLevel.class)));
+    given(treeLevelRepository.findByName(TreeLevelName.YOUNG)).willReturn(Optional.empty());
+    given(treeLevelRepository.findByName(TreeLevelName.SMALL_TREE)).willReturn(Optional.empty());
+    given(treeLevelRepository.findByName(TreeLevelName.TREE))
+        .willReturn(Optional.of(mock(TreeLevel.class)));
+    given(treeLevelRepository.findByName(TreeLevelName.BIG_TREE)).willReturn(Optional.empty());
 
-        then(treeLevelRepository).should().save(argThat(treeLevel -> treeLevel.getName() == TreeLevelName.YOUNG));
-        then(treeLevelRepository).should().save(argThat(treeLevel -> treeLevel.getName() == TreeLevelName.SMALL_TREE));
-        then(treeLevelRepository).should().save(argThat(treeLevel -> treeLevel.getName() == TreeLevelName.BIG_TREE));
+    // when
+    initializer.run();
+
+    // then
+    then(treeLevelRepository)
+        .should(never())
+        .save(argThat(treeLevel -> treeLevel.getName() == TreeLevelName.SPROUT));
+    then(treeLevelRepository)
+        .should(never())
+        .save(argThat(treeLevel -> treeLevel.getName() == TreeLevelName.TREE));
+
+    then(treeLevelRepository)
+        .should()
+        .save(argThat(treeLevel -> treeLevel.getName() == TreeLevelName.YOUNG));
+    then(treeLevelRepository)
+        .should()
+        .save(argThat(treeLevel -> treeLevel.getName() == TreeLevelName.SMALL_TREE));
+    then(treeLevelRepository)
+        .should()
+        .save(argThat(treeLevel -> treeLevel.getName() == TreeLevelName.BIG_TREE));
+  }
+
+  @Test
+  @DisplayName("모든 TreeLevel이 이미 저장되어 있는 경우 저장하지 않는다")
+  void run_whenAllLevelsExist_thenDoNothing() {
+    // given
+    for (TreeLevelName name : TreeLevelName.values()) {
+      given(treeLevelRepository.findByName(name)).willReturn(Optional.of(mock(TreeLevel.class)));
     }
 
-    @Test
-    @DisplayName("모든 TreeLevel이 이미 저장되어 있는 경우 저장하지 않는다")
-    void run_whenAllLevelsExist_thenDoNothing() {
-        // given
-        for (TreeLevelName name : TreeLevelName.values()) {
-            given(treeLevelRepository.findByName(name)).willReturn(Optional.of(mock(TreeLevel.class)));
-        }
+    // when
+    initializer.run();
 
-        // when
-        initializer.run();
-
-        // then
-        then(treeLevelRepository).should(never()).save(any());
-    }
+    // then
+    then(treeLevelRepository).should(never()).save(any());
+  }
 }
