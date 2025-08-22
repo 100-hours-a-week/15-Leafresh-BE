@@ -47,7 +47,7 @@ server:
   forward-headers-strategy: framework
 
 jwt:
-  secret: dummy-secret-for-documentation-generation-only-not-for-production-use
+  secret: dummy-secret-for-documentation-generation-only-not-for-production-use-with-minimum-256-bits-length-required
 
 kakao:
   client-id: dummy
