@@ -10,19 +10,20 @@ import org.springframework.stereotype.Repository;
 @RequiredArgsConstructor
 public class MemberLeafPointQueryRepositoryImpl implements MemberLeafPointQueryRepository {
 
-    private final EntityManager em;
+  private final EntityManager em;
 
-    @Override
-    public int getTotalLeafPointSum() {
-        JPAQueryFactory query = new JPAQueryFactory(em);
-        QMember member = QMember.member;
+  @Override
+  public int getTotalLeafPointSum() {
+    JPAQueryFactory query = new JPAQueryFactory(em);
+    QMember member = QMember.member;
 
-        Integer sum = query
-                .select(member.totalLeafPoints.sum())
-                .from(member)
-                .where(member.deletedAt.isNull())
-                .fetchOne();
+    Integer sum =
+        query
+            .select(member.totalLeafPoints.sum())
+            .from(member)
+            .where(member.deletedAt.isNull())
+            .fetchOne();
 
-        return sum != null ? sum : 0;
-    }
+    return sum != null ? sum : 0;
+  }
 }

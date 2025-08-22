@@ -22,72 +22,73 @@ import static org.mockito.Mockito.*;
 
 class LeafPointReadServiceTest {
 
-    @Mock private StringRedisTemplate redisTemplate;
-    @Mock private ValueOperations<String, String> valueOperations;
-    @Mock private MemberLeafPointQueryRepository memberLeafPointQueryRepository;
+  @Mock private StringRedisTemplate redisTemplate;
+  @Mock private ValueOperations<String, String> valueOperations;
+  @Mock private MemberLeafPointQueryRepository memberLeafPointQueryRepository;
 
-    @InjectMocks private LeafPointReadService leafPointReadService;
+  @InjectMocks private LeafPointReadService leafPointReadService;
 
-    private static final String KEY = "leafresh:totalLeafPoints:sum";
+  private static final String KEY = "leafresh:totalLeafPoints:sum";
 
-    @BeforeEach
-    void setUp() {
-        MockitoAnnotations.openMocks(this);
-        when(redisTemplate.opsForValue()).thenReturn(valueOperations);
-    }
+  @BeforeEach
+  void setUp() {
+    MockitoAnnotations.openMocks(this);
+    when(redisTemplate.opsForValue()).thenReturn(valueOperations);
+  }
 
-    @Test
-    @DisplayName("Redis 캐시가 존재하면 DB 조회 없이 반환")
-    void getTotalLeafPoints_cacheHit() {
-        // given
-        given(valueOperations.get(KEY)).willReturn("12345");
+  @Test
+  @DisplayName("Redis 캐시가 존재하면 DB 조회 없이 반환")
+  void getTotalLeafPoints_cacheHit() {
+    // given
+    given(valueOperations.get(KEY)).willReturn("12345");
 
-        // when
-        TotalLeafPointResponseDto response = leafPointReadService.getTotalLeafPoints();
+    // when
+    TotalLeafPointResponseDto response = leafPointReadService.getTotalLeafPoints();
 
-        // then
-        assertThat(response).isNotNull();
-        assertThat(response.count()).isEqualTo(12345);
-        verify(memberLeafPointQueryRepository, never()).getTotalLeafPointSum();
-    }
+    // then
+    assertThat(response).isNotNull();
+    assertThat(response.count()).isEqualTo(12345);
+    verify(memberLeafPointQueryRepository, never()).getTotalLeafPointSum();
+  }
 
-    @Test
-    @DisplayName("Redis 캐시가 없으면 DB에서 조회 후 캐시 저장")
-    void getTotalLeafPoints_cacheMiss_thenQueryDb() {
-        // given
-        given(valueOperations.get(KEY)).willReturn(null);
-        given(memberLeafPointQueryRepository.getTotalLeafPointSum()).willReturn(54321);
+  @Test
+  @DisplayName("Redis 캐시가 없으면 DB에서 조회 후 캐시 저장")
+  void getTotalLeafPoints_cacheMiss_thenQueryDb() {
+    // given
+    given(valueOperations.get(KEY)).willReturn(null);
+    given(memberLeafPointQueryRepository.getTotalLeafPointSum()).willReturn(54321);
 
-        // when
-        TotalLeafPointResponseDto response = leafPointReadService.getTotalLeafPoints();
+    // when
+    TotalLeafPointResponseDto response = leafPointReadService.getTotalLeafPoints();
 
-        // then
-        assertThat(response.count()).isEqualTo(54321);
-        verify(valueOperations).set(KEY, "54321", Duration.ofHours(24));
-    }
+    // then
+    assertThat(response.count()).isEqualTo(54321);
+    verify(valueOperations).set(KEY, "54321", Duration.ofHours(24));
+  }
 
-    @Test
-    @DisplayName("Redis 값이 숫자가 아니면 예외 발생")
-    void getTotalLeafPoints_invalidRedisValue() {
-        // given
-        given(valueOperations.get(KEY)).willReturn("invalid_number");
+  @Test
+  @DisplayName("Redis 값이 숫자가 아니면 예외 발생")
+  void getTotalLeafPoints_invalidRedisValue() {
+    // given
+    given(valueOperations.get(KEY)).willReturn("invalid_number");
 
-        // then
-        assertThatThrownBy(() -> leafPointReadService.getTotalLeafPoints())
-                .isInstanceOf(CustomException.class)
-                .hasMessageContaining(LeafPointErrorCode.REDIS_FAILURE.getMessage());
-    }
+    // then
+    assertThatThrownBy(() -> leafPointReadService.getTotalLeafPoints())
+        .isInstanceOf(CustomException.class)
+        .hasMessageContaining(LeafPointErrorCode.REDIS_FAILURE.getMessage());
+  }
 
-    @Test
-    @DisplayName("DB 조회 중 알 수 없는 예외 발생 시 CustomException 반환")
-    void getTotalLeafPoints_dbQueryFails() {
-        // given
-        given(valueOperations.get(KEY)).willReturn(null);
-        given(memberLeafPointQueryRepository.getTotalLeafPointSum()).willThrow(new RuntimeException("DB connection failed"));
+  @Test
+  @DisplayName("DB 조회 중 알 수 없는 예외 발생 시 CustomException 반환")
+  void getTotalLeafPoints_dbQueryFails() {
+    // given
+    given(valueOperations.get(KEY)).willReturn(null);
+    given(memberLeafPointQueryRepository.getTotalLeafPointSum())
+        .willThrow(new RuntimeException("DB connection failed"));
 
-        // then
-        assertThatThrownBy(() -> leafPointReadService.getTotalLeafPoints())
-                .isInstanceOf(CustomException.class)
-                .hasMessageContaining(LeafPointErrorCode.DB_QUERY_FAILED.getMessage());
-    }
+    // then
+    assertThatThrownBy(() -> leafPointReadService.getTotalLeafPoints())
+        .isInstanceOf(CustomException.class)
+        .hasMessageContaining(LeafPointErrorCode.DB_QUERY_FAILED.getMessage());
+  }
 }

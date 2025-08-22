@@ -17,28 +17,26 @@ import java.util.List;
 @RequiredArgsConstructor
 public class TimedealStockCacheInitializer {
 
-    private final TimedealPolicyRepository timedealPolicyRepository;
-    private final ProductCacheLockFacade productCacheLockFacade;
+  private final TimedealPolicyRepository timedealPolicyRepository;
+  private final ProductCacheLockFacade productCacheLockFacade;
 
-    @PostConstruct
-    public void initTimedealStockCache() {
-        List<TimedealPolicy> validPolicies = timedealPolicyRepository.findAllValidWithProduct(LocalDateTime.now());
+  @PostConstruct
+  public void initTimedealStockCache() {
+    List<TimedealPolicy> validPolicies =
+        timedealPolicyRepository.findAllValidWithProduct(LocalDateTime.now());
 
-        int successCount = 0;
-        for (TimedealPolicy policy : validPolicies) {
-            try {
-                productCacheLockFacade.cacheTimedealStock(
-                        policy.getId(),
-                        policy.getStock(),
-                        policy.getEndTime()
-                );
-                productCacheLockFacade.updateSingleTimedealCache(policy);
-                successCount++;
-            } catch (Exception e) {
-                log.error("[TimedealStockCacheInitializer] 캐시 등록 실패 - timedealId={}", policy.getId(), e);
-            }
-        }
-
-        log.info("[TimedealStockCacheInitializer] Redis 타임딜 재고 캐시 초기화 완료 - 총 {}건", successCount);
+    int successCount = 0;
+    for (TimedealPolicy policy : validPolicies) {
+      try {
+        productCacheLockFacade.cacheTimedealStock(
+            policy.getId(), policy.getStock(), policy.getEndTime());
+        productCacheLockFacade.updateSingleTimedealCache(policy);
+        successCount++;
+      } catch (Exception e) {
+        log.error("[TimedealStockCacheInitializer] 캐시 등록 실패 - timedealId={}", policy.getId(), e);
+      }
     }
+
+    log.info("[TimedealStockCacheInitializer] Redis 타임딜 재고 캐시 초기화 완료 - 총 {}건", successCount);
+  }
 }

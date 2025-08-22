@@ -6,7 +6,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public interface TimedealProductQueryRepository {
-    List<TimedealProductSummaryResponseDto> findTimedeals(LocalDateTime now, LocalDateTime oneWeekLater);
+  List<TimedealProductSummaryResponseDto> findTimedeals(
+      LocalDateTime now, LocalDateTime oneWeekLater);
 
-    List<TimedealProductSummaryResponseDto> findByIds(List<Long> ids);
+  List<TimedealProductSummaryResponseDto> findByIds(List<Long> ids);
 }

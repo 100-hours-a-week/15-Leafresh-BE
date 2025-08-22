@@ -6,5 +6,5 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public class FeedbackResponseDto {
-    private final String content; // null 가능
+  private final String content; // null 가능
 }

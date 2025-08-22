@@ -6,5 +6,5 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public class MemberLeafPointResponseDto {
-    private Integer currentLeafPoints;
+  private Integer currentLeafPoints;
 }

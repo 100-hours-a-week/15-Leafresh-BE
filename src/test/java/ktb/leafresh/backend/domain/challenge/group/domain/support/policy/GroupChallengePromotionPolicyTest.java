@@ -27,54 +27,58 @@ import static org.mockito.BDDMockito.*;
 @DisplayName("GroupChallengePromotionPolicy 테스트")
 class GroupChallengePromotionPolicyTest {
 
-    @Mock
-    private GroupChallengeParticipantRecordRepository participantRepository;
+  @Mock private GroupChallengeParticipantRecordRepository participantRepository;
 
-    @InjectMocks
-    private GroupChallengePromotionPolicy promotionPolicy;
+  @InjectMocks private GroupChallengePromotionPolicy promotionPolicy;
 
-    @Test
-    @DisplayName("대기자 존재 시 첫 대기자를 ACTIVE로 승격하고 인원 수 증가")
-    void promoteNextWaitingParticipant_withWaiting_promotesAndIncreasesCount() {
-        // given
-        Member member = MemberFixture.of();
-        GroupChallengeCategory category = GroupChallengeCategoryFixture.defaultCategory();
-        GroupChallenge challenge = GroupChallengeFixture.of(member, category);
-        int originalCount = challenge.getCurrentParticipantCount();
+  @Test
+  @DisplayName("대기자 존재 시 첫 대기자를 ACTIVE로 승격하고 인원 수 증가")
+  void promoteNextWaitingParticipant_withWaiting_promotesAndIncreasesCount() {
+    // given
+    Member member = MemberFixture.of();
+    GroupChallengeCategory category = GroupChallengeCategoryFixture.defaultCategory();
+    GroupChallenge challenge = GroupChallengeFixture.of(member, category);
+    int originalCount = challenge.getCurrentParticipantCount();
 
-        GroupChallengeParticipantRecord waitingParticipant =
-                GroupChallengeParticipantRecordFixture.of(challenge, member, ParticipantStatus.WAITING);
-        ReflectionTestUtils.setField(waitingParticipant, "groupChallenge", challenge);
+    GroupChallengeParticipantRecord waitingParticipant =
+        GroupChallengeParticipantRecordFixture.of(challenge, member, ParticipantStatus.WAITING);
+    ReflectionTestUtils.setField(waitingParticipant, "groupChallenge", challenge);
 
-        given(participantRepository.findFirstByGroupChallengeIdAndStatusOrderByCreatedAtAsc(
-                challenge.getId(), ParticipantStatus.WAITING
-        )).willReturn(Optional.of(waitingParticipant));
+    given(
+            participantRepository.findFirstByGroupChallengeIdAndStatusOrderByCreatedAtAsc(
+                challenge.getId(), ParticipantStatus.WAITING))
+        .willReturn(Optional.of(waitingParticipant));
 
-        // when
-        promotionPolicy.promoteNextWaitingParticipant(challenge.getId());
+    // when
+    promotionPolicy.promoteNextWaitingParticipant(challenge.getId());
 
-        // then
-        assertThat(waitingParticipant.getStatus()).isEqualTo(ParticipantStatus.ACTIVE);
-        assertThat(challenge.getCurrentParticipantCount()).isEqualTo(originalCount + 1);
+    // then
+    assertThat(waitingParticipant.getStatus()).isEqualTo(ParticipantStatus.ACTIVE);
+    assertThat(challenge.getCurrentParticipantCount()).isEqualTo(originalCount + 1);
 
-        then(participantRepository).should(times(1))
-                .findFirstByGroupChallengeIdAndStatusOrderByCreatedAtAsc(challenge.getId(), ParticipantStatus.WAITING);
-    }
+    then(participantRepository)
+        .should(times(1))
+        .findFirstByGroupChallengeIdAndStatusOrderByCreatedAtAsc(
+            challenge.getId(), ParticipantStatus.WAITING);
+  }
 
-    @Test
-    @DisplayName("대기자가 없으면 아무 동작도 하지 않음")
-    void promoteNextWaitingParticipant_withoutWaiting_doesNothing() {
-        // given
-        Long challengeId = 1L;
-        given(participantRepository.findFirstByGroupChallengeIdAndStatusOrderByCreatedAtAsc(
-                challengeId, ParticipantStatus.WAITING
-        )).willReturn(Optional.empty());
+  @Test
+  @DisplayName("대기자가 없으면 아무 동작도 하지 않음")
+  void promoteNextWaitingParticipant_withoutWaiting_doesNothing() {
+    // given
+    Long challengeId = 1L;
+    given(
+            participantRepository.findFirstByGroupChallengeIdAndStatusOrderByCreatedAtAsc(
+                challengeId, ParticipantStatus.WAITING))
+        .willReturn(Optional.empty());
 
-        // when
-        promotionPolicy.promoteNextWaitingParticipant(challengeId);
+    // when
+    promotionPolicy.promoteNextWaitingParticipant(challengeId);
 
-        // then
-        then(participantRepository).should(times(1))
-                .findFirstByGroupChallengeIdAndStatusOrderByCreatedAtAsc(challengeId, ParticipantStatus.WAITING);
-    }
+    // then
+    then(participantRepository)
+        .should(times(1))
+        .findFirstByGroupChallengeIdAndStatusOrderByCreatedAtAsc(
+            challengeId, ParticipantStatus.WAITING);
+  }
 }

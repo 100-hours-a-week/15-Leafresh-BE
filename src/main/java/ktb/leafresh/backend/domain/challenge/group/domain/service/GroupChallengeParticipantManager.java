@@ -18,58 +18,67 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class GroupChallengeParticipantManager {
 
-    private final GroupChallengeRepository groupChallengeRepository;
-    private final GroupChallengeParticipantRecordRepository participantRepository;
-    private final MemberRepository memberRepository;
-    private final GroupChallengeParticipationValidator validator;
+  private final GroupChallengeRepository groupChallengeRepository;
+  private final GroupChallengeParticipantRecordRepository participantRepository;
+  private final MemberRepository memberRepository;
+  private final GroupChallengeParticipationValidator validator;
 
-    public Long participate(Long memberId, Long challengeId) {
-        Member member = findMember(memberId);
-        GroupChallenge challenge = findChallenge(challengeId);
+  public Long participate(Long memberId, Long challengeId) {
+    Member member = findMember(memberId);
+    GroupChallenge challenge = findChallenge(challengeId);
 
-        validator.validateNotAlreadyParticipated(challengeId, memberId);
+    validator.validateNotAlreadyParticipated(challengeId, memberId);
 
-        boolean isFull = challenge.isFull();
-        ParticipantStatus status = isFull ? ParticipantStatus.WAITING : ParticipantStatus.ACTIVE;
+    boolean isFull = challenge.isFull();
+    ParticipantStatus status = isFull ? ParticipantStatus.WAITING : ParticipantStatus.ACTIVE;
 
-        if (status == ParticipantStatus.ACTIVE) {
-            challenge.increaseParticipantCount();
-        }
-
-        GroupChallengeParticipantRecord record = GroupChallengeParticipantRecord.create(member, challenge, status);
-        participantRepository.save(record);
-
-        return record.getId();
+    if (status == ParticipantStatus.ACTIVE) {
+      challenge.increaseParticipantCount();
     }
 
-    public void drop(Long memberId, Long challengeId) {
-        GroupChallenge challenge = groupChallengeRepository.findById(challengeId)
-                .orElseThrow(() -> new CustomException(ChallengeErrorCode.GROUP_CHALLENGE_NOT_FOUND));
+    GroupChallengeParticipantRecord record =
+        GroupChallengeParticipantRecord.create(member, challenge, status);
+    participantRepository.save(record);
 
-        if (challenge.isDeleted()) {
-            throw new CustomException(ChallengeErrorCode.GROUP_CHALLENGE_ALREADY_DELETED);
-        }
+    return record.getId();
+  }
 
-        GroupChallengeParticipantRecord record = participantRepository
-                .findByGroupChallengeIdAndMemberIdAndDeletedAtIsNull(challengeId, memberId)
-                .orElseThrow(() -> new CustomException(ChallengeErrorCode.GROUP_CHALLENGE_PARTICIPATION_NOT_FOUND));
+  public void drop(Long memberId, Long challengeId) {
+    GroupChallenge challenge =
+        groupChallengeRepository
+            .findById(challengeId)
+            .orElseThrow(() -> new CustomException(ChallengeErrorCode.GROUP_CHALLENGE_NOT_FOUND));
 
-        validator.validateDroppable(record);
-
-        if (record.isActive()) {
-            challenge.decreaseParticipantCount();
-        }
-
-        record.changeStatus(ParticipantStatus.DROPPED);
+    if (challenge.isDeleted()) {
+      throw new CustomException(ChallengeErrorCode.GROUP_CHALLENGE_ALREADY_DELETED);
     }
 
-    private Member findMember(Long memberId) {
-        return memberRepository.findById(memberId)
-                .orElseThrow(() -> new CustomException(MemberErrorCode.MEMBER_NOT_FOUND));
+    GroupChallengeParticipantRecord record =
+        participantRepository
+            .findByGroupChallengeIdAndMemberIdAndDeletedAtIsNull(challengeId, memberId)
+            .orElseThrow(
+                () ->
+                    new CustomException(
+                        ChallengeErrorCode.GROUP_CHALLENGE_PARTICIPATION_NOT_FOUND));
+
+    validator.validateDroppable(record);
+
+    if (record.isActive()) {
+      challenge.decreaseParticipantCount();
     }
 
-    private GroupChallenge findChallenge(Long challengeId) {
-        return groupChallengeRepository.findById(challengeId)
-                .orElseThrow(() -> new CustomException(ChallengeErrorCode.GROUP_CHALLENGE_NOT_FOUND));
-    }
+    record.changeStatus(ParticipantStatus.DROPPED);
+  }
+
+  private Member findMember(Long memberId) {
+    return memberRepository
+        .findById(memberId)
+        .orElseThrow(() -> new CustomException(MemberErrorCode.MEMBER_NOT_FOUND));
+  }
+
+  private GroupChallenge findChallenge(Long challengeId) {
+    return groupChallengeRepository
+        .findById(challengeId)
+        .orElseThrow(() -> new CustomException(ChallengeErrorCode.GROUP_CHALLENGE_NOT_FOUND));
+  }
 }

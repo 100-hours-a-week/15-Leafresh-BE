@@ -12,15 +12,15 @@ import java.io.IOException;
 @Profile("local")
 public class FakeChatbotSseStreamHandler implements ChatbotSseStreamHandler {
 
-    @Override
-    public void streamToEmitter(SseEmitter emitter, String uriWithQueryParams) {
-        try {
-            emitter.send("event: challenge\ndata: {\"message\":\"fake1\"}\n\n");
-            emitter.send("event: challenge\ndata: {\"message\":\"fake2\"}\n\n");
-            emitter.send("event: close\ndata: {\"message\":\"모든 챌린지 추천 완료\"}\n\n");
-            emitter.complete();
-        } catch (IOException e) {
-            emitter.completeWithError(e);
-        }
+  @Override
+  public void streamToEmitter(SseEmitter emitter, String uriWithQueryParams) {
+    try {
+      emitter.send("event: challenge\ndata: {\"message\":\"fake1\"}\n\n");
+      emitter.send("event: challenge\ndata: {\"message\":\"fake2\"}\n\n");
+      emitter.send("event: close\ndata: {\"message\":\"모든 챌린지 추천 완료\"}\n\n");
+      emitter.complete();
+    } catch (IOException e) {
+      emitter.completeWithError(e);
     }
+  }
 }

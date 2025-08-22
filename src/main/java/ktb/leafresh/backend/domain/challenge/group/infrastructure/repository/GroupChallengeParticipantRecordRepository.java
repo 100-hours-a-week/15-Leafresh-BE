@@ -10,18 +10,24 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
-public interface GroupChallengeParticipantRecordRepository extends JpaRepository<GroupChallengeParticipantRecord, Long> {
-    boolean existsByGroupChallengeIdAndDeletedAtIsNull(Long groupChallengeId);
+public interface GroupChallengeParticipantRecordRepository
+    extends JpaRepository<GroupChallengeParticipantRecord, Long> {
+  boolean existsByGroupChallengeIdAndDeletedAtIsNull(Long groupChallengeId);
 
-    boolean existsByGroupChallengeIdAndMemberIdAndDeletedAtIsNull(Long groupChallengeId, Long memberId);
+  boolean existsByGroupChallengeIdAndMemberIdAndDeletedAtIsNull(
+      Long groupChallengeId, Long memberId);
 
-    Optional<GroupChallengeParticipantRecord> findFirstByGroupChallengeIdAndStatusOrderByCreatedAtAsc(Long challengeId, ParticipantStatus status);
+  Optional<GroupChallengeParticipantRecord> findFirstByGroupChallengeIdAndStatusOrderByCreatedAtAsc(
+      Long challengeId, ParticipantStatus status);
 
-    Optional<GroupChallengeParticipantRecord> findByGroupChallengeIdAndMemberIdAndDeletedAtIsNull(Long groupChallengeId, Long memberId);
+  Optional<GroupChallengeParticipantRecord> findByGroupChallengeIdAndMemberIdAndDeletedAtIsNull(
+      Long groupChallengeId, Long memberId);
 
-    Optional<GroupChallengeParticipantRecord> findByMemberIdAndGroupChallengeIdAndDeletedAtIsNull(Long memberId, Long challengeId);
+  Optional<GroupChallengeParticipantRecord> findByMemberIdAndGroupChallengeIdAndDeletedAtIsNull(
+      Long memberId, Long challengeId);
 
-    @Query("""
+  @Query(
+      """
     SELECT CASE WHEN COUNT(pr) > 0 THEN true ELSE false END
     FROM GroupChallengeParticipantRecord pr
     WHERE pr.member.id = :memberId
@@ -29,9 +35,10 @@ public interface GroupChallengeParticipantRecordRepository extends JpaRepository
     AND pr.status = 'ACTIVE'
     AND pr.deletedAt IS NULL
     """)
-    boolean existsSuccessInPastWeek(@Param("memberId") Long memberId, @Param("oneWeekAgo") LocalDateTime oneWeekAgo);
+  boolean existsSuccessInPastWeek(
+      @Param("memberId") Long memberId, @Param("oneWeekAgo") LocalDateTime oneWeekAgo);
 
-    List<GroupChallengeParticipantRecord> findAllByMemberId(Long memberId);
+  List<GroupChallengeParticipantRecord> findAllByMemberId(Long memberId);
 
-    boolean existsByMember_IdAndGroupChallenge_Id(Long memberId, Long groupChallengeId);
+  boolean existsByMember_IdAndGroupChallenge_Id(Long memberId, Long groupChallengeId);
 }

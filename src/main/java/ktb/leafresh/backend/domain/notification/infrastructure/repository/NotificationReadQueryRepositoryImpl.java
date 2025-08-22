@@ -14,19 +14,21 @@ import java.util.List;
 @RequiredArgsConstructor
 public class NotificationReadQueryRepositoryImpl implements NotificationReadQueryRepository {
 
-    private final JPAQueryFactory queryFactory;
-    private final QNotification n = QNotification.notification;
+  private final JPAQueryFactory queryFactory;
+  private final QNotification n = QNotification.notification;
 
-    @Override
-    public List<Notification> findAllWithCursorAndMemberId(LocalDateTime cursorTimestamp, Long cursorId, int size, Long memberId) {
-        return queryFactory.selectFrom(n)
-                .where(
-                        n.deletedAt.isNull(),
-                        n.member.id.eq(memberId),
-                        CursorConditionUtils.ltCursorWithTimestamp(n.createdAt, n.id, cursorTimestamp, cursorId)
-                )
-                .orderBy(n.createdAt.desc(), n.id.desc())
-                .limit(size)
-                .fetch();
-    }
+  @Override
+  public List<Notification> findAllWithCursorAndMemberId(
+      LocalDateTime cursorTimestamp, Long cursorId, int size, Long memberId) {
+    return queryFactory
+        .selectFrom(n)
+        .where(
+            n.deletedAt.isNull(),
+            n.member.id.eq(memberId),
+            CursorConditionUtils.ltCursorWithTimestamp(
+                n.createdAt, n.id, cursorTimestamp, cursorId))
+        .orderBy(n.createdAt.desc(), n.id.desc())
+        .limit(size)
+        .fetch();
+  }
 }

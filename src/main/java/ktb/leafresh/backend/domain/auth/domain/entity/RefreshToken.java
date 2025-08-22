@@ -18,10 +18,10 @@ import lombok.Builder;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class RefreshToken {
 
-    @Id
-    @Column(name = "rt_key", length = 255, nullable = false)
-    private String rtKey;
+  @Id
+  @Column(name = "rt_key", length = 255, nullable = false)
+  private String rtKey;
 
-    @Column(name = "rt_value", length = 512, nullable = false)
-    private String rtValue;
+  @Column(name = "rt_value", length = 512, nullable = false)
+  private String rtValue;
 }

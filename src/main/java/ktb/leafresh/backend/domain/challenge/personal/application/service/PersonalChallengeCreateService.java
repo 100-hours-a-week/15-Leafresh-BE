@@ -15,19 +15,19 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class PersonalChallengeCreateService {
 
-    private final PersonalChallengeDomainValidator validator;
-    private final PersonalChallengeFactory factory;
-    private final PersonalChallengeExampleImageAssembler assembler;
-    private final PersonalChallengeRepository repository;
+  private final PersonalChallengeDomainValidator validator;
+  private final PersonalChallengeFactory factory;
+  private final PersonalChallengeExampleImageAssembler assembler;
+  private final PersonalChallengeRepository repository;
 
-    @Transactional
-    public PersonalChallengeCreateResponseDto create(PersonalChallengeCreateRequestDto dto) {
-        validator.validate(dto.dayOfWeek());
+  @Transactional
+  public PersonalChallengeCreateResponseDto create(PersonalChallengeCreateRequestDto dto) {
+    validator.validate(dto.dayOfWeek());
 
-        PersonalChallenge challenge = factory.create(dto);
-        assembler.assemble(challenge, dto);
+    PersonalChallenge challenge = factory.create(dto);
+    assembler.assemble(challenge, dto);
 
-        repository.save(challenge);
-        return new PersonalChallengeCreateResponseDto(challenge.getId());
-    }
+    repository.save(challenge);
+    return new PersonalChallengeCreateResponseDto(challenge.getId());
+  }
 }

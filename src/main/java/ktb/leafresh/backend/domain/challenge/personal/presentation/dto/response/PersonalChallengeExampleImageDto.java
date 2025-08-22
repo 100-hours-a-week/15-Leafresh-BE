@@ -6,19 +6,14 @@ import lombok.Builder;
 
 @Builder
 public record PersonalChallengeExampleImageDto(
-        Long id,
-        String imageUrl,
-        String description,
-        int sequenceNumber,
-        String type
-) {
-    public static PersonalChallengeExampleImageDto from(PersonalChallengeExampleImage image) {
-        return PersonalChallengeExampleImageDto.builder()
-                .id(image.getId())
-                .imageUrl(image.getImageUrl())
-                .description(image.getDescription())
-                .sequenceNumber(image.getSequenceNumber())
-                .type(image.getType().name())
-                .build();
-    }
+    Long id, String imageUrl, String description, int sequenceNumber, String type) {
+  public static PersonalChallengeExampleImageDto from(PersonalChallengeExampleImage image) {
+    return PersonalChallengeExampleImageDto.builder()
+        .id(image.getId())
+        .imageUrl(image.getImageUrl())
+        .description(image.getDescription())
+        .sequenceNumber(image.getSequenceNumber())
+        .type(image.getType().name())
+        .build();
+  }
 }

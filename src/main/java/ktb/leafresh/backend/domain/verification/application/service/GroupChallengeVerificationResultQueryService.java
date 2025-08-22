@@ -16,23 +16,24 @@ import java.time.ZoneOffset;
 @RequiredArgsConstructor
 public class GroupChallengeVerificationResultQueryService {
 
-    private final GroupChallengeVerificationRepository verificationRepository;
+  private final GroupChallengeVerificationRepository verificationRepository;
 
-    @Transactional(readOnly = true)
-    public ChallengeStatus getLatestStatus(Long memberId, Long challengeId) {
-        ZoneId kst = ZoneId.of("Asia/Seoul");
+  @Transactional(readOnly = true)
+  public ChallengeStatus getLatestStatus(Long memberId, Long challengeId) {
+    ZoneId kst = ZoneId.of("Asia/Seoul");
 
-        LocalDate today = LocalDate.now(kst);
-        LocalDateTime start = today.atStartOfDay();
-        LocalDateTime end = today.atTime(23, 59, 59);
+    LocalDate today = LocalDate.now(kst);
+    LocalDateTime start = today.atStartOfDay();
+    LocalDateTime end = today.atTime(23, 59, 59);
 
-        LocalDateTime startUtc = start.atZone(kst).withZoneSameInstant(ZoneOffset.UTC).toLocalDateTime();
-        LocalDateTime endUtc = end.atZone(kst).withZoneSameInstant(ZoneOffset.UTC).toLocalDateTime();
+    LocalDateTime startUtc =
+        start.atZone(kst).withZoneSameInstant(ZoneOffset.UTC).toLocalDateTime();
+    LocalDateTime endUtc = end.atZone(kst).withZoneSameInstant(ZoneOffset.UTC).toLocalDateTime();
 
-        return verificationRepository
-                .findTopByParticipantRecord_Member_IdAndParticipantRecord_GroupChallenge_IdAndCreatedAtBetween(
-                        memberId, challengeId, startUtc, endUtc)
-                .map(GroupChallengeVerification::getStatus)
-                .orElse(ChallengeStatus.NOT_SUBMITTED);
-    }
+    return verificationRepository
+        .findTopByParticipantRecord_Member_IdAndParticipantRecord_GroupChallenge_IdAndCreatedAtBetween(
+            memberId, challengeId, startUtc, endUtc)
+        .map(GroupChallengeVerification::getStatus)
+        .orElse(ChallengeStatus.NOT_SUBMITTED);
+  }
 }

@@ -15,42 +15,40 @@ import static org.mockito.BDDMockito.*;
 @ExtendWith(MockitoExtension.class)
 class MemberNicknameCheckServiceTest {
 
-    @Mock
-    private MemberRepository memberRepository;
+  @Mock private MemberRepository memberRepository;
 
-    @InjectMocks
-    private MemberNicknameCheckService memberNicknameCheckService;
+  @InjectMocks private MemberNicknameCheckService memberNicknameCheckService;
 
-    @Nested
-    @DisplayName("isDuplicated")
-    class IsDuplicated {
+  @Nested
+  @DisplayName("isDuplicated")
+  class IsDuplicated {
 
-        @Test
-        @DisplayName("닉네임이 중복된 경우 true를 반환한다.")
-        void isDuplicated_withExistingNickname_returnsTrue() {
-            // given
-            String nickname = "테스터";
-            given(memberRepository.existsByNickname(nickname)).willReturn(true);
+    @Test
+    @DisplayName("닉네임이 중복된 경우 true를 반환한다.")
+    void isDuplicated_withExistingNickname_returnsTrue() {
+      // given
+      String nickname = "테스터";
+      given(memberRepository.existsByNickname(nickname)).willReturn(true);
 
-            // when
-            boolean result = memberNicknameCheckService.isDuplicated(nickname);
+      // when
+      boolean result = memberNicknameCheckService.isDuplicated(nickname);
 
-            // then
-            assertThat(result).isTrue();
-        }
-
-        @Test
-        @DisplayName("닉네임이 중복되지 않은 경우 false를 반환한다.")
-        void isDuplicated_withUniqueNickname_returnsFalse() {
-            // given
-            String nickname = "신규닉네임";
-            given(memberRepository.existsByNickname(nickname)).willReturn(false);
-
-            // when
-            boolean result = memberNicknameCheckService.isDuplicated(nickname);
-
-            // then
-            assertThat(result).isFalse();
-        }
+      // then
+      assertThat(result).isTrue();
     }
+
+    @Test
+    @DisplayName("닉네임이 중복되지 않은 경우 false를 반환한다.")
+    void isDuplicated_withUniqueNickname_returnsFalse() {
+      // given
+      String nickname = "신규닉네임";
+      given(memberRepository.existsByNickname(nickname)).willReturn(false);
+
+      // when
+      boolean result = memberNicknameCheckService.isDuplicated(nickname);
+
+      // then
+      assertThat(result).isFalse();
+    }
+  }
 }

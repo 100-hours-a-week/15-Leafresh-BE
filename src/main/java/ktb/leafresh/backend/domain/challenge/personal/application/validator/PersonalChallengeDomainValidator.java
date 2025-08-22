@@ -11,12 +11,12 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class PersonalChallengeDomainValidator {
 
-    private final PersonalChallengeRepository repository;
+  private final PersonalChallengeRepository repository;
 
-    public void validate(DayOfWeek dayOfWeek) {
-        int count = repository.countByDayOfWeek(dayOfWeek);
-        if (count >= 3) {
-            throw new CustomException(ChallengeErrorCode.EXCEEDS_DAILY_PERSONAL_CHALLENGE_LIMIT);
-        }
+  public void validate(DayOfWeek dayOfWeek) {
+    int count = repository.countByDayOfWeek(dayOfWeek);
+    if (count >= 3) {
+      throw new CustomException(ChallengeErrorCode.EXCEEDS_DAILY_PERSONAL_CHALLENGE_LIMIT);
     }
+  }
 }

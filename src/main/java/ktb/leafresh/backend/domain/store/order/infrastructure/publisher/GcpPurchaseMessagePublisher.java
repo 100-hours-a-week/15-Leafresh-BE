@@ -18,33 +18,30 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class GcpPurchaseMessagePublisher implements PurchaseMessagePublisher {
 
-    private final Publisher publisher;
-    private final ObjectMapper objectMapper;
+  private final Publisher publisher;
+  private final ObjectMapper objectMapper;
 
-    public GcpPurchaseMessagePublisher(
-            @Qualifier("purchasePubSubPublisher") Publisher publisher,
-            ObjectMapper objectMapper
-    ) {
-        this.publisher = publisher;
-        this.objectMapper = objectMapper;
+  public GcpPurchaseMessagePublisher(
+      @Qualifier("purchasePubSubPublisher") Publisher publisher, ObjectMapper objectMapper) {
+    this.publisher = publisher;
+    this.objectMapper = objectMapper;
+  }
+
+  @Override
+  public void publish(PurchaseCommand command) {
+    try {
+      String message = objectMapper.writeValueAsString(command);
+      PubsubMessage pubsubMessage =
+          PubsubMessage.newBuilder().setData(ByteString.copyFromUtf8(message)).build();
+
+      publisher.publish(pubsubMessage); // 비동기 발행
+      log.info("[PubSub 메시지 발행 성공] {}", message);
+    } catch (JsonProcessingException e) {
+      log.error("[PubSub 직렬화 실패]", e);
+      throw new CustomException(PurchaseErrorCode.PURCHASE_SERIALIZATION_FAILED);
+    } catch (Exception e) {
+      log.error("[PubSub 발행 실패]", e);
+      throw new CustomException(PurchaseErrorCode.PURCHASE_PUBLISH_FAILED);
     }
-
-    @Override
-    public void publish(PurchaseCommand command) {
-        try {
-            String message = objectMapper.writeValueAsString(command);
-            PubsubMessage pubsubMessage = PubsubMessage.newBuilder()
-                    .setData(ByteString.copyFromUtf8(message))
-                    .build();
-
-            publisher.publish(pubsubMessage); // 비동기 발행
-            log.info("[PubSub 메시지 발행 성공] {}", message);
-        } catch (JsonProcessingException e) {
-            log.error("[PubSub 직렬화 실패]", e);
-            throw new CustomException(PurchaseErrorCode.PURCHASE_SERIALIZATION_FAILED);
-        } catch (Exception e) {
-            log.error("[PubSub 발행 실패]", e);
-            throw new CustomException(PurchaseErrorCode.PURCHASE_PUBLISH_FAILED);
-        }
-    }
+  }
 }

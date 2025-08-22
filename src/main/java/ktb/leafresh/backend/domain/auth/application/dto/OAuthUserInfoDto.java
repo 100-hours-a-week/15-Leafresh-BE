@@ -8,9 +8,9 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public class OAuthUserInfoDto {
-    private OAuthProvider provider;
-    private String providerId;
-    private String email;
-    private String profileImageUrl;
-    private String nickname;
+  private OAuthProvider provider;
+  private String providerId;
+  private String email;
+  private String profileImageUrl;
+  private String nickname;
 }

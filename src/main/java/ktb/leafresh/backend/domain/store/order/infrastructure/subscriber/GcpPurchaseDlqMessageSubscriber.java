@@ -27,53 +27,59 @@ import java.time.LocalDateTime;
 @Slf4j
 public class GcpPurchaseDlqMessageSubscriber {
 
-    private final Environment environment;
-    private final ObjectMapper objectMapper;
-    private final PurchaseFailureLogRepository purchaseFailureLogRepository;
-    private final PurchaseProcessingLogRepository purchaseProcessingLogRepository;
+  private final Environment environment;
+  private final ObjectMapper objectMapper;
+  private final PurchaseFailureLogRepository purchaseFailureLogRepository;
+  private final PurchaseProcessingLogRepository purchaseProcessingLogRepository;
 
-    @PostConstruct
-    public void subscribe() {
-        String projectId = environment.getProperty("gcp.project-id");
-        String subscriptionId = environment.getProperty("gcp.pubsub.subscriptions.dlq");
+  @PostConstruct
+  public void subscribe() {
+    String projectId = environment.getProperty("gcp.project-id");
+    String subscriptionId = environment.getProperty("gcp.pubsub.subscriptions.dlq");
 
-        ProjectSubscriptionName dlqSubscription = ProjectSubscriptionName.of(projectId, subscriptionId);
+    ProjectSubscriptionName dlqSubscription = ProjectSubscriptionName.of(projectId, subscriptionId);
 
-        MessageReceiver receiver = (message, consumer) -> {
-            String rawData = message.getData().toStringUtf8();
-            log.error("[DLQ 수신] messageId={}, data={}", message.getMessageId(), rawData);
+    MessageReceiver receiver =
+        (message, consumer) -> {
+          String rawData = message.getData().toStringUtf8();
+          log.error("[DLQ 수신] messageId={}, data={}", message.getMessageId(), rawData);
 
-            try {
-                PurchaseCommand failedCommand = objectMapper.readValue(rawData, PurchaseCommand.class);
+          try {
+            PurchaseCommand failedCommand = objectMapper.readValue(rawData, PurchaseCommand.class);
 
-                purchaseFailureLogRepository.save(PurchaseFailureLog.builder()
-                        .member(Member.builder().id(failedCommand.memberId()).build())
-                        .product(Product.builder().id(failedCommand.productId()).build())
-                        .reason("DLQ로 이동된 메시지입니다.")
-                        .requestBody(rawData)
-                        .occurredAt(LocalDateTime.now())
-                        .build());
+            purchaseFailureLogRepository.save(
+                PurchaseFailureLog.builder()
+                    .member(Member.builder().id(failedCommand.memberId()).build())
+                    .product(Product.builder().id(failedCommand.productId()).build())
+                    .reason("DLQ로 이동된 메시지입니다.")
+                    .requestBody(rawData)
+                    .occurredAt(LocalDateTime.now())
+                    .build());
 
-                purchaseProcessingLogRepository.save(PurchaseProcessingLog.builder()
-                        .product(Product.builder().id(failedCommand.productId()).build())
-                        .status(PurchaseProcessingStatus.FAILURE)
-                        .message("DLQ 처리됨")
-                        .build());
+            purchaseProcessingLogRepository.save(
+                PurchaseProcessingLog.builder()
+                    .product(Product.builder().id(failedCommand.productId()).build())
+                    .status(PurchaseProcessingStatus.FAILURE)
+                    .message("DLQ 처리됨")
+                    .build());
 
-                log.warn("[DLQ 처리] memberId={}, productId={}, quantity={}",
-                        failedCommand.memberId(), failedCommand.productId(), failedCommand.quantity());
+            log.warn(
+                "[DLQ 처리] memberId={}, productId={}, quantity={}",
+                failedCommand.memberId(),
+                failedCommand.productId(),
+                failedCommand.quantity());
 
-                // TODO: Discord/DB/이메일 저장 로직 분리
+            // TODO: Discord/DB/이메일 저장 로직 분리
 
-                consumer.ack(); // DLQ는 반드시 ack 처리해야 다시 쌓이지 않음
-            } catch (Exception e) {
-                log.error("[DLQ 메시지 파싱 실패] {}", e.getMessage(), e);
-                consumer.ack(); // 파싱 실패해도 ack로 종료 (무한 재시도 방지)
-            }
+            consumer.ack(); // DLQ는 반드시 ack 처리해야 다시 쌓이지 않음
+          } catch (Exception e) {
+            log.error("[DLQ 메시지 파싱 실패] {}", e.getMessage(), e);
+            consumer.ack(); // 파싱 실패해도 ack로 종료 (무한 재시도 방지)
+          }
         };
 
-        Subscriber subscriber = Subscriber.newBuilder(dlqSubscription, receiver).build();
-        subscriber.startAsync().awaitRunning();
-        log.info("[DLQ 메시지 구독 시작]");
-    }
+    Subscriber subscriber = Subscriber.newBuilder(dlqSubscription, receiver).build();
+    subscriber.startAsync().awaitRunning();
+    log.info("[DLQ 메시지 구독 시작]");
+  }
 }

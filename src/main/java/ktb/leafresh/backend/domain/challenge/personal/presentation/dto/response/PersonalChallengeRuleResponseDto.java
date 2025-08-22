@@ -9,28 +9,21 @@ import java.util.List;
 
 @Builder
 public record PersonalChallengeRuleResponseDto(
-        CertificationPeriod certificationPeriod,
-        List<PersonalChallengeExampleImageDto> exampleImages
-) {
+    CertificationPeriod certificationPeriod, List<PersonalChallengeExampleImageDto> exampleImages) {
 
-    @Builder
-    public record CertificationPeriod(
-            DayOfWeek dayOfWeek,
-            LocalTime startTime,
-            LocalTime endTime
-    ) {}
+  @Builder
+  public record CertificationPeriod(DayOfWeek dayOfWeek, LocalTime startTime, LocalTime endTime) {}
 
-    public static PersonalChallengeRuleResponseDto of(PersonalChallenge challenge,
-                                                      List<PersonalChallengeExampleImageDto> images) {
-        return PersonalChallengeRuleResponseDto.builder()
-                .certificationPeriod(
-                        CertificationPeriod.builder()
-                                .dayOfWeek(challenge.getDayOfWeek())
-                                .startTime(challenge.getVerificationStartTime())
-                                .endTime(challenge.getVerificationEndTime())
-                                .build()
-                )
-                .exampleImages(images)
-                .build();
-    }
+  public static PersonalChallengeRuleResponseDto of(
+      PersonalChallenge challenge, List<PersonalChallengeExampleImageDto> images) {
+    return PersonalChallengeRuleResponseDto.builder()
+        .certificationPeriod(
+            CertificationPeriod.builder()
+                .dayOfWeek(challenge.getDayOfWeek())
+                .startTime(challenge.getVerificationStartTime())
+                .endTime(challenge.getVerificationEndTime())
+                .build())
+        .exampleImages(images)
+        .build();
+  }
 }

@@ -24,52 +24,58 @@ import java.time.LocalDateTime;
 @Profile("!eks")
 public class GcpVerificationResultDlqMessageSubscriber {
 
-    private final Environment environment;
-    private final ObjectMapper objectMapper;
-    private final VerificationFailureLogRepository failureLogRepository;
-    private final MemberRepository memberRepository;
+  private final Environment environment;
+  private final ObjectMapper objectMapper;
+  private final VerificationFailureLogRepository failureLogRepository;
+  private final MemberRepository memberRepository;
 
-    @PostConstruct
-    public void subscribe() {
-        String projectId = environment.getProperty("gcp.project-id");
-        String subscriptionId = environment.getProperty("gcp.pubsub.subscriptions.verification-dlq");
+  @PostConstruct
+  public void subscribe() {
+    String projectId = environment.getProperty("gcp.project-id");
+    String subscriptionId = environment.getProperty("gcp.pubsub.subscriptions.verification-dlq");
 
-        ProjectSubscriptionName dlqSubscription = ProjectSubscriptionName.of(projectId, subscriptionId);
+    ProjectSubscriptionName dlqSubscription = ProjectSubscriptionName.of(projectId, subscriptionId);
 
-        MessageReceiver receiver = (message, consumer) -> {
-            String rawData = message.getData().toStringUtf8();
-            log.error("[인증 DLQ 수신] messageId={}, data={}", message.getMessageId(), rawData);
+    MessageReceiver receiver =
+        (message, consumer) -> {
+          String rawData = message.getData().toStringUtf8();
+          log.error("[인증 DLQ 수신] messageId={}, data={}", message.getMessageId(), rawData);
 
-            try {
-                VerificationResultRequestDto dto = objectMapper.readValue(rawData, VerificationResultRequestDto.class);
+          try {
+            VerificationResultRequestDto dto =
+                objectMapper.readValue(rawData, VerificationResultRequestDto.class);
 
-                Member member = memberRepository.findById(dto.memberId())
-                        .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
+            Member member =
+                memberRepository
+                    .findById(dto.memberId())
+                    .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
 
-                failureLogRepository.save(VerificationFailureLog.builder()
-                        .member(member)
-                        .challengeType(dto.type())
-                        .challengeId(dto.challengeId())
-                        .verificationId(dto.verificationId())
-                        .reason("DLQ로 이동된 인증 메시지입니다.")
-                        .requestBody(rawData)
-                        .occurredAt(LocalDateTime.now())
-                        .build());
-            } catch (Exception e) {
-                log.warn("[DLQ 메시지 파싱 실패 → 최소 정보로 로그 저장] {}", e.getMessage(), e);
+            failureLogRepository.save(
+                VerificationFailureLog.builder()
+                    .member(member)
+                    .challengeType(dto.type())
+                    .challengeId(dto.challengeId())
+                    .verificationId(dto.verificationId())
+                    .reason("DLQ로 이동된 인증 메시지입니다.")
+                    .requestBody(rawData)
+                    .occurredAt(LocalDateTime.now())
+                    .build());
+          } catch (Exception e) {
+            log.warn("[DLQ 메시지 파싱 실패 → 최소 정보로 로그 저장] {}", e.getMessage(), e);
 
-                failureLogRepository.save(VerificationFailureLog.builder()
-                        .reason("DLQ 메시지 파싱 실패: " + e.getMessage())
-                        .requestBody(rawData)
-                        .occurredAt(LocalDateTime.now())
-                        .build());
-            } finally {
-                consumer.ack(); // DLQ는 무조건 ack (루프 방지)
-            }
+            failureLogRepository.save(
+                VerificationFailureLog.builder()
+                    .reason("DLQ 메시지 파싱 실패: " + e.getMessage())
+                    .requestBody(rawData)
+                    .occurredAt(LocalDateTime.now())
+                    .build());
+          } finally {
+            consumer.ack(); // DLQ는 무조건 ack (루프 방지)
+          }
         };
 
-        Subscriber subscriber = Subscriber.newBuilder(dlqSubscription, receiver).build();
-        subscriber.startAsync().awaitRunning();
-        log.info("[인증 DLQ 메시지 구독 시작]");
-    }
+    Subscriber subscriber = Subscriber.newBuilder(dlqSubscription, receiver).build();
+    subscriber.startAsync().awaitRunning();
+    log.info("[인증 DLQ 메시지 구독 시작]");
+  }
 }

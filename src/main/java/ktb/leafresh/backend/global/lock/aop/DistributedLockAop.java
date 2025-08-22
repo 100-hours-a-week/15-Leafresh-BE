@@ -23,41 +23,47 @@ import java.lang.reflect.Method;
 @RequiredArgsConstructor
 @Slf4j
 public class DistributedLockAop {
-    private static final String LOCK_PREFIX = "lock:";
+  private static final String LOCK_PREFIX = "lock:";
 
-    private final RedissonClient redissonClient;
-    private final AopForTransaction aopForTransaction;
+  private final RedissonClient redissonClient;
+  private final AopForTransaction aopForTransaction;
 
-    @Around("@annotation(ktb.leafresh.backend.global.lock.annotation.DistributedLock)")
-    public Object lock(ProceedingJoinPoint joinPoint) throws Throwable {
-        MethodSignature signature = (MethodSignature) joinPoint.getSignature();
-        Method method = signature.getMethod();
-        DistributedLock distributedLock = method.getAnnotation(DistributedLock.class);
+  @Around("@annotation(ktb.leafresh.backend.global.lock.annotation.DistributedLock)")
+  public Object lock(ProceedingJoinPoint joinPoint) throws Throwable {
+    MethodSignature signature = (MethodSignature) joinPoint.getSignature();
+    Method method = signature.getMethod();
+    DistributedLock distributedLock = method.getAnnotation(DistributedLock.class);
 
-        String key = LOCK_PREFIX + CustomSpringELParser.getDynamicValue(signature.getParameterNames(), joinPoint.getArgs(), distributedLock.key());
-        RLock rLock = redissonClient.getLock(key);
+    String key =
+        LOCK_PREFIX
+            + CustomSpringELParser.getDynamicValue(
+                signature.getParameterNames(), joinPoint.getArgs(), distributedLock.key());
+    RLock rLock = redissonClient.getLock(key);
 
-        boolean isLocked = false;
+    boolean isLocked = false;
+    try {
+      isLocked =
+          rLock.tryLock(
+              distributedLock.waitTime(), distributedLock.leaseTime(), distributedLock.timeUnit());
+      if (!isLocked) {
+        log.warn("[DistributedLockAop] Lock 획득 실패 - key={}", key);
+        throw new CustomException(GlobalErrorCode.TOO_MANY_REQUESTS);
+      }
+
+      return aopForTransaction.proceed(joinPoint);
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      throw e;
+    } finally {
+      if (isLocked && rLock.isHeldByCurrentThread()) {
         try {
-            isLocked = rLock.tryLock(distributedLock.waitTime(), distributedLock.leaseTime(), distributedLock.timeUnit());
-            if (!isLocked) {
-                log.warn("[DistributedLockAop] Lock 획득 실패 - key={}", key);
-                throw new CustomException(GlobalErrorCode.TOO_MANY_REQUESTS);
-            }
-
-            return aopForTransaction.proceed(joinPoint);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw e;
-        } finally {
-            if (isLocked && rLock.isHeldByCurrentThread()) {
-                try {
-                    rLock.unlock();
-                    log.debug("[DistributedLockAop] Lock 해제 - key={}", key);
-                } catch (IllegalMonitorStateException e) {
-                    log.info("[DistributedLockAop] 이미 unlock된 lock입니다 - method={}, key={}", method.getName(), key);
-                }
-            }
+          rLock.unlock();
+          log.debug("[DistributedLockAop] Lock 해제 - key={}", key);
+        } catch (IllegalMonitorStateException e) {
+          log.info(
+              "[DistributedLockAop] 이미 unlock된 lock입니다 - method={}, key={}", method.getName(), key);
         }
+      }
     }
+  }
 }

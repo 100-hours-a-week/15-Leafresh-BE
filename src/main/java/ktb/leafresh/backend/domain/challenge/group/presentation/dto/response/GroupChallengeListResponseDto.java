@@ -8,15 +8,11 @@ import java.util.List;
 
 @Builder
 public record GroupChallengeListResponseDto(
-        List<GroupChallengeSummaryResponseDto> groupChallenges,
-        boolean hasNext,
-        CursorInfo cursorInfo
-) {
-    public static GroupChallengeListResponseDto from(CursorPaginationResult<GroupChallengeSummaryResponseDto> result) {
-        return new GroupChallengeListResponseDto(
-                result.items(),
-                result.hasNext(),
-                result.cursorInfo()
-        );
-    }
+    List<GroupChallengeSummaryResponseDto> groupChallenges,
+    boolean hasNext,
+    CursorInfo cursorInfo) {
+  public static GroupChallengeListResponseDto from(
+      CursorPaginationResult<GroupChallengeSummaryResponseDto> result) {
+    return new GroupChallengeListResponseDto(result.items(), result.hasNext(), result.cursorInfo());
+  }
 }

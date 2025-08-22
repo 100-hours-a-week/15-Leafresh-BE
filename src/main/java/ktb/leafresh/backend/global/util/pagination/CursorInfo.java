@@ -4,6 +4,5 @@ import lombok.Builder;
 
 @Builder
 public record CursorInfo(
-        Long lastCursorId,
-        String cursorTimestamp // ISO 8601 형식 (e.g., "2025-05-01T10:00:00")
-) {}
+    Long lastCursorId, String cursorTimestamp // ISO 8601 형식 (e.g., "2025-05-01T10:00:00")
+    ) {}

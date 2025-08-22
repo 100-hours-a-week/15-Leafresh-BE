@@ -1,25 +1,25 @@
-//package ktb.leafresh.backend.domain.feedback.application.service;
+// package ktb.leafresh.backend.domain.feedback.application.service;
 //
-//import ktb.leafresh.backend.domain.feedback.domain.event.FeedbackCreatedEvent;
-//import ktb.leafresh.backend.domain.feedback.infrastructure.repository.FeedbackRepository;
-//import ktb.leafresh.backend.domain.feedback.presentation.dto.request.FeedbackResultRequestDto;
-//import ktb.leafresh.backend.domain.member.domain.entity.Member;
-//import ktb.leafresh.backend.domain.member.infrastructure.repository.MemberRepository;
-//import ktb.leafresh.backend.global.exception.CustomException;
-//import ktb.leafresh.backend.global.exception.FeedbackErrorCode;
-//import ktb.leafresh.backend.global.exception.MemberErrorCode;
-//import ktb.leafresh.backend.support.fixture.MemberFixture;
-//import org.junit.jupiter.api.BeforeEach;
-//import org.junit.jupiter.api.DisplayName;
-//import org.junit.jupiter.api.Test;
-//import org.springframework.context.ApplicationEventPublisher;
+// import ktb.leafresh.backend.domain.feedback.domain.event.FeedbackCreatedEvent;
+// import ktb.leafresh.backend.domain.feedback.infrastructure.repository.FeedbackRepository;
+// import ktb.leafresh.backend.domain.feedback.presentation.dto.request.FeedbackResultRequestDto;
+// import ktb.leafresh.backend.domain.member.domain.entity.Member;
+// import ktb.leafresh.backend.domain.member.infrastructure.repository.MemberRepository;
+// import ktb.leafresh.backend.global.exception.CustomException;
+// import ktb.leafresh.backend.global.exception.FeedbackErrorCode;
+// import ktb.leafresh.backend.global.exception.MemberErrorCode;
+// import ktb.leafresh.backend.support.fixture.MemberFixture;
+// import org.junit.jupiter.api.BeforeEach;
+// import org.junit.jupiter.api.DisplayName;
+// import org.junit.jupiter.api.Test;
+// import org.springframework.context.ApplicationEventPublisher;
 //
-//import java.util.Optional;
+// import java.util.Optional;
 //
-//import static org.assertj.core.api.Assertions.*;
-//import static org.mockito.Mockito.*;
+// import static org.assertj.core.api.Assertions.*;
+// import static org.mockito.Mockito.*;
 //
-//class FeedbackResultServiceTest {
+// class FeedbackResultServiceTest {
 //
 //    private MemberRepository memberRepository;
 //    private FeedbackRepository feedbackRepository;
@@ -40,10 +40,12 @@
 //    void receiveFeedback_success() {
 //        // given
 //        Member member = MemberFixture.of(1L, "test@leafresh.com", "테스터");
-//        FeedbackResultRequestDto dto = new FeedbackResultRequestDto(member.getId(), "이번 주도 열심히 살았어요");
+//        FeedbackResultRequestDto dto = new FeedbackResultRequestDto(member.getId(), "이번 주도 열심히
+// 살았어요");
 //
 //        when(memberRepository.findById(member.getId())).thenReturn(Optional.of(member));
-//        when(feedbackRepository.existsByMemberIdAndWeekMonday(eq(member.getId()), any())).thenReturn(false);
+//        when(feedbackRepository.existsByMemberIdAndWeekMonday(eq(member.getId()),
+// any())).thenReturn(false);
 //
 //        // when
 //        service.receiveFeedback(dto);
@@ -52,7 +54,8 @@
 //        verify(eventPublisher, times(1)).publishEvent(
 //                argThat(event ->
 //                        event instanceof FeedbackCreatedEvent &&
-//                                ((FeedbackCreatedEvent) event).memberId().equals(member.getId()) &&
+//                                ((FeedbackCreatedEvent) event).memberId().equals(member.getId())
+// &&
 //                                ((FeedbackCreatedEvent) event).content().equals(dto.content())
 //                )
 //        );
@@ -68,7 +71,8 @@
 //        when(memberRepository.findById(invalidMemberId)).thenReturn(Optional.empty());
 //
 //        // when & then
-//        CustomException ex = catchThrowableOfType(() -> service.receiveFeedback(dto), CustomException.class);
+//        CustomException ex = catchThrowableOfType(() -> service.receiveFeedback(dto),
+// CustomException.class);
 //        assertThat(ex.getErrorCode()).isEqualTo(MemberErrorCode.MEMBER_NOT_FOUND);
 //    }
 //
@@ -80,10 +84,12 @@
 //        FeedbackResultRequestDto dto = new FeedbackResultRequestDto(member.getId(), "이전 피드백 있음");
 //
 //        when(memberRepository.findById(member.getId())).thenReturn(Optional.of(member));
-//        when(feedbackRepository.existsByMemberIdAndWeekMonday(eq(member.getId()), any())).thenReturn(true);
+//        when(feedbackRepository.existsByMemberIdAndWeekMonday(eq(member.getId()),
+// any())).thenReturn(true);
 //
 //        // when & then
-//        CustomException ex = catchThrowableOfType(() -> service.receiveFeedback(dto), CustomException.class);
+//        CustomException ex = catchThrowableOfType(() -> service.receiveFeedback(dto),
+// CustomException.class);
 //        assertThat(ex.getErrorCode()).isEqualTo(FeedbackErrorCode.ALREADY_FEEDBACK_EXISTS);
 //    }
-//}
+// }

@@ -8,14 +8,14 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class RedisBloomConfig {
 
-    @Value("${redis.bloom.host}")
-    private String redisBloomHost;
+  @Value("${redis.bloom.host}")
+  private String redisBloomHost;
 
-    @Value("${redis.bloom.port}")
-    private int redisBloomPort;
+  @Value("${redis.bloom.port}")
+  private int redisBloomPort;
 
-    @Bean
-    public Client bloomClient() {
-        return new Client(redisBloomHost, redisBloomPort);
-    }
+  @Bean
+  public Client bloomClient() {
+    return new Client(redisBloomHost, redisBloomPort);
+  }
 }

@@ -20,25 +20,27 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class GroupChallengeCreateService {
 
-    private final MemberRepository memberRepository;
-    private final GroupChallengeDomainValidator domainValidator;
-    private final AiChallengePolicyValidator aiValidator;
-    private final GroupChallengeFactory factory;
-    private final GroupChallengeExampleImageAssembler assembler;
-    private final GroupChallengeRepository groupChallengeRepository;
+  private final MemberRepository memberRepository;
+  private final GroupChallengeDomainValidator domainValidator;
+  private final AiChallengePolicyValidator aiValidator;
+  private final GroupChallengeFactory factory;
+  private final GroupChallengeExampleImageAssembler assembler;
+  private final GroupChallengeRepository groupChallengeRepository;
 
-    @Transactional
-    public GroupChallengeCreateResponseDto create(Long memberId, GroupChallengeCreateRequestDto dto) {
-        Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new CustomException(MemberErrorCode.MEMBER_NOT_FOUND));
+  @Transactional
+  public GroupChallengeCreateResponseDto create(Long memberId, GroupChallengeCreateRequestDto dto) {
+    Member member =
+        memberRepository
+            .findById(memberId)
+            .orElseThrow(() -> new CustomException(MemberErrorCode.MEMBER_NOT_FOUND));
 
-        domainValidator.validate(dto);
-        aiValidator.validate(memberId, dto);
+    domainValidator.validate(dto);
+    aiValidator.validate(memberId, dto);
 
-        GroupChallenge challenge = factory.create(dto, member);
-        assembler.assemble(challenge, dto);
+    GroupChallenge challenge = factory.create(dto, member);
+    assembler.assemble(challenge, dto);
 
-        groupChallengeRepository.save(challenge);
-        return new GroupChallengeCreateResponseDto(challenge.getId());
-    }
+    groupChallengeRepository.save(challenge);
+    return new GroupChallengeCreateResponseDto(challenge.getId());
+  }
 }

@@ -6,19 +6,18 @@ import org.springframework.stereotype.Component;
 
 import java.time.LocalTime;
 
-
 @Component
 public class PersonalChallengeFactory {
 
-    public PersonalChallenge create(PersonalChallengeCreateRequestDto dto) {
-        return PersonalChallenge.builder()
-                .title(dto.title())
-                .description(dto.description())
-                .dayOfWeek(dto.dayOfWeek())
-                .imageUrl(dto.thumbnailImageUrl())
-                .verificationStartTime(dto.verificationStartTime())
-                .verificationEndTime(dto.verificationEndTime())
-                .leafReward(200)
-                .build();
-    }
+  public PersonalChallenge create(PersonalChallengeCreateRequestDto dto) {
+    return PersonalChallenge.builder()
+        .title(dto.title())
+        .description(dto.description())
+        .dayOfWeek(dto.dayOfWeek())
+        .imageUrl(dto.thumbnailImageUrl())
+        .verificationStartTime(dto.verificationStartTime())
+        .verificationEndTime(dto.verificationEndTime())
+        .leafReward(200)
+        .build();
+  }
 }

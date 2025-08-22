@@ -11,21 +11,19 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class OAuthTokenFactory {
 
-    public OAuthTokenResponseDto create(Member member, TokenDto tokenDto) {
-        String providerId = member.getAuths().stream()
-                .findFirst()
-                .map(OAuth::getProviderId)
-                .orElse(null);
+  public OAuthTokenResponseDto create(Member member, TokenDto tokenDto) {
+    String providerId =
+        member.getAuths().stream().findFirst().map(OAuth::getProviderId).orElse(null);
 
-        return OAuthTokenResponseDto.builder()
-//                .grantType(tokenDto.getGrantType())
-                .accessToken(tokenDto.getAccessToken())
-                .accessTokenExpiresIn(tokenDto.getAccessTokenExpiresIn())
-                .refreshToken(tokenDto.getRefreshToken())
-                .nickname(member.getNickname())
-                .imageUrl(member.getImageUrl())
-                .providerId(providerId)
-                .email(member.getEmail())
-                .build();
-    }
+    return OAuthTokenResponseDto.builder()
+        //                .grantType(tokenDto.getGrantType())
+        .accessToken(tokenDto.getAccessToken())
+        .accessTokenExpiresIn(tokenDto.getAccessTokenExpiresIn())
+        .refreshToken(tokenDto.getRefreshToken())
+        .nickname(member.getNickname())
+        .imageUrl(member.getImageUrl())
+        .providerId(providerId)
+        .email(member.getEmail())
+        .build();
+  }
 }

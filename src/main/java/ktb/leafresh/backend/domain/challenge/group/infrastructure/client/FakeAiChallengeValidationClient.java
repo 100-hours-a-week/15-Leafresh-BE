@@ -9,9 +9,10 @@ import org.springframework.stereotype.Component;
 @Profile("local")
 public class FakeAiChallengeValidationClient implements AiChallengeValidationClient {
 
-    @Override
-    public AiChallengeValidationResponseDto validateChallenge(AiChallengeValidationRequestDto requestDto) {
-        // Always allow challenge creation during local development
-        return new AiChallengeValidationResponseDto(true);
-    }
+  @Override
+  public AiChallengeValidationResponseDto validateChallenge(
+      AiChallengeValidationRequestDto requestDto) {
+    // Always allow challenge creation during local development
+    return new AiChallengeValidationResponseDto(true);
+  }
 }

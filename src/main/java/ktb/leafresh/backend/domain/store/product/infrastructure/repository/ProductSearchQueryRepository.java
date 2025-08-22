@@ -5,5 +5,5 @@ import ktb.leafresh.backend.domain.store.product.domain.entity.Product;
 import java.util.List;
 
 public interface ProductSearchQueryRepository {
-    List<Product> findWithFilter(String input, Long cursorId, String cursorTimestamp, int size);
+  List<Product> findWithFilter(String input, Long cursorId, String cursorTimestamp, int size);
 }

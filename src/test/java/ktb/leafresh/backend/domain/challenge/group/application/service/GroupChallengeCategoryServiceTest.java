@@ -24,62 +24,60 @@ import static org.mockito.BDDMockito.given;
 @DisplayName("GroupChallengeCategoryService 테스트")
 class GroupChallengeCategoryServiceTest {
 
-    @Mock
-    private GroupChallengeCategoryRepository categoryRepository;
+  @Mock private GroupChallengeCategoryRepository categoryRepository;
 
-    @InjectMocks
-    private GroupChallengeCategoryService categoryService;
+  @InjectMocks private GroupChallengeCategoryService categoryService;
 
-    private GroupChallengeCategory category1;
-    private GroupChallengeCategory category2;
-    private GroupChallengeCategory etcCategory;
+  private GroupChallengeCategory category1;
+  private GroupChallengeCategory category2;
+  private GroupChallengeCategory etcCategory;
 
-    @BeforeEach
-    void setUp() {
-        category1 = of("ZERO_WASTE");
-        category2 = of("PLOGGING");
-        etcCategory = of("ETC");
-    }
+  @BeforeEach
+  void setUp() {
+    category1 = of("ZERO_WASTE");
+    category2 = of("PLOGGING");
+    etcCategory = of("ETC");
+  }
 
-    @Test
-    @DisplayName("활성화된 ETC 제외 카테고리 목록을 조회할 수 있다")
-    void getCategories_withValidCategories_returnsList() {
-        // given
-        given(categoryRepository.findAllByActivatedIsTrueOrderBySequenceNumberAsc())
-                .willReturn(List.of(category1, category2, etcCategory));
+  @Test
+  @DisplayName("활성화된 ETC 제외 카테고리 목록을 조회할 수 있다")
+  void getCategories_withValidCategories_returnsList() {
+    // given
+    given(categoryRepository.findAllByActivatedIsTrueOrderBySequenceNumberAsc())
+        .willReturn(List.of(category1, category2, etcCategory));
 
-        // when
-        List<GroupChallengeCategoryResponseDto> result = categoryService.getCategories();
+    // when
+    List<GroupChallengeCategoryResponseDto> result = categoryService.getCategories();
 
-        // then
-        assertThat(result).hasSize(2);
-        assertThat(result).extracting("category").containsExactlyInAnyOrder("ZERO_WASTE", "PLOGGING");
-        assertThat(result).extracting("label").contains("제로웨이스트", "플로깅");
-    }
+    // then
+    assertThat(result).hasSize(2);
+    assertThat(result).extracting("category").containsExactlyInAnyOrder("ZERO_WASTE", "PLOGGING");
+    assertThat(result).extracting("label").contains("제로웨이스트", "플로깅");
+  }
 
-    @Test
-    @DisplayName("ETC 제외 후 카테고리가 없으면 예외가 발생한다")
-    void getCategories_whenFilteredEmpty_throwsException() {
-        // given
-        given(categoryRepository.findAllByActivatedIsTrueOrderBySequenceNumberAsc())
-                .willReturn(List.of(etcCategory));
+  @Test
+  @DisplayName("ETC 제외 후 카테고리가 없으면 예외가 발생한다")
+  void getCategories_whenFilteredEmpty_throwsException() {
+    // given
+    given(categoryRepository.findAllByActivatedIsTrueOrderBySequenceNumberAsc())
+        .willReturn(List.of(etcCategory));
 
-        // when & then
-        assertThatThrownBy(() -> categoryService.getCategories())
-                .isInstanceOf(CustomException.class)
-                .hasMessageContaining(ChallengeErrorCode.CHALLENGE_CATEGORY_LIST_EMPTY.getMessage());
-    }
+    // when & then
+    assertThatThrownBy(() -> categoryService.getCategories())
+        .isInstanceOf(CustomException.class)
+        .hasMessageContaining(ChallengeErrorCode.CHALLENGE_CATEGORY_LIST_EMPTY.getMessage());
+  }
 
-    @Test
-    @DisplayName("카테고리 조회 중 예외 발생 시 CustomException으로 변환된다")
-    void getCategories_whenRepositoryFails_throwsWrappedCustomException() {
-        // given
-        given(categoryRepository.findAllByActivatedIsTrueOrderBySequenceNumberAsc())
-                .willThrow(new RuntimeException("DB 오류"));
+  @Test
+  @DisplayName("카테고리 조회 중 예외 발생 시 CustomException으로 변환된다")
+  void getCategories_whenRepositoryFails_throwsWrappedCustomException() {
+    // given
+    given(categoryRepository.findAllByActivatedIsTrueOrderBySequenceNumberAsc())
+        .willThrow(new RuntimeException("DB 오류"));
 
-        // when & then
-        assertThatThrownBy(() -> categoryService.getCategories())
-                .isInstanceOf(CustomException.class)
-                .hasMessageContaining(ChallengeErrorCode.CHALLENGE_CATEGORY_READ_FAILED.getMessage());
-    }
+    // when & then
+    assertThatThrownBy(() -> categoryService.getCategories())
+        .isInstanceOf(CustomException.class)
+        .hasMessageContaining(ChallengeErrorCode.CHALLENGE_CATEGORY_READ_FAILED.getMessage());
+  }
 }

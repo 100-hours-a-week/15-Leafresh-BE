@@ -1,6 +1,5 @@
 package ktb.leafresh.backend.domain.store.product.domain.service;
 
-
 import ktb.leafresh.backend.domain.store.product.infrastructure.repository.TimedealProductQueryRepository;
 import ktb.leafresh.backend.domain.store.product.presentation.dto.response.TimedealProductSummaryResponseDto;
 import lombok.RequiredArgsConstructor;
@@ -13,16 +12,16 @@ import java.util.List;
 @RequiredArgsConstructor
 public class TimedealProductQueryService {
 
-    private final TimedealProductQueryRepository timedealProductQueryRepository;
+  private final TimedealProductQueryRepository timedealProductQueryRepository;
 
-    public List<TimedealProductSummaryResponseDto> findUpcomingOrOngoingWithinWeek() {
-        LocalDateTime now = LocalDateTime.now();
-        LocalDateTime oneWeekLater = now.plusWeeks(1);
+  public List<TimedealProductSummaryResponseDto> findUpcomingOrOngoingWithinWeek() {
+    LocalDateTime now = LocalDateTime.now();
+    LocalDateTime oneWeekLater = now.plusWeeks(1);
 
-        return timedealProductQueryRepository.findTimedeals(now, oneWeekLater);
-    }
+    return timedealProductQueryRepository.findTimedeals(now, oneWeekLater);
+  }
 
-    public List<TimedealProductSummaryResponseDto> findAllById(List<Long> policyIds) {
-        return timedealProductQueryRepository.findByIds(policyIds);
-    }
+  public List<TimedealProductSummaryResponseDto> findAllById(List<Long> policyIds) {
+    return timedealProductQueryRepository.findByIds(policyIds);
+  }
 }

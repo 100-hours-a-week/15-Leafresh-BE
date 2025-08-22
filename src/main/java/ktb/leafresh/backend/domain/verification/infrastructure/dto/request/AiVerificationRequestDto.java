@@ -5,12 +5,11 @@ import lombok.Builder;
 
 @Builder
 public record AiVerificationRequestDto(
-        Long verificationId,
-        ChallengeType type,     // PERSONAL or GROUP
-        String imageUrl,
-        Long memberId,
-        Long challengeId,
-        String date,
-        String challengeName,
-        String challengeInfo
-) {}
+    Long verificationId,
+    ChallengeType type, // PERSONAL or GROUP
+    String imageUrl,
+    Long memberId,
+    Long challengeId,
+    String date,
+    String challengeName,
+    String challengeInfo) {}

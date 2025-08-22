@@ -14,18 +14,18 @@ import lombok.*;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class OAuth extends BaseEntity {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "member_id", nullable = false)
-    private Member member;
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "member_id", nullable = false)
+  private Member member;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 20)
-    private OAuthProvider provider;
+  @Enumerated(EnumType.STRING)
+  @Column(nullable = false, length = 20)
+  private OAuthProvider provider;
 
-    @Column(nullable = false, length = 128)
-    private String providerId;
+  @Column(nullable = false, length = 128)
+  private String providerId;
 }

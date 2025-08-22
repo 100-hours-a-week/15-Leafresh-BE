@@ -36,156 +36,161 @@ import static org.mockito.BDDMockito.*;
 @DisplayName("GroupChallengeParticipantManager 단위 테스트")
 class GroupChallengeParticipantManagerTest {
 
-    @Mock
-    private GroupChallengeRepository groupChallengeRepository;
+  @Mock private GroupChallengeRepository groupChallengeRepository;
 
-    @Mock
-    private GroupChallengeParticipantRecordRepository participantRepository;
+  @Mock private GroupChallengeParticipantRecordRepository participantRepository;
 
-    @Mock
-    private MemberRepository memberRepository;
+  @Mock private MemberRepository memberRepository;
 
-    @Mock
-    private GroupChallengeParticipationValidator validator;
+  @Mock private GroupChallengeParticipationValidator validator;
 
-    @InjectMocks
-    private GroupChallengeParticipantManager participantManager;
+  @InjectMocks private GroupChallengeParticipantManager participantManager;
 
-    private Member member;
-    private GroupChallenge challenge;
+  private Member member;
+  private GroupChallenge challenge;
 
-    @BeforeEach
-    void setUp() {
-        member = MemberFixture.of();
-        GroupChallengeCategory category = GroupChallengeCategoryFixture.defaultCategory();
-        challenge = GroupChallengeFixture.of(member, category);
-    }
+  @BeforeEach
+  void setUp() {
+    member = MemberFixture.of();
+    GroupChallengeCategory category = GroupChallengeCategoryFixture.defaultCategory();
+    challenge = GroupChallengeFixture.of(member, category);
+  }
 
-    @Test
-    @DisplayName("참여 성공 - 모집 미달 상태")
-    void participate_withValidInput_returnsId() {
-        // given
-        Long memberId = 1L;
-        Long challengeId = 100L;
+  @Test
+  @DisplayName("참여 성공 - 모집 미달 상태")
+  void participate_withValidInput_returnsId() {
+    // given
+    Long memberId = 1L;
+    Long challengeId = 100L;
 
-        given(memberRepository.findById(memberId)).willReturn(Optional.of(member));
-        given(groupChallengeRepository.findById(challengeId)).willReturn(Optional.of(challenge));
+    given(memberRepository.findById(memberId)).willReturn(Optional.of(member));
+    given(groupChallengeRepository.findById(challengeId)).willReturn(Optional.of(challenge));
 
-        // 모집 미달 → ACTIVE 상태 → 참여자 수 증가 기대
-        given(participantRepository.save(any())).willAnswer(inv -> {
-            GroupChallengeParticipantRecord saved = inv.getArgument(0);
-            ReflectionTestUtils.setField(saved, "id", 500L);
-            return saved;
-        });
+    // 모집 미달 → ACTIVE 상태 → 참여자 수 증가 기대
+    given(participantRepository.save(any()))
+        .willAnswer(
+            inv -> {
+              GroupChallengeParticipantRecord saved = inv.getArgument(0);
+              ReflectionTestUtils.setField(saved, "id", 500L);
+              return saved;
+            });
 
-        // when
-        Long id = participantManager.participate(memberId, challengeId);
+    // when
+    Long id = participantManager.participate(memberId, challengeId);
 
-        // then
-        assertThat(id).isEqualTo(500L);
-        assertThat(challenge.getCurrentParticipantCount()).isEqualTo(11);
-        then(validator).should().validateNotAlreadyParticipated(challengeId, memberId);
-    }
+    // then
+    assertThat(id).isEqualTo(500L);
+    assertThat(challenge.getCurrentParticipantCount()).isEqualTo(11);
+    then(validator).should().validateNotAlreadyParticipated(challengeId, memberId);
+  }
 
-    @Test
-    @DisplayName("참여 성공 - 모집 완료 상태")
-    void participate_whenFull_setsWaitingStatus() {
-        // given
-        ReflectionTestUtils.setField(challenge, "currentParticipantCount", challenge.getMaxParticipantCount());
+  @Test
+  @DisplayName("참여 성공 - 모집 완료 상태")
+  void participate_whenFull_setsWaitingStatus() {
+    // given
+    ReflectionTestUtils.setField(
+        challenge, "currentParticipantCount", challenge.getMaxParticipantCount());
 
-        Long memberId = 1L;
-        Long challengeId = 100L;
+    Long memberId = 1L;
+    Long challengeId = 100L;
 
-        given(memberRepository.findById(memberId)).willReturn(Optional.of(member));
-        given(groupChallengeRepository.findById(challengeId)).willReturn(Optional.of(challenge));
+    given(memberRepository.findById(memberId)).willReturn(Optional.of(member));
+    given(groupChallengeRepository.findById(challengeId)).willReturn(Optional.of(challenge));
 
-        // when
-        participantManager.participate(memberId, challengeId);
+    // when
+    participantManager.participate(memberId, challengeId);
 
-        // then
-        assertThat(challenge.getCurrentParticipantCount()).isEqualTo(100); // 변함 없음
-        then(participantRepository).should().save(argThat(record ->
-                record.getStatus() == ParticipantStatus.WAITING));
-    }
+    // then
+    assertThat(challenge.getCurrentParticipantCount()).isEqualTo(100); // 변함 없음
+    then(participantRepository)
+        .should()
+        .save(argThat(record -> record.getStatus() == ParticipantStatus.WAITING));
+  }
 
-    @Test
-    @DisplayName("참여 실패 - 존재하지 않는 회원")
-    void participate_withInvalidMember_throwsException() {
-        // given
-        Long invalidMemberId = 999L;
-        given(memberRepository.findById(invalidMemberId)).willReturn(Optional.empty());
+  @Test
+  @DisplayName("참여 실패 - 존재하지 않는 회원")
+  void participate_withInvalidMember_throwsException() {
+    // given
+    Long invalidMemberId = 999L;
+    given(memberRepository.findById(invalidMemberId)).willReturn(Optional.empty());
 
-        // when & then
-        assertThatThrownBy(() -> participantManager.participate(invalidMemberId, 1L))
-                .isInstanceOf(CustomException.class)
-                .hasMessageContaining(MemberErrorCode.MEMBER_NOT_FOUND.getMessage());
-    }
+    // when & then
+    assertThatThrownBy(() -> participantManager.participate(invalidMemberId, 1L))
+        .isInstanceOf(CustomException.class)
+        .hasMessageContaining(MemberErrorCode.MEMBER_NOT_FOUND.getMessage());
+  }
 
-    @Test
-    @DisplayName("참여 실패 - 존재하지 않는 챌린지")
-    void participate_withInvalidChallenge_throwsException() {
-        // given
-        Long challengeId = 999L;
-        given(memberRepository.findById(anyLong())).willReturn(Optional.of(member));
-        given(groupChallengeRepository.findById(challengeId)).willReturn(Optional.empty());
+  @Test
+  @DisplayName("참여 실패 - 존재하지 않는 챌린지")
+  void participate_withInvalidChallenge_throwsException() {
+    // given
+    Long challengeId = 999L;
+    given(memberRepository.findById(anyLong())).willReturn(Optional.of(member));
+    given(groupChallengeRepository.findById(challengeId)).willReturn(Optional.empty());
 
-        // when & then
-        assertThatThrownBy(() -> participantManager.participate(1L, challengeId))
-                .isInstanceOf(CustomException.class)
-                .hasMessageContaining(ChallengeErrorCode.GROUP_CHALLENGE_NOT_FOUND.getMessage());
-    }
+    // when & then
+    assertThatThrownBy(() -> participantManager.participate(1L, challengeId))
+        .isInstanceOf(CustomException.class)
+        .hasMessageContaining(ChallengeErrorCode.GROUP_CHALLENGE_NOT_FOUND.getMessage());
+  }
 
-    @Test
-    @DisplayName("탈퇴 성공 - ACTIVE 상태")
-    void drop_withActiveParticipant_decreasesCountAndUpdatesStatus() {
-        // given
-        Long memberId = 1L;
-        Long challengeId = 10L;
+  @Test
+  @DisplayName("탈퇴 성공 - ACTIVE 상태")
+  void drop_withActiveParticipant_decreasesCountAndUpdatesStatus() {
+    // given
+    Long memberId = 1L;
+    Long challengeId = 10L;
 
-        GroupChallengeParticipantRecord record = GroupChallengeParticipantRecordFixture.of(challenge, member);
-        given(groupChallengeRepository.findById(challengeId)).willReturn(Optional.of(challenge));
-        given(participantRepository.findByGroupChallengeIdAndMemberIdAndDeletedAtIsNull(challengeId, memberId))
-                .willReturn(Optional.of(record));
+    GroupChallengeParticipantRecord record =
+        GroupChallengeParticipantRecordFixture.of(challenge, member);
+    given(groupChallengeRepository.findById(challengeId)).willReturn(Optional.of(challenge));
+    given(
+            participantRepository.findByGroupChallengeIdAndMemberIdAndDeletedAtIsNull(
+                challengeId, memberId))
+        .willReturn(Optional.of(record));
 
-        // when
-        participantManager.drop(memberId, challengeId);
+    // when
+    participantManager.drop(memberId, challengeId);
 
-        // then
-        assertThat(challenge.getCurrentParticipantCount()).isEqualTo(9);
-        assertThat(record.getStatus()).isEqualTo(ParticipantStatus.DROPPED);
-        then(validator).should().validateDroppable(record);
-    }
+    // then
+    assertThat(challenge.getCurrentParticipantCount()).isEqualTo(9);
+    assertThat(record.getStatus()).isEqualTo(ParticipantStatus.DROPPED);
+    then(validator).should().validateDroppable(record);
+  }
 
-    @Test
-    @DisplayName("탈퇴 실패 - 존재하지 않는 챌린지")
-    void drop_withInvalidChallenge_throwsException() {
-        given(groupChallengeRepository.findById(anyLong())).willReturn(Optional.empty());
+  @Test
+  @DisplayName("탈퇴 실패 - 존재하지 않는 챌린지")
+  void drop_withInvalidChallenge_throwsException() {
+    given(groupChallengeRepository.findById(anyLong())).willReturn(Optional.empty());
 
-        assertThatThrownBy(() -> participantManager.drop(1L, 2L))
-                .isInstanceOf(CustomException.class)
-                .hasMessageContaining(ChallengeErrorCode.GROUP_CHALLENGE_NOT_FOUND.getMessage());
-    }
+    assertThatThrownBy(() -> participantManager.drop(1L, 2L))
+        .isInstanceOf(CustomException.class)
+        .hasMessageContaining(ChallengeErrorCode.GROUP_CHALLENGE_NOT_FOUND.getMessage());
+  }
 
-    @Test
-    @DisplayName("탈퇴 실패 - 이미 삭제된 챌린지")
-    void drop_deletedChallenge_throwsException() {
-        challenge.softDelete(); // deletedAt 설정
-        given(groupChallengeRepository.findById(anyLong())).willReturn(Optional.of(challenge));
+  @Test
+  @DisplayName("탈퇴 실패 - 이미 삭제된 챌린지")
+  void drop_deletedChallenge_throwsException() {
+    challenge.softDelete(); // deletedAt 설정
+    given(groupChallengeRepository.findById(anyLong())).willReturn(Optional.of(challenge));
 
-        assertThatThrownBy(() -> participantManager.drop(1L, 2L))
-                .isInstanceOf(CustomException.class)
-                .hasMessageContaining(ChallengeErrorCode.GROUP_CHALLENGE_ALREADY_DELETED.getMessage());
-    }
+    assertThatThrownBy(() -> participantManager.drop(1L, 2L))
+        .isInstanceOf(CustomException.class)
+        .hasMessageContaining(ChallengeErrorCode.GROUP_CHALLENGE_ALREADY_DELETED.getMessage());
+  }
 
-    @Test
-    @DisplayName("탈퇴 실패 - 참가 기록 없음")
-    void drop_participationNotFound_throwsException() {
-        given(groupChallengeRepository.findById(anyLong())).willReturn(Optional.of(challenge));
-        given(participantRepository.findByGroupChallengeIdAndMemberIdAndDeletedAtIsNull(anyLong(), anyLong()))
-                .willReturn(Optional.empty());
+  @Test
+  @DisplayName("탈퇴 실패 - 참가 기록 없음")
+  void drop_participationNotFound_throwsException() {
+    given(groupChallengeRepository.findById(anyLong())).willReturn(Optional.of(challenge));
+    given(
+            participantRepository.findByGroupChallengeIdAndMemberIdAndDeletedAtIsNull(
+                anyLong(), anyLong()))
+        .willReturn(Optional.empty());
 
-        assertThatThrownBy(() -> participantManager.drop(1L, 2L))
-                .isInstanceOf(CustomException.class)
-                .hasMessageContaining(ChallengeErrorCode.GROUP_CHALLENGE_PARTICIPATION_NOT_FOUND.getMessage());
-    }
+    assertThatThrownBy(() -> participantManager.drop(1L, 2L))
+        .isInstanceOf(CustomException.class)
+        .hasMessageContaining(
+            ChallengeErrorCode.GROUP_CHALLENGE_PARTICIPATION_NOT_FOUND.getMessage());
+  }
 }

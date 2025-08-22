@@ -5,6 +5,4 @@ import lombok.Builder;
 import java.util.List;
 
 @Builder
-public record RecentBadgeListResponseDto(
-        List<BadgeSummaryDto> badges
-) {}
+public record RecentBadgeListResponseDto(List<BadgeSummaryDto> badges) {}

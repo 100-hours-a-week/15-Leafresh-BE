@@ -14,40 +14,36 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class PersonalChallengeFactoryTest {
 
-    private final PersonalChallengeFactory factory = new PersonalChallengeFactory();
+  private final PersonalChallengeFactory factory = new PersonalChallengeFactory();
 
-    @Test
-    @DisplayName("create_정상입력_도메인생성됨")
-    void create_withValidInput_returnsPersonalChallenge() {
-        // given
-        PersonalChallengeCreateRequestDto.ExampleImageRequestDto image =
-                new PersonalChallengeCreateRequestDto.ExampleImageRequestDto(
-                        "https://test.image/example.jpg",
-                        ExampleImageType.SUCCESS,
-                        "예시 설명",
-                        1
-                );
+  @Test
+  @DisplayName("create_정상입력_도메인생성됨")
+  void create_withValidInput_returnsPersonalChallenge() {
+    // given
+    PersonalChallengeCreateRequestDto.ExampleImageRequestDto image =
+        new PersonalChallengeCreateRequestDto.ExampleImageRequestDto(
+            "https://test.image/example.jpg", ExampleImageType.SUCCESS, "예시 설명", 1);
 
-        PersonalChallengeCreateRequestDto dto = new PersonalChallengeCreateRequestDto(
-                "아침 기상 챌린지",
-                "기상 후 인증샷 촬영",
-                DayOfWeek.MONDAY,
-                "https://test.image/thumbnail.jpg",
-                LocalTime.of(6, 0),
-                LocalTime.of(8, 0),
-                List.of(image)
-        );
+    PersonalChallengeCreateRequestDto dto =
+        new PersonalChallengeCreateRequestDto(
+            "아침 기상 챌린지",
+            "기상 후 인증샷 촬영",
+            DayOfWeek.MONDAY,
+            "https://test.image/thumbnail.jpg",
+            LocalTime.of(6, 0),
+            LocalTime.of(8, 0),
+            List.of(image));
 
-        // when
-        PersonalChallenge result = factory.create(dto);
+    // when
+    PersonalChallenge result = factory.create(dto);
 
-        // then
-        assertThat(result.getTitle()).isEqualTo(dto.title());
-        assertThat(result.getDescription()).isEqualTo(dto.description());
-        assertThat(result.getDayOfWeek()).isEqualTo(dto.dayOfWeek());
-        assertThat(result.getImageUrl()).isEqualTo(dto.thumbnailImageUrl());
-        assertThat(result.getVerificationStartTime()).isEqualTo(dto.verificationStartTime());
-        assertThat(result.getVerificationEndTime()).isEqualTo(dto.verificationEndTime());
-        assertThat(result.getLeafReward()).isEqualTo(200);
-    }
+    // then
+    assertThat(result.getTitle()).isEqualTo(dto.title());
+    assertThat(result.getDescription()).isEqualTo(dto.description());
+    assertThat(result.getDayOfWeek()).isEqualTo(dto.dayOfWeek());
+    assertThat(result.getImageUrl()).isEqualTo(dto.thumbnailImageUrl());
+    assertThat(result.getVerificationStartTime()).isEqualTo(dto.verificationStartTime());
+    assertThat(result.getVerificationEndTime()).isEqualTo(dto.verificationEndTime());
+    assertThat(result.getLeafReward()).isEqualTo(200);
+  }
 }

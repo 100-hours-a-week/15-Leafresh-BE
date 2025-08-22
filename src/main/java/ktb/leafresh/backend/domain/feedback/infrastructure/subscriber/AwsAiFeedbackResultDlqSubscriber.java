@@ -26,64 +26,70 @@ import java.util.concurrent.TimeUnit;
 @RequiredArgsConstructor
 public class AwsAiFeedbackResultDlqSubscriber {
 
-    private final AmazonSQSAsync sqs;
-    private final ObjectMapper objectMapper;
-    private final FeedbackFailureLogRepository failureLogRepository;
-    private final MemberRepository memberRepository;
+  private final AmazonSQSAsync sqs;
+  private final ObjectMapper objectMapper;
+  private final FeedbackFailureLogRepository failureLogRepository;
+  private final MemberRepository memberRepository;
 
-    @Value("${aws.sqs.feedback-result-dlq-queue-url}")
-    private String dlqUrl;
+  @Value("${aws.sqs.feedback-result-dlq-queue-url}")
+  private String dlqUrl;
 
-    private static final int WAIT_TIME_SECONDS = 20;
-    private static final int MAX_MESSAGES = 5;
+  private static final int WAIT_TIME_SECONDS = 20;
+  private static final int MAX_MESSAGES = 5;
 
-    @PostConstruct
-    public void startDlqPolling() {
-        Executors.newSingleThreadScheduledExecutor()
-                .scheduleWithFixedDelay(this::pollDlqMessages, 0, 10, TimeUnit.SECONDS);
-        log.info("[SQS 피드백 DLQ Subscriber 시작] dlqUrl={}", dlqUrl);
-    }
+  @PostConstruct
+  public void startDlqPolling() {
+    Executors.newSingleThreadScheduledExecutor()
+        .scheduleWithFixedDelay(this::pollDlqMessages, 0, 10, TimeUnit.SECONDS);
+    log.info("[SQS 피드백 DLQ Subscriber 시작] dlqUrl={}", dlqUrl);
+  }
 
-    public void pollDlqMessages() {
+  public void pollDlqMessages() {
+    try {
+      ReceiveMessageRequest request =
+          new ReceiveMessageRequest(dlqUrl)
+              .withMaxNumberOfMessages(MAX_MESSAGES)
+              .withWaitTimeSeconds(WAIT_TIME_SECONDS);
+
+      List<Message> messages = sqs.receiveMessage(request).getMessages();
+
+      for (Message message : messages) {
+        String body = message.getBody();
+        log.error("[SQS 피드백 DLQ 수신] messageId={}, body={}", message.getMessageId(), body);
+
         try {
-            ReceiveMessageRequest request = new ReceiveMessageRequest(dlqUrl)
-                    .withMaxNumberOfMessages(MAX_MESSAGES)
-                    .withWaitTimeSeconds(WAIT_TIME_SECONDS);
+          FeedbackResultRequestDto dto =
+              objectMapper.readValue(body, FeedbackResultRequestDto.class);
 
-            List<Message> messages = sqs.receiveMessage(request).getMessages();
+          Member member =
+              memberRepository
+                  .findById(dto.memberId())
+                  .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
 
-            for (Message message : messages) {
-                String body = message.getBody();
-                log.error("[SQS 피드백 DLQ 수신] messageId={}, body={}", message.getMessageId(), body);
-
-                try {
-                    FeedbackResultRequestDto dto = objectMapper.readValue(body, FeedbackResultRequestDto.class);
-
-                    Member member = memberRepository.findById(dto.memberId())
-                            .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
-
-                    failureLogRepository.save(FeedbackFailureLog.builder()
-                            .member(member)
-                            .reason("DLQ로 이동된 피드백 메시지입니다.")
-                            .requestBody(body)
-                            .occurredAt(LocalDateTime.now())
-                            .build());
-
-                } catch (Exception e) {
-                    log.warn("[DLQ 메시지 파싱 실패] 최소 정보로 로그 저장. error={}", e.getMessage());
-
-                    failureLogRepository.save(FeedbackFailureLog.builder()
-                            .reason("DLQ 메시지 파싱 실패: " + e.getMessage())
-                            .requestBody(body)
-                            .occurredAt(LocalDateTime.now())
-                            .build());
-                } finally {
-                    sqs.deleteMessage(new DeleteMessageRequest(dlqUrl, message.getReceiptHandle()));
-                }
-            }
+          failureLogRepository.save(
+              FeedbackFailureLog.builder()
+                  .member(member)
+                  .reason("DLQ로 이동된 피드백 메시지입니다.")
+                  .requestBody(body)
+                  .occurredAt(LocalDateTime.now())
+                  .build());
 
         } catch (Exception e) {
-            log.error("[SQS DLQ Polling 실패] {}", e.getMessage(), e);
+          log.warn("[DLQ 메시지 파싱 실패] 최소 정보로 로그 저장. error={}", e.getMessage());
+
+          failureLogRepository.save(
+              FeedbackFailureLog.builder()
+                  .reason("DLQ 메시지 파싱 실패: " + e.getMessage())
+                  .requestBody(body)
+                  .occurredAt(LocalDateTime.now())
+                  .build());
+        } finally {
+          sqs.deleteMessage(new DeleteMessageRequest(dlqUrl, message.getReceiptHandle()));
         }
+      }
+
+    } catch (Exception e) {
+      log.error("[SQS DLQ Polling 실패] {}", e.getMessage(), e);
     }
+  }
 }

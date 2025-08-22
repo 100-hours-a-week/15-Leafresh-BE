@@ -15,53 +15,54 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class MemberUpdateService {
 
-    private final MemberRepository memberRepository;
+  private final MemberRepository memberRepository;
 
-    @Transactional
-    public MemberUpdateResponseDto updateMemberInfo(Member member, String newNickname, String newImageUrl) {
-        boolean updated = false;
+  @Transactional
+  public MemberUpdateResponseDto updateMemberInfo(
+      Member member, String newNickname, String newImageUrl) {
+    boolean updated = false;
 
-        log.debug("[회원 정보 수정] 시작 - memberId: {}", member.getId());
+    log.debug("[회원 정보 수정] 시작 - memberId: {}", member.getId());
 
-        try {
-            if (newNickname != null && !newNickname.equals(member.getNickname())) {
-                validateNicknameFormat(newNickname);
+    try {
+      if (newNickname != null && !newNickname.equals(member.getNickname())) {
+        validateNicknameFormat(newNickname);
 
-                if (memberRepository.existsByNicknameAndIdNot(newNickname, member.getId())) {
-                    throw new CustomException(MemberErrorCode.ALREADY_EXISTS);
-                }
-
-                member.updateNickname(newNickname);
-                updated = true;
-                log.info("[회원 정보 수정] 닉네임 변경: {}", newNickname);
-            }
-
-            if (newImageUrl != null && !newImageUrl.equals(member.getImageUrl())) {
-                member.updateImageUrl(newImageUrl);
-                updated = true;
-                log.info("[회원 정보 수정] 이미지 URL 변경");
-            }
-
-            if (!updated) {
-                throw new CustomException(MemberErrorCode.NO_CHANGES);
-            }
-
-            return MemberUpdateResponseDto.builder()
-                    .nickname(member.getNickname())
-                    .imageUrl(member.getImageUrl())
-                    .build();
-
-        } catch (CustomException e) {
-            throw e;
-        } catch (Exception e) {
-            log.error("[회원 정보 수정] 서버 오류 발생", e);
-            throw new CustomException(MemberErrorCode.NICKNAME_UPDATE_FAILED);
+        if (memberRepository.existsByNicknameAndIdNot(newNickname, member.getId())) {
+          throw new CustomException(MemberErrorCode.ALREADY_EXISTS);
         }
-    }
 
-    private void validateNicknameFormat(String nickname) {
-        if (!nickname.matches("^[a-zA-Z0-9가-힣]{1,20}$")) {
-            throw new CustomException(MemberErrorCode.NICKNAME_INVALID_FORMAT);
-        }
+        member.updateNickname(newNickname);
+        updated = true;
+        log.info("[회원 정보 수정] 닉네임 변경: {}", newNickname);
+      }
+
+      if (newImageUrl != null && !newImageUrl.equals(member.getImageUrl())) {
+        member.updateImageUrl(newImageUrl);
+        updated = true;
+        log.info("[회원 정보 수정] 이미지 URL 변경");
+      }
+
+      if (!updated) {
+        throw new CustomException(MemberErrorCode.NO_CHANGES);
+      }
+
+      return MemberUpdateResponseDto.builder()
+          .nickname(member.getNickname())
+          .imageUrl(member.getImageUrl())
+          .build();
+
+    } catch (CustomException e) {
+      throw e;
+    } catch (Exception e) {
+      log.error("[회원 정보 수정] 서버 오류 발생", e);
+      throw new CustomException(MemberErrorCode.NICKNAME_UPDATE_FAILED);
     }
+  }
+
+  private void validateNicknameFormat(String nickname) {
+    if (!nickname.matches("^[a-zA-Z0-9가-힣]{1,20}$")) {
+      throw new CustomException(MemberErrorCode.NICKNAME_INVALID_FORMAT);
+    }
+  }
 }

@@ -26,66 +26,73 @@ import java.util.concurrent.TimeUnit;
 @RequiredArgsConstructor
 public class AwsVerificationResultDlqMessageSubscriber {
 
-    private final AmazonSQSAsync sqs;
-    private final ObjectMapper objectMapper;
-    private final VerificationFailureLogRepository failureLogRepository;
-    private final MemberRepository memberRepository;
+  private final AmazonSQSAsync sqs;
+  private final ObjectMapper objectMapper;
+  private final VerificationFailureLogRepository failureLogRepository;
+  private final MemberRepository memberRepository;
 
-    @Value("${aws.sqs.verification-dlq-queue-url}")
-    private String queueUrl;
+  @Value("${aws.sqs.verification-dlq-queue-url}")
+  private String queueUrl;
 
-    private static final int WAIT_TIME_SECONDS = 20;
-    private static final int MAX_MESSAGES = 5;
+  private static final int WAIT_TIME_SECONDS = 20;
+  private static final int MAX_MESSAGES = 5;
 
-    @PostConstruct
-    public void startPolling() {
-        Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(this::pollMessages, 0, 5, TimeUnit.SECONDS);
-        log.info("[SQS DLQ Subscriber 시작] queueUrl={}", queueUrl);
-    }
+  @PostConstruct
+  public void startPolling() {
+    Executors.newSingleThreadScheduledExecutor()
+        .scheduleWithFixedDelay(this::pollMessages, 0, 5, TimeUnit.SECONDS);
+    log.info("[SQS DLQ Subscriber 시작] queueUrl={}", queueUrl);
+  }
 
-    public void pollMessages() {
+  public void pollMessages() {
+    try {
+      ReceiveMessageRequest request =
+          new ReceiveMessageRequest(queueUrl)
+              .withMaxNumberOfMessages(MAX_MESSAGES)
+              .withWaitTimeSeconds(WAIT_TIME_SECONDS);
+
+      List<Message> messages = sqs.receiveMessage(request).getMessages();
+
+      for (Message message : messages) {
+        String body = message.getBody();
+        log.error("[SQS DLQ 수신] messageId={}, body={}", message.getMessageId(), body);
+
         try {
-            ReceiveMessageRequest request = new ReceiveMessageRequest(queueUrl)
-                    .withMaxNumberOfMessages(MAX_MESSAGES)
-                    .withWaitTimeSeconds(WAIT_TIME_SECONDS);
+          VerificationResultRequestDto dto =
+              objectMapper.readValue(body, VerificationResultRequestDto.class);
 
-            List<Message> messages = sqs.receiveMessage(request).getMessages();
+          Member member =
+              memberRepository
+                  .findById(dto.memberId())
+                  .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
 
-            for (Message message : messages) {
-                String body = message.getBody();
-                log.error("[SQS DLQ 수신] messageId={}, body={}", message.getMessageId(), body);
+          failureLogRepository.save(
+              VerificationFailureLog.builder()
+                  .member(member)
+                  .challengeType(dto.type())
+                  .challengeId(dto.challengeId())
+                  .verificationId(dto.verificationId())
+                  .reason("DLQ로 이동된 인증 메시지입니다.")
+                  .requestBody(body)
+                  .occurredAt(LocalDateTime.now())
+                  .build());
 
-                try {
-                    VerificationResultRequestDto dto = objectMapper.readValue(body, VerificationResultRequestDto.class);
-
-                    Member member = memberRepository.findById(dto.memberId())
-                            .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
-
-                    failureLogRepository.save(VerificationFailureLog.builder()
-                            .member(member)
-                            .challengeType(dto.type())
-                            .challengeId(dto.challengeId())
-                            .verificationId(dto.verificationId())
-                            .reason("DLQ로 이동된 인증 메시지입니다.")
-                            .requestBody(body)
-                            .occurredAt(LocalDateTime.now())
-                            .build());
-
-                } catch (Exception e) {
-                    log.warn("[DLQ 메시지 파싱 실패 → 최소 정보로 로그 저장] {}", e.getMessage(), e);
-
-                    failureLogRepository.save(VerificationFailureLog.builder()
-                            .reason("DLQ 메시지 파싱 실패: " + e.getMessage())
-                            .requestBody(body)
-                            .occurredAt(LocalDateTime.now())
-                            .build());
-                } finally {
-                    // DLQ는 무조건 ack
-                    sqs.deleteMessage(new DeleteMessageRequest(queueUrl, message.getReceiptHandle()));
-                }
-            }
         } catch (Exception e) {
-            log.error("[SQS DLQ Polling 실패] {}", e.getMessage(), e);
+          log.warn("[DLQ 메시지 파싱 실패 → 최소 정보로 로그 저장] {}", e.getMessage(), e);
+
+          failureLogRepository.save(
+              VerificationFailureLog.builder()
+                  .reason("DLQ 메시지 파싱 실패: " + e.getMessage())
+                  .requestBody(body)
+                  .occurredAt(LocalDateTime.now())
+                  .build());
+        } finally {
+          // DLQ는 무조건 ack
+          sqs.deleteMessage(new DeleteMessageRequest(queueUrl, message.getReceiptHandle()));
         }
+      }
+    } catch (Exception e) {
+      log.error("[SQS DLQ Polling 실패] {}", e.getMessage(), e);
     }
+  }
 }

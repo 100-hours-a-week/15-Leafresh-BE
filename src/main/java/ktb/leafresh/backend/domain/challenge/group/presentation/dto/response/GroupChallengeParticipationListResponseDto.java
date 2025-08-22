@@ -7,7 +7,6 @@ import java.util.List;
 
 @Builder
 public record GroupChallengeParticipationListResponseDto(
-        List<GroupChallengeParticipationSummaryDto> challenges,
-        boolean hasNext,
-        CursorInfo cursorInfo
-) {}
+    List<GroupChallengeParticipationSummaryDto> challenges,
+    boolean hasNext,
+    CursorInfo cursorInfo) {}

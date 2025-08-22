@@ -18,19 +18,20 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/challenges/verifications")
 public class VerificationCountController {
 
-    private final VerificationCountReadService verificationCountReadService;
+  private final VerificationCountReadService verificationCountReadService;
 
-    @GetMapping("/count")
-    public ResponseEntity<ApiResponse<VerificationCountResponseDto>> getTotalVerificationCount() {
-        try {
-            VerificationCountResponseDto result = verificationCountReadService.getTotalVerificationCount();
-            log.info("[VerificationCountController] 누적 인증 수 조회 성공: {}", result.count());
-            return ResponseEntity.ok(ApiResponse.success("누적 사용자 인증 수 조회에 성공했습니다.", result));
-        } catch (CustomException e) {
-            throw e;
-        } catch (Exception e) {
-            log.error("[VerificationCountController] 누적 인증 수 조회 실패", e);
-            throw new CustomException(VerificationErrorCode.VERIFICATION_COUNT_QUERY_FAILED);
-        }
+  @GetMapping("/count")
+  public ResponseEntity<ApiResponse<VerificationCountResponseDto>> getTotalVerificationCount() {
+    try {
+      VerificationCountResponseDto result =
+          verificationCountReadService.getTotalVerificationCount();
+      log.info("[VerificationCountController] 누적 인증 수 조회 성공: {}", result.count());
+      return ResponseEntity.ok(ApiResponse.success("누적 사용자 인증 수 조회에 성공했습니다.", result));
+    } catch (CustomException e) {
+      throw e;
+    } catch (Exception e) {
+      log.error("[VerificationCountController] 누적 인증 수 조회 실패", e);
+      throw new CustomException(VerificationErrorCode.VERIFICATION_COUNT_QUERY_FAILED);
     }
+  }
 }

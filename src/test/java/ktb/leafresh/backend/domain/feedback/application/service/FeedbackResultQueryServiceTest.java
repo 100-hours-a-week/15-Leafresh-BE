@@ -1,30 +1,30 @@
-//package ktb.leafresh.backend.domain.feedback.application.service;
+// package ktb.leafresh.backend.domain.feedback.application.service;
 //
-//import ktb.leafresh.backend.domain.feedback.domain.entity.Feedback;
-//import ktb.leafresh.backend.domain.feedback.infrastructure.repository.FeedbackRepository;
-//import ktb.leafresh.backend.domain.feedback.presentation.dto.response.FeedbackResponseDto;
-//import ktb.leafresh.backend.domain.member.domain.entity.Member;
-//import ktb.leafresh.backend.domain.member.infrastructure.repository.MemberRepository;
-//import ktb.leafresh.backend.global.exception.CustomException;
-//import ktb.leafresh.backend.global.exception.GlobalErrorCode;
-//import ktb.leafresh.backend.support.fixture.FeedbackFixture;
-//import ktb.leafresh.backend.support.fixture.MemberFixture;
-//import org.junit.jupiter.api.BeforeEach;
-//import org.junit.jupiter.api.DisplayName;
-//import org.junit.jupiter.api.Test;
-//import org.springframework.data.redis.core.RedisTemplate;
-//import org.springframework.data.redis.core.ValueOperations;
-//import org.springframework.test.util.ReflectionTestUtils;
+// import ktb.leafresh.backend.domain.feedback.domain.entity.Feedback;
+// import ktb.leafresh.backend.domain.feedback.infrastructure.repository.FeedbackRepository;
+// import ktb.leafresh.backend.domain.feedback.presentation.dto.response.FeedbackResponseDto;
+// import ktb.leafresh.backend.domain.member.domain.entity.Member;
+// import ktb.leafresh.backend.domain.member.infrastructure.repository.MemberRepository;
+// import ktb.leafresh.backend.global.exception.CustomException;
+// import ktb.leafresh.backend.global.exception.GlobalErrorCode;
+// import ktb.leafresh.backend.support.fixture.FeedbackFixture;
+// import ktb.leafresh.backend.support.fixture.MemberFixture;
+// import org.junit.jupiter.api.BeforeEach;
+// import org.junit.jupiter.api.DisplayName;
+// import org.junit.jupiter.api.Test;
+// import org.springframework.data.redis.core.RedisTemplate;
+// import org.springframework.data.redis.core.ValueOperations;
+// import org.springframework.test.util.ReflectionTestUtils;
 //
-//import java.util.Optional;
+// import java.util.Optional;
 //
-//import static org.assertj.core.api.Assertions.assertThat;
-//import static org.assertj.core.api.Assertions.catchThrowableOfType;
-//import static org.mockito.ArgumentMatchers.any;
-//import static org.mockito.ArgumentMatchers.eq;
-//import static org.mockito.Mockito.*;
+// import static org.assertj.core.api.Assertions.assertThat;
+// import static org.assertj.core.api.Assertions.catchThrowableOfType;
+// import static org.mockito.ArgumentMatchers.any;
+// import static org.mockito.ArgumentMatchers.eq;
+// import static org.mockito.Mockito.*;
 //
-//class FeedbackResultQueryServiceTest {
+// class FeedbackResultQueryServiceTest {
 //
 //    private FeedbackResultQueryService service;
 //    private MemberRepository memberRepository;
@@ -95,7 +95,8 @@
 //    void getFeedbackResult_noMember() {
 //        when(memberRepository.findById(memberId)).thenReturn(Optional.empty());
 //
-//        CustomException ex = catchThrowableOfType(() -> service.getFeedbackResult(memberId), CustomException.class);
+//        CustomException ex = catchThrowableOfType(() -> service.getFeedbackResult(memberId),
+// CustomException.class);
 //        assertThat(ex.getErrorCode()).isEqualTo(GlobalErrorCode.UNAUTHORIZED);
 //    }
 //
@@ -107,7 +108,8 @@
 //
 //        when(memberRepository.findById(memberId)).thenReturn(Optional.of(inactiveMember));
 //
-//        CustomException ex = catchThrowableOfType(() -> service.getFeedbackResult(memberId), CustomException.class);
+//        CustomException ex = catchThrowableOfType(() -> service.getFeedbackResult(memberId),
+// CustomException.class);
 //        assertThat(ex.getErrorCode()).isEqualTo(GlobalErrorCode.ACCESS_DENIED);
 //    }
-//}
+// }

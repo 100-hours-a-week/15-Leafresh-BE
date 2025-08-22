@@ -21,49 +21,50 @@ import static org.mockito.BDDMockito.*;
 @DisplayName("PersonalChallengeInitializer 테스트")
 class PersonalChallengeInitializerTest {
 
-    @Mock
-    private PersonalChallengeRepository challengeRepository;
+  @Mock private PersonalChallengeRepository challengeRepository;
 
-    @Mock
-    private PersonalChallengeExampleImageRepository imageRepository;
+  @Mock private PersonalChallengeExampleImageRepository imageRepository;
 
-    @InjectMocks
-    private PersonalChallengeInitializer initializer;
+  @InjectMocks private PersonalChallengeInitializer initializer;
 
-    @Test
-    @DisplayName("이미 개인 챌린지가 존재하면 초기화되지 않는다")
-    void run_whenPersonalChallengesExist_thenDoNothing() throws Exception {
-        // given
-        given(challengeRepository.count()).willReturn(5L);
+  @Test
+  @DisplayName("이미 개인 챌린지가 존재하면 초기화되지 않는다")
+  void run_whenPersonalChallengesExist_thenDoNothing() throws Exception {
+    // given
+    given(challengeRepository.count()).willReturn(5L);
 
-        // when
-        initializer.run();
+    // when
+    initializer.run();
 
-        // then
-        then(challengeRepository).should(never()).save(any());
-        then(imageRepository).shouldHaveNoInteractions();
-    }
+    // then
+    then(challengeRepository).should(never()).save(any());
+    then(imageRepository).shouldHaveNoInteractions();
+  }
 
-    @Test
-    @DisplayName("개인 챌린지가 존재하지 않으면 저장된다")
-    void run_whenNoChallenges_thenSavesAll() throws Exception {
-        // given
-        given(challengeRepository.count()).willReturn(0L);
-        given(challengeRepository.save(any(PersonalChallenge.class)))
-                .willAnswer(invocation -> invocation.getArgument(0));
+  @Test
+  @DisplayName("개인 챌린지가 존재하지 않으면 저장된다")
+  void run_whenNoChallenges_thenSavesAll() throws Exception {
+    // given
+    given(challengeRepository.count()).willReturn(0L);
+    given(challengeRepository.save(any(PersonalChallenge.class)))
+        .willAnswer(invocation -> invocation.getArgument(0));
 
-        // when
-        initializer.run();
+    // when
+    initializer.run();
 
-        // then
-        then(imageRepository).should(atLeastOnce()).saveAll(argThat(images -> {
-            List<PersonalChallengeExampleImage> list = StreamSupport
-                    .stream(images.spliterator(), false)
-                    .collect(Collectors.toList());
+    // then
+    then(imageRepository)
+        .should(atLeastOnce())
+        .saveAll(
+            argThat(
+                images -> {
+                  List<PersonalChallengeExampleImage> list =
+                      StreamSupport.stream(images.spliterator(), false)
+                          .collect(Collectors.toList());
 
-            return list.size() == 2 &&
-                    list.get(0).getType() == ExampleImageType.SUCCESS &&
-                    list.get(1).getType() == ExampleImageType.FAILURE;
-        }));
-    }
+                  return list.size() == 2
+                      && list.get(0).getType() == ExampleImageType.SUCCESS
+                      && list.get(1).getType() == ExampleImageType.FAILURE;
+                }));
+  }
 }

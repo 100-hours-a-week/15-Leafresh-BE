@@ -18,18 +18,17 @@ import java.util.stream.Collectors;
 @Transactional(readOnly = true)
 public class EventChallengeReadService {
 
-    private final GroupChallengeRepository groupChallengeRepository;
+  private final GroupChallengeRepository groupChallengeRepository;
 
-    public List<EventChallengeResponseDto> getEventChallenges() {
-        try {
-            LocalDateTime now = LocalDateTime.now();
-            LocalDateTime twoWeeksLater = now.plusWeeks(2);
-            List<GroupChallenge> challenges = groupChallengeRepository.findEventChallengesWithinRange(now, twoWeeksLater);
-            return challenges.stream()
-                    .map(EventChallengeResponseDto::from)
-                    .collect(Collectors.toList());
-        } catch (Exception e) {
-            throw new CustomException(ChallengeErrorCode.EVENT_CHALLENGE_READ_FAILED);
-        }
+  public List<EventChallengeResponseDto> getEventChallenges() {
+    try {
+      LocalDateTime now = LocalDateTime.now();
+      LocalDateTime twoWeeksLater = now.plusWeeks(2);
+      List<GroupChallenge> challenges =
+          groupChallengeRepository.findEventChallengesWithinRange(now, twoWeeksLater);
+      return challenges.stream().map(EventChallengeResponseDto::from).collect(Collectors.toList());
+    } catch (Exception e) {
+      throw new CustomException(ChallengeErrorCode.EVENT_CHALLENGE_READ_FAILED);
     }
+  }
 }

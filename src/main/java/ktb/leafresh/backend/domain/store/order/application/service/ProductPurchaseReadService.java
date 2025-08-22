@@ -16,19 +16,22 @@ import java.util.List;
 @Transactional(readOnly = true)
 public class ProductPurchaseReadService {
 
-    private final ProductPurchaseQueryRepository productPurchaseQueryRepository;
+  private final ProductPurchaseQueryRepository productPurchaseQueryRepository;
 
-    public ProductPurchaseListResponseDto getPurchases(Long memberId, String input, Long cursorId, String cursorTimestamp, int size) {
-        List<ProductPurchase> purchases = productPurchaseQueryRepository.findByMemberWithCursorAndSearch(memberId, input, cursorId, cursorTimestamp, size);
+  public ProductPurchaseListResponseDto getPurchases(
+      Long memberId, String input, Long cursorId, String cursorTimestamp, int size) {
+    List<ProductPurchase> purchases =
+        productPurchaseQueryRepository.findByMemberWithCursorAndSearch(
+            memberId, input, cursorId, cursorTimestamp, size);
 
-        var result = CursorPaginationHelper.paginateWithTimestamp(
-                purchases,
-                size,
-                ProductPurchaseSummaryResponseDto::from,
-                ProductPurchaseSummaryResponseDto::id,
-                ProductPurchaseSummaryResponseDto::purchasedAt
-        );
+    var result =
+        CursorPaginationHelper.paginateWithTimestamp(
+            purchases,
+            size,
+            ProductPurchaseSummaryResponseDto::from,
+            ProductPurchaseSummaryResponseDto::id,
+            ProductPurchaseSummaryResponseDto::purchasedAt);
 
-        return ProductPurchaseListResponseDto.from(result);
-    }
+    return ProductPurchaseListResponseDto.from(result);
+  }
 }

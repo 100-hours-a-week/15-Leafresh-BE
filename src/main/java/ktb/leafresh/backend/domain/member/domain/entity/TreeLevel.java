@@ -19,28 +19,28 @@ import java.util.List;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class TreeLevel {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Long id;
 
-    @OneToMany(mappedBy = "treeLevel", cascade = CascadeType.ALL)
-    private List<Member> members = new ArrayList<>();
+  @OneToMany(mappedBy = "treeLevel", cascade = CascadeType.ALL)
+  private List<Member> members = new ArrayList<>();
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 20, columnDefinition = "VARCHAR(20) DEFAULT 'SPROUT'")
-    private TreeLevelName name;
+  @Enumerated(EnumType.STRING)
+  @Column(nullable = false, length = 20, columnDefinition = "VARCHAR(20) DEFAULT 'SPROUT'")
+  private TreeLevelName name;
 
-    @Column(nullable = false)
-    private Integer minLeafPoint;
+  @Column(nullable = false)
+  private Integer minLeafPoint;
 
-    @Column(nullable = false, length = 512)
-    private String imageUrl;
+  @Column(nullable = false, length = 512)
+  private String imageUrl;
 
-    @Column(nullable = false)
-    private String description;
+  @Column(nullable = false)
+  private String description;
 
-    @PrePersist
-    public void prePersist() {
-        if (name == null) this.name = TreeLevelName.SPROUT;
-    }
+  @PrePersist
+  public void prePersist() {
+    if (name == null) this.name = TreeLevelName.SPROUT;
+  }
 }

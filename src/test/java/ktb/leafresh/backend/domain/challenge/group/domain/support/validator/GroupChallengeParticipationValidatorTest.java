@@ -27,89 +27,92 @@ import static org.mockito.BDDMockito.*;
 @DisplayName("GroupChallengeParticipationValidator 테스트")
 class GroupChallengeParticipationValidatorTest {
 
-    @Mock
-    private GroupChallengeParticipantRecordRepository participantRepository;
+  @Mock private GroupChallengeParticipantRecordRepository participantRepository;
 
-    @InjectMocks
-    private GroupChallengeParticipationValidator validator;
+  @InjectMocks private GroupChallengeParticipationValidator validator;
 
-    @Test
-    @DisplayName("이미 참여한 경우 예외 발생")
-    void validateNotAlreadyParticipated_alreadyExists_throwsException() {
-        // given
-        Long challengeId = 1L;
-        Long memberId = 2L;
+  @Test
+  @DisplayName("이미 참여한 경우 예외 발생")
+  void validateNotAlreadyParticipated_alreadyExists_throwsException() {
+    // given
+    Long challengeId = 1L;
+    Long memberId = 2L;
 
-        given(participantRepository.existsByGroupChallengeIdAndMemberIdAndDeletedAtIsNull(challengeId, memberId))
-                .willReturn(true);
+    given(
+            participantRepository.existsByGroupChallengeIdAndMemberIdAndDeletedAtIsNull(
+                challengeId, memberId))
+        .willReturn(true);
 
-        // expect
-        assertThatThrownBy(() ->
-                validator.validateNotAlreadyParticipated(challengeId, memberId)
-        ).isInstanceOf(CustomException.class)
-                .hasMessageContaining(ChallengeErrorCode.CHALLENGE_ALREADY_PARTICIPATED.getMessage());
+    // expect
+    assertThatThrownBy(() -> validator.validateNotAlreadyParticipated(challengeId, memberId))
+        .isInstanceOf(CustomException.class)
+        .hasMessageContaining(ChallengeErrorCode.CHALLENGE_ALREADY_PARTICIPATED.getMessage());
 
-        then(participantRepository).should().existsByGroupChallengeIdAndMemberIdAndDeletedAtIsNull(challengeId, memberId);
-    }
+    then(participantRepository)
+        .should()
+        .existsByGroupChallengeIdAndMemberIdAndDeletedAtIsNull(challengeId, memberId);
+  }
 
-    @Test
-    @DisplayName("참여 기록이 없으면 예외 없이 통과")
-    void validateNotAlreadyParticipated_notExists_passes() {
-        // given
-        Long challengeId = 1L;
-        Long memberId = 2L;
+  @Test
+  @DisplayName("참여 기록이 없으면 예외 없이 통과")
+  void validateNotAlreadyParticipated_notExists_passes() {
+    // given
+    Long challengeId = 1L;
+    Long memberId = 2L;
 
-        given(participantRepository.existsByGroupChallengeIdAndMemberIdAndDeletedAtIsNull(challengeId, memberId))
-                .willReturn(false);
+    given(
+            participantRepository.existsByGroupChallengeIdAndMemberIdAndDeletedAtIsNull(
+                challengeId, memberId))
+        .willReturn(false);
 
-        // expect
-        assertThatCode(() ->
-                validator.validateNotAlreadyParticipated(challengeId, memberId)
-        ).doesNotThrowAnyException();
-    }
+    // expect
+    assertThatCode(() -> validator.validateNotAlreadyParticipated(challengeId, memberId))
+        .doesNotThrowAnyException();
+  }
 
-    @Test
-    @DisplayName("DROPPED 상태일 경우 예외 발생")
-    void validateDroppable_dropped_throwsException() {
-        validateDroppableWithInvalidStatus(ParticipantStatus.DROPPED);
-    }
+  @Test
+  @DisplayName("DROPPED 상태일 경우 예외 발생")
+  void validateDroppable_dropped_throwsException() {
+    validateDroppableWithInvalidStatus(ParticipantStatus.DROPPED);
+  }
 
-    @Test
-    @DisplayName("FINISHED 상태일 경우 예외 발생")
-    void validateDroppable_finished_throwsException() {
-        validateDroppableWithInvalidStatus(ParticipantStatus.FINISHED);
-    }
+  @Test
+  @DisplayName("FINISHED 상태일 경우 예외 발생")
+  void validateDroppable_finished_throwsException() {
+    validateDroppableWithInvalidStatus(ParticipantStatus.FINISHED);
+  }
 
-    @Test
-    @DisplayName("BANNED 상태일 경우 예외 발생")
-    void validateDroppable_banned_throwsException() {
-        validateDroppableWithInvalidStatus(ParticipantStatus.BANNED);
-    }
+  @Test
+  @DisplayName("BANNED 상태일 경우 예외 발생")
+  void validateDroppable_banned_throwsException() {
+    validateDroppableWithInvalidStatus(ParticipantStatus.BANNED);
+  }
 
-    @Test
-    @DisplayName("ACTIVE 상태일 경우 예외 발생하지 않음")
-    void validateDroppable_active_passes() {
-        // given
-        Member member = MemberFixture.of();
-        GroupChallengeCategory category = GroupChallengeCategoryFixture.defaultCategory();
-        GroupChallenge challenge = GroupChallengeFixture.of(member, category);
-        GroupChallengeParticipantRecord record = GroupChallengeParticipantRecordFixture.of(challenge, member, ParticipantStatus.ACTIVE);
+  @Test
+  @DisplayName("ACTIVE 상태일 경우 예외 발생하지 않음")
+  void validateDroppable_active_passes() {
+    // given
+    Member member = MemberFixture.of();
+    GroupChallengeCategory category = GroupChallengeCategoryFixture.defaultCategory();
+    GroupChallenge challenge = GroupChallengeFixture.of(member, category);
+    GroupChallengeParticipantRecord record =
+        GroupChallengeParticipantRecordFixture.of(challenge, member, ParticipantStatus.ACTIVE);
 
-        // expect
-        assertThatCode(() -> validator.validateDroppable(record))
-                .doesNotThrowAnyException();
-    }
+    // expect
+    assertThatCode(() -> validator.validateDroppable(record)).doesNotThrowAnyException();
+  }
 
-    private void validateDroppableWithInvalidStatus(ParticipantStatus status) {
-        // given
-        Member member = MemberFixture.of();
-        GroupChallengeCategory category = GroupChallengeCategoryFixture.defaultCategory();
-        GroupChallenge challenge = GroupChallengeFixture.of(member, category);
-        GroupChallengeParticipantRecord record = GroupChallengeParticipantRecordFixture.of(challenge, member, status);
+  private void validateDroppableWithInvalidStatus(ParticipantStatus status) {
+    // given
+    Member member = MemberFixture.of();
+    GroupChallengeCategory category = GroupChallengeCategoryFixture.defaultCategory();
+    GroupChallenge challenge = GroupChallengeFixture.of(member, category);
+    GroupChallengeParticipantRecord record =
+        GroupChallengeParticipantRecordFixture.of(challenge, member, status);
 
-        // expect
-        assertThatThrownBy(() -> validator.validateDroppable(record))
-                .isInstanceOf(CustomException.class)
-                .hasMessageContaining(ChallengeErrorCode.CHALLENGE_ALREADY_DROPPED.getMessage());
-    }
+    // expect
+    assertThatThrownBy(() -> validator.validateDroppable(record))
+        .isInstanceOf(CustomException.class)
+        .hasMessageContaining(ChallengeErrorCode.CHALLENGE_ALREADY_DROPPED.getMessage());
+  }
 }

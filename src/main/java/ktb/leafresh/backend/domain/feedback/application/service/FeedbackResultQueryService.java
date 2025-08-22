@@ -20,36 +20,39 @@ import java.time.DayOfWeek;
 @RequiredArgsConstructor
 public class FeedbackResultQueryService {
 
-    private final MemberRepository memberRepository;
-    private final FeedbackRepository feedbackRepository;
-    private final RedisTemplate<String, Object> redisTemplate;
+  private final MemberRepository memberRepository;
+  private final FeedbackRepository feedbackRepository;
+  private final RedisTemplate<String, Object> redisTemplate;
 
-    public FeedbackResponseDto getFeedbackResult(Long memberId) {
-        Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new CustomException(GlobalErrorCode.UNAUTHORIZED));
+  public FeedbackResponseDto getFeedbackResult(Long memberId) {
+    Member member =
+        memberRepository
+            .findById(memberId)
+            .orElseThrow(() -> new CustomException(GlobalErrorCode.UNAUTHORIZED));
 
-        if (!member.getActivated()) {
-            throw new CustomException(GlobalErrorCode.ACCESS_DENIED);
-        }
-
-        log.info("[피드백 결과 단건 조회] memberId={}", memberId);
-        return getLatestFeedback(member);
+    if (!member.getActivated()) {
+      throw new CustomException(GlobalErrorCode.ACCESS_DENIED);
     }
 
-    private FeedbackResponseDto getLatestFeedback(Member member) {
-        String key = "feedback:result:" + member.getId();
-        String cached = (String) redisTemplate.opsForValue().get(key);
+    log.info("[피드백 결과 단건 조회] memberId={}", memberId);
+    return getLatestFeedback(member);
+  }
 
-        if (cached != null) {
-            log.info("[Redis 캐시 히트] memberId={}, content={}", member.getId(), cached);
-            return new FeedbackResponseDto(cached);
-        }
+  private FeedbackResponseDto getLatestFeedback(Member member) {
+    String key = "feedback:result:" + member.getId();
+    String cached = (String) redisTemplate.opsForValue().get(key);
 
-        log.info("[Redis 캐시 미스] DB 조회 시도 memberId={}", member.getId());
-        LocalDateTime lastWeekMonday = LocalDate.now().with(DayOfWeek.MONDAY).minusWeeks(1).atStartOfDay();
-        return feedbackRepository
-                .findFeedbackByMemberAndWeekMonday(member, lastWeekMonday)
-                .map(fb -> new FeedbackResponseDto(fb.getContent()))
-                .orElse(new FeedbackResponseDto(null));
+    if (cached != null) {
+      log.info("[Redis 캐시 히트] memberId={}, content={}", member.getId(), cached);
+      return new FeedbackResponseDto(cached);
     }
+
+    log.info("[Redis 캐시 미스] DB 조회 시도 memberId={}", member.getId());
+    LocalDateTime lastWeekMonday =
+        LocalDate.now().with(DayOfWeek.MONDAY).minusWeeks(1).atStartOfDay();
+    return feedbackRepository
+        .findFeedbackByMemberAndWeekMonday(member, lastWeekMonday)
+        .map(fb -> new FeedbackResponseDto(fb.getContent()))
+        .orElse(new FeedbackResponseDto(null));
+  }
 }

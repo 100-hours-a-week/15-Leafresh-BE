@@ -7,16 +7,15 @@ import java.time.ZoneOffset;
 
 public class ProductSummaryCacheDtoMapper {
 
-    public static ProductSummaryCacheDto from(Product product) {
-        return new ProductSummaryCacheDto(
-                product.getId(),
-                product.getName(),
-                product.getDescription(),
-                product.getImageUrl(),
-                product.getPrice(),
-                product.getStock(),
-                product.getStatus().name(),
-                product.getCreatedAt().atOffset(ZoneOffset.UTC)
-        );
-    }
+  public static ProductSummaryCacheDto from(Product product) {
+    return new ProductSummaryCacheDto(
+        product.getId(),
+        product.getName(),
+        product.getDescription(),
+        product.getImageUrl(),
+        product.getPrice(),
+        product.getStock(),
+        product.getStatus().name(),
+        product.getCreatedAt().atOffset(ZoneOffset.UTC));
+  }
 }

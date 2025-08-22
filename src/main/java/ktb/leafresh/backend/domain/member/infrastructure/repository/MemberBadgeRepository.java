@@ -5,8 +5,9 @@ import ktb.leafresh.backend.domain.member.domain.entity.Member;
 import ktb.leafresh.backend.domain.member.domain.entity.MemberBadge;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface MemberBadgeRepository extends JpaRepository<MemberBadge, Long>, MemberBadgeQueryRepository {
-    // QueryDSL용 custom interface 분리
+public interface MemberBadgeRepository
+    extends JpaRepository<MemberBadge, Long>, MemberBadgeQueryRepository {
+  // QueryDSL용 custom interface 분리
 
-    boolean existsByMemberAndBadge(Member member, Badge badge);
+  boolean existsByMemberAndBadge(Member member, Badge badge);
 }

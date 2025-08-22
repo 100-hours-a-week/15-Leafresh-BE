@@ -15,16 +15,14 @@ import java.util.Map;
 @RequestMapping("/api/challenges/group/categories")
 public class GroupChallengeCategoryController {
 
-    private final GroupChallengeCategoryService groupChallengeCategoryService;
+  private final GroupChallengeCategoryService groupChallengeCategoryService;
 
-    @GetMapping
-    public ResponseEntity<ApiResponse<Map<String, List<GroupChallengeCategoryResponseDto>>>> getGroupChallengeCategories() {
-        List<GroupChallengeCategoryResponseDto> categories = groupChallengeCategoryService.getCategories();
-        return ResponseEntity.ok(
-                ApiResponse.success(
-                        "단체 챌린지 카테고리 목록 조회에 성공하였습니다.",
-                        Map.of("categories", categories)
-                )
-        );
-    }
+  @GetMapping
+  public ResponseEntity<ApiResponse<Map<String, List<GroupChallengeCategoryResponseDto>>>>
+      getGroupChallengeCategories() {
+    List<GroupChallengeCategoryResponseDto> categories =
+        groupChallengeCategoryService.getCategories();
+    return ResponseEntity.ok(
+        ApiResponse.success("단체 챌린지 카테고리 목록 조회에 성공하였습니다.", Map.of("categories", categories)));
+  }
 }

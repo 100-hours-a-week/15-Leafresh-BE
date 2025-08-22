@@ -22,80 +22,121 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class GroupVerificationCommentCreateService {
 
-    private final CommentRepository commentRepository;
-    private final GroupChallengeVerificationRepository verificationRepository;
-    private final MemberRepository memberRepository;
-    private final VerificationStatRedisLuaService verificationStatRedisLuaService;
+  private final CommentRepository commentRepository;
+  private final GroupChallengeVerificationRepository verificationRepository;
+  private final MemberRepository memberRepository;
+  private final VerificationStatRedisLuaService verificationStatRedisLuaService;
 
-    @Transactional
-    public CommentResponseDto createComment(Long challengeId, Long verificationId, Long memberId, GroupVerificationCommentCreateRequestDto dto) {
-        try {
-            Member member = memberRepository.findById(memberId)
-                    .orElseThrow(() -> new CustomException(MemberErrorCode.MEMBER_NOT_FOUND));
+  @Transactional
+  public CommentResponseDto createComment(
+      Long challengeId,
+      Long verificationId,
+      Long memberId,
+      GroupVerificationCommentCreateRequestDto dto) {
+    try {
+      Member member =
+          memberRepository
+              .findById(memberId)
+              .orElseThrow(() -> new CustomException(MemberErrorCode.MEMBER_NOT_FOUND));
 
-            GroupChallengeVerification verification = verificationRepository.findByIdAndDeletedAtIsNull(verificationId)
-                    .orElseThrow(() -> new CustomException(VerificationErrorCode.VERIFICATION_DETAIL_NOT_FOUND));
+      GroupChallengeVerification verification =
+          verificationRepository
+              .findByIdAndDeletedAtIsNull(verificationId)
+              .orElseThrow(
+                  () -> new CustomException(VerificationErrorCode.VERIFICATION_DETAIL_NOT_FOUND));
 
-            Comment comment = Comment.builder()
-                    .verification(verification)
-                    .member(member)
-                    .content(dto.content())
-                    .build();
+      Comment comment =
+          Comment.builder()
+              .verification(verification)
+              .member(member)
+              .content(dto.content())
+              .build();
 
-            commentRepository.save(comment);
-            verificationStatRedisLuaService.increaseVerificationCommentCount(verificationId);
+      commentRepository.save(comment);
+      verificationStatRedisLuaService.increaseVerificationCommentCount(verificationId);
 
-            log.info("[댓글 생성 완료] verificationId={}, commentId={}, memberId={}",
-                    verificationId, comment.getId(), memberId);
+      log.info(
+          "[댓글 생성 완료] verificationId={}, commentId={}, memberId={}",
+          verificationId,
+          comment.getId(),
+          memberId);
 
-            return CommentResponseDto.from(comment);
+      return CommentResponseDto.from(comment);
 
-        } catch (CustomException e) {
-            throw e;
-        } catch (Exception e) {
-            log.error("[댓글 생성 실패] challengeId={}, verificationId={}, memberId={}, error={}",
-                    challengeId, verificationId, memberId, e.getMessage(), e);
-            throw new CustomException(VerificationErrorCode.COMMENT_CREATE_FAILED);
-        }
+    } catch (CustomException e) {
+      throw e;
+    } catch (Exception e) {
+      log.error(
+          "[댓글 생성 실패] challengeId={}, verificationId={}, memberId={}, error={}",
+          challengeId,
+          verificationId,
+          memberId,
+          e.getMessage(),
+          e);
+      throw new CustomException(VerificationErrorCode.COMMENT_CREATE_FAILED);
     }
+  }
 
-    @Transactional
-    public CommentResponseDto createReply(Long challengeId, Long verificationId, Long parentCommentId, Long memberId, GroupVerificationCommentCreateRequestDto dto) {
-        try {
-            Member member = memberRepository.findById(memberId)
-                    .orElseThrow(() -> new CustomException(MemberErrorCode.MEMBER_NOT_FOUND));
+  @Transactional
+  public CommentResponseDto createReply(
+      Long challengeId,
+      Long verificationId,
+      Long parentCommentId,
+      Long memberId,
+      GroupVerificationCommentCreateRequestDto dto) {
+    try {
+      Member member =
+          memberRepository
+              .findById(memberId)
+              .orElseThrow(() -> new CustomException(MemberErrorCode.MEMBER_NOT_FOUND));
 
-            GroupChallengeVerification verification = verificationRepository.findByIdAndDeletedAtIsNull(verificationId)
-                    .orElseThrow(() -> new CustomException(VerificationErrorCode.VERIFICATION_DETAIL_NOT_FOUND));
+      GroupChallengeVerification verification =
+          verificationRepository
+              .findByIdAndDeletedAtIsNull(verificationId)
+              .orElseThrow(
+                  () -> new CustomException(VerificationErrorCode.VERIFICATION_DETAIL_NOT_FOUND));
 
-            Comment parentComment = commentRepository.findById(parentCommentId)
-                    .orElseThrow(() -> new CustomException(VerificationErrorCode.COMMENT_NOT_FOUND));
+      Comment parentComment =
+          commentRepository
+              .findById(parentCommentId)
+              .orElseThrow(() -> new CustomException(VerificationErrorCode.COMMENT_NOT_FOUND));
 
-            if (parentComment.getDeletedAt() != null) {
-                throw new CustomException(VerificationErrorCode.CANNOT_REPLY_TO_DELETED_COMMENT);
-            }
+      if (parentComment.getDeletedAt() != null) {
+        throw new CustomException(VerificationErrorCode.CANNOT_REPLY_TO_DELETED_COMMENT);
+      }
 
-            Comment reply = Comment.builder()
-                    .verification(verification)
-                    .member(member)
-                    .content(dto.content())
-                    .parentComment(parentComment)
-                    .build();
+      Comment reply =
+          Comment.builder()
+              .verification(verification)
+              .member(member)
+              .content(dto.content())
+              .parentComment(parentComment)
+              .build();
 
-            commentRepository.save(reply);
-            verificationStatRedisLuaService.increaseVerificationCommentCount(verificationId);
+      commentRepository.save(reply);
+      verificationStatRedisLuaService.increaseVerificationCommentCount(verificationId);
 
-            log.info("[대댓글 생성 완료] verificationId={}, parentCommentId={}, replyId={}, memberId={}",
-                    verificationId, parentCommentId, reply.getId(), memberId);
+      log.info(
+          "[대댓글 생성 완료] verificationId={}, parentCommentId={}, replyId={}, memberId={}",
+          verificationId,
+          parentCommentId,
+          reply.getId(),
+          memberId);
 
-            return CommentResponseDto.from(reply);
+      return CommentResponseDto.from(reply);
 
-        } catch (CustomException e) {
-            throw e;
-        } catch (Exception e) {
-            log.error("[대댓글 생성 실패] challengeId={}, verificationId={}, parentCommentId={}, memberId={}, error={}",
-                    challengeId, verificationId, parentCommentId, memberId, e.getMessage(), e);
-            throw new CustomException(VerificationErrorCode.COMMENT_CREATE_FAILED);
-        }
+    } catch (CustomException e) {
+      throw e;
+    } catch (Exception e) {
+      log.error(
+          "[대댓글 생성 실패] challengeId={}, verificationId={}, parentCommentId={}, memberId={}, error={}",
+          challengeId,
+          verificationId,
+          parentCommentId,
+          memberId,
+          e.getMessage(),
+          e);
+      throw new CustomException(VerificationErrorCode.COMMENT_CREATE_FAILED);
     }
+  }
 }

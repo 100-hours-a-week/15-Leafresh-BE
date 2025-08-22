@@ -10,15 +10,15 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class RedissonConfig {
 
-    @Value("${redis.redisson.address}")
-    private String redissonAddress;
+  @Value("${redis.redisson.address}")
+  private String redissonAddress;
 
-    @Bean
-    public RedissonClient redissonClient() {
-        RedissonClient redisson = null;
-        Config config = new Config();
-        config.useSingleServer().setAddress(redissonAddress);
-        redisson = Redisson.create(config);
-        return redisson;
-    }
+  @Bean
+  public RedissonClient redissonClient() {
+    RedissonClient redisson = null;
+    Config config = new Config();
+    config.useSingleServer().setAddress(redissonAddress);
+    redisson = Redisson.create(config);
+    return redisson;
+  }
 }

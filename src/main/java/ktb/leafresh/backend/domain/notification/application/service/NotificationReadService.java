@@ -20,38 +20,40 @@ import java.util.List;
 @RequiredArgsConstructor
 public class NotificationReadService {
 
-    private final NotificationReadQueryRepository notificationReadQueryRepository;
-    private final NotificationRepository notificationRepository;
+  private final NotificationReadQueryRepository notificationReadQueryRepository;
+  private final NotificationRepository notificationRepository;
 
-    @Transactional(readOnly = true)
-    public CursorPaginationResult<NotificationSummaryResponse> getNotifications(Long memberId, Long cursorId, String cursorTimestamp, int size) {
-        LocalDateTime parsedTimestamp = CursorConditionUtils.parseTimestamp(cursorTimestamp);
+  @Transactional(readOnly = true)
+  public CursorPaginationResult<NotificationSummaryResponse> getNotifications(
+      Long memberId, Long cursorId, String cursorTimestamp, int size) {
+    LocalDateTime parsedTimestamp = CursorConditionUtils.parseTimestamp(cursorTimestamp);
 
-        List<Notification> notifications = notificationReadQueryRepository
-                .findAllWithCursorAndMemberId(parsedTimestamp, cursorId, size + 1, memberId);
+    List<Notification> notifications =
+        notificationReadQueryRepository.findAllWithCursorAndMemberId(
+            parsedTimestamp, cursorId, size + 1, memberId);
 
-        return CursorPaginationHelper.paginateWithTimestamp(
-                notifications,
-                size,
-                NotificationSummaryResponse::from,
-                NotificationSummaryResponse::id,
-                dto -> dto.createdAt().toLocalDateTime()
-        );
+    return CursorPaginationHelper.paginateWithTimestamp(
+        notifications,
+        size,
+        NotificationSummaryResponse::from,
+        NotificationSummaryResponse::id,
+        dto -> dto.createdAt().toLocalDateTime());
+  }
+
+  @Transactional
+  public void markAllAsRead(Long memberId) {
+    List<Notification> unreadNotifications =
+        notificationRepository.findByMemberIdAndStatusFalse(memberId);
+
+    if (unreadNotifications.isEmpty()) {
+      log.info("[알림 읽음 처리] memberId={} - 읽지 않은 알림 없음", memberId);
+      return;
     }
 
-    @Transactional
-    public void markAllAsRead(Long memberId) {
-        List<Notification> unreadNotifications = notificationRepository.findByMemberIdAndStatusFalse(memberId);
+    log.info("[알림 읽음 처리 시작] memberId={}, 읽지 않은 알림 수={}", memberId, unreadNotifications.size());
 
-        if (unreadNotifications.isEmpty()) {
-            log.info("[알림 읽음 처리] memberId={} - 읽지 않은 알림 없음", memberId);
-            return;
-        }
+    unreadNotifications.forEach(Notification::markAsRead);
 
-        log.info("[알림 읽음 처리 시작] memberId={}, 읽지 않은 알림 수={}", memberId, unreadNotifications.size());
-
-        unreadNotifications.forEach(Notification::markAsRead);
-
-        log.info("[알림 읽음 처리 완료] memberId={}", memberId);
-    }
+    log.info("[알림 읽음 처리 완료] memberId={}", memberId);
+  }
 }

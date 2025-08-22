@@ -18,37 +18,30 @@ import jakarta.servlet.http.HttpServletResponse;
 @Profile({"docker-local", "eks"})
 public class ChatbotRecommendationSseController {
 
-    private final ChatbotRecommendationSseService chatbotRecommendationSseService;
+  private final ChatbotRecommendationSseService chatbotRecommendationSseService;
 
-    @GetMapping(value = "/base-info", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public SseEmitter baseInfo(
-            @RequestParam String sessionId,
-            @RequestParam String location,
-            @RequestParam String workType,
-            @RequestParam String category,
-            HttpServletResponse response
-    ) {
-        response.setHeader("Cache-Control", "no-cache");
-        response.setHeader("X-Accel-Buffering", "no");
+  @GetMapping(value = "/base-info", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+  public SseEmitter baseInfo(
+      @RequestParam String sessionId,
+      @RequestParam String location,
+      @RequestParam String workType,
+      @RequestParam String category,
+      HttpServletResponse response) {
+    response.setHeader("Cache-Control", "no-cache");
+    response.setHeader("X-Accel-Buffering", "no");
 
-        return chatbotRecommendationSseService.stream(
-                "/ai/chatbot/recommendation/base-info",
-                new ChatbotBaseInfoRequestDto(sessionId, location, workType, category)
-        );
-    }
+    return chatbotRecommendationSseService.stream(
+        "/ai/chatbot/recommendation/base-info",
+        new ChatbotBaseInfoRequestDto(sessionId, location, workType, category));
+  }
 
-    @GetMapping(value = "/free-text", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public SseEmitter freeText(
-            @RequestParam String sessionId,
-            @RequestParam String message,
-            HttpServletResponse response
-    ) {
-        response.setHeader("Cache-Control", "no-cache");
-        response.setHeader("X-Accel-Buffering", "no");
+  @GetMapping(value = "/free-text", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+  public SseEmitter freeText(
+      @RequestParam String sessionId, @RequestParam String message, HttpServletResponse response) {
+    response.setHeader("Cache-Control", "no-cache");
+    response.setHeader("X-Accel-Buffering", "no");
 
-        return chatbotRecommendationSseService.stream(
-                "/ai/chatbot/recommendation/free-text",
-                new ChatbotFreeTextRequestDto(sessionId, message)
-        );
-    }
+    return chatbotRecommendationSseService.stream(
+        "/ai/chatbot/recommendation/free-text", new ChatbotFreeTextRequestDto(sessionId, message));
+  }
 }

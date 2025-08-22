@@ -22,34 +22,38 @@ import java.util.concurrent.TimeUnit;
 @RequiredArgsConstructor
 public class GcsPresignedUrlProvider implements PresignedUrlProvider {
 
-    private final Storage storage;
+  private final Storage storage;
 
-    @Value("${gcp.storage.bucket}")
-    private String bucketName;
+  @Value("${gcp.storage.bucket}")
+  private String bucketName;
 
-    private static final List<String> ALLOWED_CONTENT_TYPES = List.of("image/png", "image/jpeg", "image/jpg", "image/webp");
+  private static final List<String> ALLOWED_CONTENT_TYPES =
+      List.of("image/png", "image/jpeg", "image/jpg", "image/webp");
 
-    @Override
-    public PresignedUrlResponseDto generatePresignedUrl(String fileName, String contentType) {
-        validateContentType(contentType);
+  @Override
+  public PresignedUrlResponseDto generatePresignedUrl(String fileName, String contentType) {
+    validateContentType(contentType);
 
-        BlobInfo blobInfo = BlobInfo.newBuilder(bucketName, fileName)
-                .setContentType(contentType)
-                .build();
+    BlobInfo blobInfo =
+        BlobInfo.newBuilder(bucketName, fileName).setContentType(contentType).build();
 
-        URL uploadUrl = storage.signUrl(blobInfo, 3, TimeUnit.MINUTES,
-                Storage.SignUrlOption.httpMethod(HttpMethod.PUT),
-                Storage.SignUrlOption.withV4Signature(),
-                Storage.SignUrlOption.withContentType());
+    URL uploadUrl =
+        storage.signUrl(
+            blobInfo,
+            3,
+            TimeUnit.MINUTES,
+            Storage.SignUrlOption.httpMethod(HttpMethod.PUT),
+            Storage.SignUrlOption.withV4Signature(),
+            Storage.SignUrlOption.withContentType());
 
-        String fileUrl = String.format("https://storage.googleapis.com/%s/%s", bucketName, fileName);
+    String fileUrl = String.format("https://storage.googleapis.com/%s/%s", bucketName, fileName);
 
-        return new PresignedUrlResponseDto(uploadUrl.toString(), fileUrl);
+    return new PresignedUrlResponseDto(uploadUrl.toString(), fileUrl);
+  }
+
+  private void validateContentType(String contentType) {
+    if (!ALLOWED_CONTENT_TYPES.contains(contentType)) {
+      throw new CustomException(GlobalErrorCode.UNSUPPORTED_CONTENT_TYPE);
     }
-
-    private void validateContentType(String contentType) {
-        if (!ALLOWED_CONTENT_TYPES.contains(contentType)) {
-            throw new CustomException(GlobalErrorCode.UNSUPPORTED_CONTENT_TYPE);
-        }
-    }
+  }
 }

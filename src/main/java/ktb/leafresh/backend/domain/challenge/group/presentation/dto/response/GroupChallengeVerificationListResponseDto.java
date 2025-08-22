@@ -8,15 +8,12 @@ import java.util.List;
 
 @Builder
 public record GroupChallengeVerificationListResponseDto(
-        List<GroupChallengeVerificationSummaryDto> verifications,
-        boolean hasNext,
-        CursorInfo cursorInfo
-) {
-    public static GroupChallengeVerificationListResponseDto from(CursorPaginationResult<GroupChallengeVerificationSummaryDto> result) {
-        return new GroupChallengeVerificationListResponseDto(
-                result.items(),
-                result.hasNext(),
-                result.cursorInfo()
-        );
-    }
+    List<GroupChallengeVerificationSummaryDto> verifications,
+    boolean hasNext,
+    CursorInfo cursorInfo) {
+  public static GroupChallengeVerificationListResponseDto from(
+      CursorPaginationResult<GroupChallengeVerificationSummaryDto> result) {
+    return new GroupChallengeVerificationListResponseDto(
+        result.items(), result.hasNext(), result.cursorInfo());
+  }
 }

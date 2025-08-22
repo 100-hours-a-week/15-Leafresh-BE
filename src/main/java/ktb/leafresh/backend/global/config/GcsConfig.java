@@ -18,29 +18,29 @@ import java.io.InputStream;
 @Profile("!eks")
 public class GcsConfig {
 
-    @Value("${gcp.project-id}")
-    private String projectId;
+  @Value("${gcp.project-id}")
+  private String projectId;
 
-    @Value("${gcp.credentials.location}")
-    private String credentialsPath;
+  @Value("${gcp.credentials.location}")
+  private String credentialsPath;
 
-    @Bean
-    public Storage storage() throws IOException {
-        InputStream credentialsInputStream;
+  @Bean
+  public Storage storage() throws IOException {
+    InputStream credentialsInputStream;
 
-        File credentialsFile = new File(credentialsPath);
-        if (credentialsFile.exists()) {
-            credentialsInputStream = new FileInputStream(credentialsFile);
-        } else {
-            credentialsInputStream = new ClassPathResource(credentialsPath).getInputStream();
-        }
-
-        GoogleCredentials credentials = GoogleCredentials.fromStream(credentialsInputStream);
-
-        return StorageOptions.newBuilder()
-                .setProjectId(projectId)
-                .setCredentials(credentials)
-                .build()
-                .getService();
+    File credentialsFile = new File(credentialsPath);
+    if (credentialsFile.exists()) {
+      credentialsInputStream = new FileInputStream(credentialsFile);
+    } else {
+      credentialsInputStream = new ClassPathResource(credentialsPath).getInputStream();
     }
+
+    GoogleCredentials credentials = GoogleCredentials.fromStream(credentialsInputStream);
+
+    return StorageOptions.newBuilder()
+        .setProjectId(projectId)
+        .setCredentials(credentials)
+        .build()
+        .getService();
+  }
 }

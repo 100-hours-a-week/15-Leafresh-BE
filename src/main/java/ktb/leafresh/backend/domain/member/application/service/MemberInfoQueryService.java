@@ -16,28 +16,30 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class MemberInfoQueryService {
 
-    private final MemberRepository memberRepository;
+  private final MemberRepository memberRepository;
 
-    @Transactional(readOnly = true)
-    public MemberInfoResponseDto getMemberInfo(Long memberId) {
-        log.debug("[회원 정보 조회] 요청 시작 - memberId: {}", memberId);
+  @Transactional(readOnly = true)
+  public MemberInfoResponseDto getMemberInfo(Long memberId) {
+    log.debug("[회원 정보 조회] 요청 시작 - memberId: {}", memberId);
 
-        try {
-            Member member = memberRepository.findById(memberId)
-                    .orElseThrow(() -> new CustomException(MemberErrorCode.MEMBER_NOT_FOUND));
+    try {
+      Member member =
+          memberRepository
+              .findById(memberId)
+              .orElseThrow(() -> new CustomException(MemberErrorCode.MEMBER_NOT_FOUND));
 
-            TreeLevel treeLevel = member.getTreeLevel();
-            if (treeLevel == null) {
-                log.error("[회원 정보 조회] 트리 레벨 정보 없음 - memberId: {}", memberId);
-                throw new CustomException(MemberErrorCode.TREE_LEVEL_NOT_FOUND);
-            }
+      TreeLevel treeLevel = member.getTreeLevel();
+      if (treeLevel == null) {
+        log.error("[회원 정보 조회] 트리 레벨 정보 없음 - memberId: {}", memberId);
+        throw new CustomException(MemberErrorCode.TREE_LEVEL_NOT_FOUND);
+      }
 
-            return MemberInfoResponseDto.of(member, treeLevel);
-        } catch (CustomException e) {
-            throw e;
-        } catch (Exception e) {
-            log.error("[회원 정보 조회] 서비스 내부 오류", e);
-            throw new CustomException(MemberErrorCode.MEMBER_INFO_QUERY_FAILED);
-        }
+      return MemberInfoResponseDto.of(member, treeLevel);
+    } catch (CustomException e) {
+      throw e;
+    } catch (Exception e) {
+      log.error("[회원 정보 조회] 서비스 내부 오류", e);
+      throw new CustomException(MemberErrorCode.MEMBER_INFO_QUERY_FAILED);
     }
+  }
 }

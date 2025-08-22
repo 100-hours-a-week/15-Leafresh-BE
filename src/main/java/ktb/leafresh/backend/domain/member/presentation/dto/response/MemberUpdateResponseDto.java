@@ -6,6 +6,6 @@ import lombok.Getter;
 @Getter
 @Builder
 public class MemberUpdateResponseDto {
-    private final String nickname;
-    private final String imageUrl;
+  private final String nickname;
+  private final String imageUrl;
 }

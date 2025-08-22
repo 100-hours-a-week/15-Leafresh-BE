@@ -1,5 +1,4 @@
 package ktb.leafresh.backend.domain.challenge.group.infrastructure.dto.response;
 
-public record AiChallengeValidationResponseDto(
-        boolean result // true = 생성 가능, false = 유사 챌린지 존재
-) {}
+public record AiChallengeValidationResponseDto(boolean result // true = 생성 가능, false = 유사 챌린지 존재
+    ) {}

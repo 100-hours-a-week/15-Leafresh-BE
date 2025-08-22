@@ -24,79 +24,95 @@ import java.util.List;
 @Transactional(readOnly = true)
 public class PersonalChallengeReadService {
 
-    private final PersonalChallengeRepository repository;
-    private final PersonalChallengeVerificationRepository verificationRepository;
+  private final PersonalChallengeRepository repository;
+  private final PersonalChallengeVerificationRepository verificationRepository;
 
-    public PersonalChallengeListResponseDto getByDayOfWeek(DayOfWeek dayOfWeek) {
-        try {
-            List<PersonalChallenge> challenges = repository.findAllByDayOfWeek(dayOfWeek);
+  public PersonalChallengeListResponseDto getByDayOfWeek(DayOfWeek dayOfWeek) {
+    try {
+      List<PersonalChallenge> challenges = repository.findAllByDayOfWeek(dayOfWeek);
 
-            if (challenges.isEmpty()) {
-                throw new CustomException(ChallengeErrorCode.PERSONAL_CHALLENGE_EMPTY);
-            }
+      if (challenges.isEmpty()) {
+        throw new CustomException(ChallengeErrorCode.PERSONAL_CHALLENGE_EMPTY);
+      }
 
-            return new PersonalChallengeListResponseDto(PersonalChallengeSummaryDto.fromEntities(challenges));
-        } catch (Exception e) {
-            throw new CustomException(ChallengeErrorCode.PERSONAL_CHALLENGE_READ_FAILED);
-        }
+      return new PersonalChallengeListResponseDto(
+          PersonalChallengeSummaryDto.fromEntities(challenges));
+    } catch (Exception e) {
+      throw new CustomException(ChallengeErrorCode.PERSONAL_CHALLENGE_READ_FAILED);
+    }
+  }
+
+  public PersonalChallengeDetailResponseDto getChallengeDetail(
+      Long memberIdOrNull, Long challengeId) {
+    try {
+      PersonalChallenge challenge =
+          repository
+              .findById(challengeId)
+              .orElseThrow(
+                  () -> new CustomException(ChallengeErrorCode.PERSONAL_CHALLENGE_NOT_FOUND));
+
+      List<PersonalChallengeExampleImageDto> exampleImages =
+          challenge.getExampleImages().stream()
+              .map(PersonalChallengeExampleImageDto::from)
+              .toList();
+
+      ChallengeStatus status = resolveChallengeStatus(memberIdOrNull, challengeId);
+
+      return PersonalChallengeDetailResponseDto.of(challenge, exampleImages, status);
+    } catch (Exception e) {
+      throw new CustomException(ChallengeErrorCode.PERSONAL_CHALLENGE_DETAIL_READ_FAILED);
+    }
+  }
+
+  private ChallengeStatus resolveChallengeStatus(Long memberIdOrNull, Long challengeId) {
+    if (memberIdOrNull == null) {
+      log.info("비회원 접근 - 인증 상태 조회 생략");
+      return ChallengeStatus.NOT_SUBMITTED;
     }
 
-    public PersonalChallengeDetailResponseDto getChallengeDetail(Long memberIdOrNull, Long challengeId) {
-        try {
-            PersonalChallenge challenge = repository.findById(challengeId)
-                    .orElseThrow(() -> new CustomException(ChallengeErrorCode.PERSONAL_CHALLENGE_NOT_FOUND));
+    // 1. 챌린지 가져오기
+    PersonalChallenge challenge =
+        repository
+            .findById(challengeId)
+            .orElseThrow(
+                () -> new CustomException(ChallengeErrorCode.PERSONAL_CHALLENGE_NOT_FOUND));
 
-            List<PersonalChallengeExampleImageDto> exampleImages = challenge.getExampleImages().stream()
-                    .map(PersonalChallengeExampleImageDto::from)
-                    .toList();
+    // 2. 요일 계산
+    java.time.DayOfWeek javaDayOfWeek =
+        java.time.DayOfWeek.valueOf(challenge.getDayOfWeek().name()); // enum 변환
+    java.time.LocalDate challengeDate =
+        java.time.LocalDate.now()
+            .with(java.time.temporal.TemporalAdjusters.previousOrSame(javaDayOfWeek));
 
-            ChallengeStatus status = resolveChallengeStatus(memberIdOrNull, challengeId);
+    LocalDateTime startOfDay = challengeDate.atStartOfDay();
+    LocalDateTime endOfDay = challengeDate.atTime(LocalTime.MAX);
 
-            return PersonalChallengeDetailResponseDto.of(challenge, exampleImages, status);
-        } catch (Exception e) {
-            throw new CustomException(ChallengeErrorCode.PERSONAL_CHALLENGE_DETAIL_READ_FAILED);
-        }
+    // 3. 인증 여부 확인
+    return verificationRepository
+        .findTopByMemberIdAndPersonalChallengeIdAndCreatedAtBetween(
+            memberIdOrNull, challengeId, startOfDay, endOfDay)
+        .map(PersonalChallengeVerification::getStatus)
+        .orElse(ChallengeStatus.NOT_SUBMITTED);
+  }
+
+  public PersonalChallengeRuleResponseDto getChallengeRules(Long challengeId) {
+    try {
+      PersonalChallenge challenge =
+          repository
+              .findById(challengeId)
+              .orElseThrow(
+                  () -> new CustomException(ChallengeErrorCode.PERSONAL_CHALLENGE_RULE_NOT_FOUND));
+
+      List<PersonalChallengeExampleImageDto> exampleImages =
+          challenge.getExampleImages().stream()
+              .map(PersonalChallengeExampleImageDto::from)
+              .toList();
+
+      return PersonalChallengeRuleResponseDto.of(challenge, exampleImages);
+    } catch (CustomException e) {
+      throw e;
+    } catch (Exception e) {
+      throw new CustomException(ChallengeErrorCode.PERSONAL_CHALLENGE_RULE_READ_FAILED);
     }
-
-    private ChallengeStatus resolveChallengeStatus(Long memberIdOrNull, Long challengeId) {
-        if (memberIdOrNull == null) {
-            log.info("비회원 접근 - 인증 상태 조회 생략");
-            return ChallengeStatus.NOT_SUBMITTED;
-        }
-
-        // 1. 챌린지 가져오기
-        PersonalChallenge challenge = repository.findById(challengeId)
-                .orElseThrow(() -> new CustomException(ChallengeErrorCode.PERSONAL_CHALLENGE_NOT_FOUND));
-
-        // 2. 요일 계산
-        java.time.DayOfWeek javaDayOfWeek = java.time.DayOfWeek.valueOf(challenge.getDayOfWeek().name()); // enum 변환
-        java.time.LocalDate challengeDate = java.time.LocalDate.now()
-                .with(java.time.temporal.TemporalAdjusters.previousOrSame(javaDayOfWeek));
-
-        LocalDateTime startOfDay = challengeDate.atStartOfDay();
-        LocalDateTime endOfDay = challengeDate.atTime(LocalTime.MAX);
-
-        // 3. 인증 여부 확인
-        return verificationRepository
-                .findTopByMemberIdAndPersonalChallengeIdAndCreatedAtBetween(memberIdOrNull, challengeId, startOfDay, endOfDay)
-                .map(PersonalChallengeVerification::getStatus)
-                .orElse(ChallengeStatus.NOT_SUBMITTED);
-    }
-
-    public PersonalChallengeRuleResponseDto getChallengeRules(Long challengeId) {
-        try {
-            PersonalChallenge challenge = repository.findById(challengeId)
-                    .orElseThrow(() -> new CustomException(ChallengeErrorCode.PERSONAL_CHALLENGE_RULE_NOT_FOUND));
-
-            List<PersonalChallengeExampleImageDto> exampleImages = challenge.getExampleImages().stream()
-                    .map(PersonalChallengeExampleImageDto::from)
-                    .toList();
-
-            return PersonalChallengeRuleResponseDto.of(challenge, exampleImages);
-        } catch (CustomException e) {
-            throw e;
-        } catch (Exception e) {
-            throw new CustomException(ChallengeErrorCode.PERSONAL_CHALLENGE_RULE_READ_FAILED);
-        }
-    }
+  }
 }

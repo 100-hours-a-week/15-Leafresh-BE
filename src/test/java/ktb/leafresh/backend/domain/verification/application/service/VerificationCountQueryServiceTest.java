@@ -15,28 +15,25 @@ import static org.mockito.BDDMockito.*;
 @ExtendWith(MockitoExtension.class)
 class VerificationCountQueryServiceTest {
 
-    @Mock
-    private GroupChallengeVerificationRepository groupRepo;
+  @Mock private GroupChallengeVerificationRepository groupRepo;
 
-    @Mock
-    private PersonalChallengeVerificationRepository personalRepo;
+  @Mock private PersonalChallengeVerificationRepository personalRepo;
 
-    @InjectMocks
-    private VerificationCountQueryService queryService;
+  @InjectMocks private VerificationCountQueryService queryService;
 
-    @Test
-    @DisplayName("전체 인증 수 조회 - 그룹 + 개인 인증 수의 합 반환")
-    void getTotalVerificationCountFromDB_returnsSum() {
-        // given
-        given(groupRepo.countAll()).willReturn(120);
-        given(personalRepo.countAll()).willReturn(80);
+  @Test
+  @DisplayName("전체 인증 수 조회 - 그룹 + 개인 인증 수의 합 반환")
+  void getTotalVerificationCountFromDB_returnsSum() {
+    // given
+    given(groupRepo.countAll()).willReturn(120);
+    given(personalRepo.countAll()).willReturn(80);
 
-        // when
-        int result = queryService.getTotalVerificationCountFromDB();
+    // when
+    int result = queryService.getTotalVerificationCountFromDB();
 
-        // then
-        assertThat(result).isEqualTo(200);
-        verify(groupRepo).countAll();
-        verify(personalRepo).countAll();
-    }
+    // then
+    assertThat(result).isEqualTo(200);
+    verify(groupRepo).countAll();
+    verify(personalRepo).countAll();
+  }
 }

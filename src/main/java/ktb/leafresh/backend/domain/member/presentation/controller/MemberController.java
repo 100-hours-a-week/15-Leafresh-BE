@@ -31,60 +31,64 @@ import jakarta.validation.Valid;
 @Validated
 public class MemberController {
 
-    private final MemberRepository memberRepository;
-    private final MemberUpdateService memberUpdateService;
-    private final MemberInfoQueryService memberInfoQueryService;
+  private final MemberRepository memberRepository;
+  private final MemberUpdateService memberUpdateService;
+  private final MemberInfoQueryService memberInfoQueryService;
 
-    @PatchMapping
-    @Operation(summary = "회원 정보 수정", description = "닉네임, 이미지 URL을 수정합니다.")
-    @ApiResponseConstants.ClientErrorResponses
-    @ApiResponseConstants.ServerErrorResponses
-    public ResponseEntity<ApiResponse<MemberUpdateResponseDto>> updateMemberInfo(
-            @AuthenticationPrincipal CustomUserDetails userDetails,
-            @Valid @RequestBody MemberUpdateRequestDto requestDto) {
+  @PatchMapping
+  @Operation(summary = "회원 정보 수정", description = "닉네임, 이미지 URL을 수정합니다.")
+  @ApiResponseConstants.ClientErrorResponses
+  @ApiResponseConstants.ServerErrorResponses
+  public ResponseEntity<ApiResponse<MemberUpdateResponseDto>> updateMemberInfo(
+      @AuthenticationPrincipal CustomUserDetails userDetails,
+      @Valid @RequestBody MemberUpdateRequestDto requestDto) {
 
-        log.debug("[회원 정보 수정] API 호출 시작 - memberId: {}", userDetails.getMemberId());
+    log.debug("[회원 정보 수정] API 호출 시작 - memberId: {}", userDetails.getMemberId());
 
-        try {
-            Member member = memberRepository.findById(userDetails.getMemberId())
-                    .orElseThrow(() -> {
-                        log.warn("[회원 정보 수정] 존재하지 않는 회원 - memberId: {}", userDetails.getMemberId());
-                        return new CustomException(MemberErrorCode.MEMBER_NOT_FOUND);
-                    });
+    try {
+      Member member =
+          memberRepository
+              .findById(userDetails.getMemberId())
+              .orElseThrow(
+                  () -> {
+                    log.warn("[회원 정보 수정] 존재하지 않는 회원 - memberId: {}", userDetails.getMemberId());
+                    return new CustomException(MemberErrorCode.MEMBER_NOT_FOUND);
+                  });
 
-            MemberUpdateResponseDto responseDto = memberUpdateService.updateMemberInfo(
-                    member, requestDto.getNickname(), requestDto.getImageUrl()
-            );
+      MemberUpdateResponseDto responseDto =
+          memberUpdateService.updateMemberInfo(
+              member, requestDto.getNickname(), requestDto.getImageUrl());
 
-            log.info("[회원 정보 수정] 성공 - memberId: {}", userDetails.getMemberId());
+      log.info("[회원 정보 수정] 성공 - memberId: {}", userDetails.getMemberId());
 
-            return ResponseEntity.ok(ApiResponse.success("회원 정보 수정이 완료되었습니다.", responseDto));
+      return ResponseEntity.ok(ApiResponse.success("회원 정보 수정이 완료되었습니다.", responseDto));
 
-        } catch (CustomException e) {
-            throw e;
-        } catch (Exception e) {
-            log.error("[회원 정보 수정] 처리 중 서버 내부 오류 발생", e);
-            throw new CustomException(MemberErrorCode.NICKNAME_UPDATE_FAILED);
-        }
+    } catch (CustomException e) {
+      throw e;
+    } catch (Exception e) {
+      log.error("[회원 정보 수정] 처리 중 서버 내부 오류 발생", e);
+      throw new CustomException(MemberErrorCode.NICKNAME_UPDATE_FAILED);
     }
+  }
 
-    @GetMapping
-    @Operation(summary = "회원 정보 조회", description = "로그인한 회원의 정보를 반환합니다.")
-    @ApiResponseConstants.ClientErrorResponses
-    @ApiResponseConstants.ServerErrorResponses
-    public ResponseEntity<ApiResponse<MemberInfoResponseDto>> getMemberInfo(
-            @AuthenticationPrincipal CustomUserDetails userDetails) {
-        log.debug("[회원 정보 조회] API 호출 시작 - memberId: {}", userDetails.getMemberId());
+  @GetMapping
+  @Operation(summary = "회원 정보 조회", description = "로그인한 회원의 정보를 반환합니다.")
+  @ApiResponseConstants.ClientErrorResponses
+  @ApiResponseConstants.ServerErrorResponses
+  public ResponseEntity<ApiResponse<MemberInfoResponseDto>> getMemberInfo(
+      @AuthenticationPrincipal CustomUserDetails userDetails) {
+    log.debug("[회원 정보 조회] API 호출 시작 - memberId: {}", userDetails.getMemberId());
 
-        try {
-            MemberInfoResponseDto responseDto = memberInfoQueryService.getMemberInfo(userDetails.getMemberId());
+    try {
+      MemberInfoResponseDto responseDto =
+          memberInfoQueryService.getMemberInfo(userDetails.getMemberId());
 
-            log.debug("[회원 정보 조회] API 응답 완료");
-            return ResponseEntity.ok(ApiResponse.success("회원 정보 조회에 성공했습니다.", responseDto));
+      log.debug("[회원 정보 조회] API 응답 완료");
+      return ResponseEntity.ok(ApiResponse.success("회원 정보 조회에 성공했습니다.", responseDto));
 
-        } catch (Exception e) {
-            log.error("[회원 정보 조회] 처리 중 서버 내부 오류 발생", e);
-            throw new CustomException(MemberErrorCode.MEMBER_INFO_QUERY_FAILED);
-        }
+    } catch (Exception e) {
+      log.error("[회원 정보 조회] 처리 중 서버 내부 오류 발생", e);
+      throw new CustomException(MemberErrorCode.MEMBER_INFO_QUERY_FAILED);
     }
+  }
 }

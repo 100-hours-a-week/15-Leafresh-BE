@@ -1,29 +1,30 @@
-//package ktb.leafresh.backend.domain.feedback.application.service;
+// package ktb.leafresh.backend.domain.feedback.application.service;
 //
-//import com.fasterxml.jackson.core.JsonProcessingException;
-//import com.fasterxml.jackson.databind.ObjectMapper;
-//import com.fasterxml.jackson.databind.SerializationFeature;
-//import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-//import ktb.leafresh.backend.domain.feedback.application.assembler.FeedbackDtoAssembler;
-//import ktb.leafresh.backend.domain.feedback.infrastructure.client.FeedbackCreationClient;
-//import ktb.leafresh.backend.domain.feedback.infrastructure.dto.request.AiFeedbackCreationRequestDto;
-//import ktb.leafresh.backend.domain.member.domain.entity.Member;
-//import ktb.leafresh.backend.domain.member.infrastructure.repository.MemberRepository;
-//import ktb.leafresh.backend.global.exception.CustomException;
-//import ktb.leafresh.backend.global.exception.FeedbackErrorCode;
-//import ktb.leafresh.backend.global.exception.GlobalErrorCode;
-//import org.junit.jupiter.api.BeforeEach;
-//import org.junit.jupiter.api.DisplayName;
-//import org.junit.jupiter.api.Test;
+// import com.fasterxml.jackson.core.JsonProcessingException;
+// import com.fasterxml.jackson.databind.ObjectMapper;
+// import com.fasterxml.jackson.databind.SerializationFeature;
+// import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+// import ktb.leafresh.backend.domain.feedback.application.assembler.FeedbackDtoAssembler;
+// import ktb.leafresh.backend.domain.feedback.infrastructure.client.FeedbackCreationClient;
+// import
+// ktb.leafresh.backend.domain.feedback.infrastructure.dto.request.AiFeedbackCreationRequestDto;
+// import ktb.leafresh.backend.domain.member.domain.entity.Member;
+// import ktb.leafresh.backend.domain.member.infrastructure.repository.MemberRepository;
+// import ktb.leafresh.backend.global.exception.CustomException;
+// import ktb.leafresh.backend.global.exception.FeedbackErrorCode;
+// import ktb.leafresh.backend.global.exception.GlobalErrorCode;
+// import org.junit.jupiter.api.BeforeEach;
+// import org.junit.jupiter.api.DisplayName;
+// import org.junit.jupiter.api.Test;
 //
-//import java.util.List;
-//import java.util.Optional;
+// import java.util.List;
+// import java.util.Optional;
 //
-//import static java.time.LocalDateTime.now;
-//import static org.assertj.core.api.Assertions.*;
-//import static org.mockito.Mockito.*;
+// import static java.time.LocalDateTime.now;
+// import static org.assertj.core.api.Assertions.*;
+// import static org.mockito.Mockito.*;
 //
-//class FeedbackCommandServiceTest {
+// class FeedbackCommandServiceTest {
 //
 //    private MemberRepository memberRepository;
 //    private FeedbackDtoAssembler dtoAssembler;
@@ -67,7 +68,8 @@
 //                                .startDate(now())
 //                                .endDate(now())
 //                                .submissions(List.of(
-//                                        AiFeedbackCreationRequestDto.GroupChallengeDto.SubmissionDto.builder()
+//
+// AiFeedbackCreationRequestDto.GroupChallengeDto.SubmissionDto.builder()
 //                                                .isSuccess(true).submittedAt(now()).build()
 //                                ))
 //                                .build()
@@ -154,7 +156,8 @@
 //        // mock ObjectMapper 체이닝 지원 설정
 //        ObjectMapper brokenObjectMapper = mock(ObjectMapper.class);
 //        when(brokenObjectMapper.copy()).thenReturn(brokenObjectMapper);
-//        when(brokenObjectMapper.enable(SerializationFeature.INDENT_OUTPUT)).thenReturn(brokenObjectMapper);
+//
+// when(brokenObjectMapper.enable(SerializationFeature.INDENT_OUTPUT)).thenReturn(brokenObjectMapper);
 //        when(brokenObjectMapper.writeValueAsString(any()))
 //                .thenThrow(new JsonProcessingException("Mocked JSON 변환 실패") {});
 //
@@ -172,4 +175,4 @@
 //        assertThat(ex).isNotNull();
 //        assertThat(ex.getMessage()).contains("JSON 직렬화 실패");
 //    }
-//}
+// }

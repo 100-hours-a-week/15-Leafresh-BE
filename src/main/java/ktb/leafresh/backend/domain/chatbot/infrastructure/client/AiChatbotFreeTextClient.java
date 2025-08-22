@@ -4,5 +4,5 @@ import ktb.leafresh.backend.domain.chatbot.infrastructure.dto.request.AiChatbotF
 import ktb.leafresh.backend.domain.chatbot.infrastructure.dto.response.AiChatbotResponseDto;
 
 public interface AiChatbotFreeTextClient {
-    AiChatbotResponseDto getRecommendation(AiChatbotFreeTextRequestDto requestDto);
+  AiChatbotResponseDto getRecommendation(AiChatbotFreeTextRequestDto requestDto);
 }

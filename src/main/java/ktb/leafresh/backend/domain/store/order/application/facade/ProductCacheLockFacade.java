@@ -13,35 +13,35 @@ import java.time.LocalDateTime;
 @RequiredArgsConstructor
 public class ProductCacheLockFacade {
 
-    private final ProductCacheService productCacheService;
+  private final ProductCacheService productCacheService;
 
-    @DistributedLock(key = "#product.id.toString()")
-    public void updateSingleProductCache(Product product) {
-        productCacheService.updateSingleProductCache(product);
-    }
+  @DistributedLock(key = "#product.id.toString()")
+  public void updateSingleProductCache(Product product) {
+    productCacheService.updateSingleProductCache(product);
+  }
 
-    @DistributedLock(key = "#policy.id.toString()")
-    public void updateSingleTimedealCache(TimedealPolicy policy) {
-        productCacheService.updateSingleTimedealCache(policy);
-    }
+  @DistributedLock(key = "#policy.id.toString()")
+  public void updateSingleTimedealCache(TimedealPolicy policy) {
+    productCacheService.updateSingleTimedealCache(policy);
+  }
 
-    @DistributedLock(key = "#product.id.toString()")
-    public void evictCacheByProduct(Product product) {
-        productCacheService.evictCacheByProduct(product);
-    }
+  @DistributedLock(key = "#product.id.toString()")
+  public void evictCacheByProduct(Product product) {
+    productCacheService.evictCacheByProduct(product);
+  }
 
-    @DistributedLock(key = "#policy.id.toString()")
-    public void evictTimedealCache(TimedealPolicy policy) {
-        productCacheService.evictTimedealCache(policy);
-    }
+  @DistributedLock(key = "#policy.id.toString()")
+  public void evictTimedealCache(TimedealPolicy policy) {
+    productCacheService.evictTimedealCache(policy);
+  }
 
-    @DistributedLock(key = "#productId.toString()")
-    public void cacheProductStock(Long productId, Integer stock) {
-        productCacheService.cacheProductStock(productId, stock);
-    }
+  @DistributedLock(key = "#productId.toString()")
+  public void cacheProductStock(Long productId, Integer stock) {
+    productCacheService.cacheProductStock(productId, stock);
+  }
 
-    @DistributedLock(key = "#policyId.toString()")
-    public void cacheTimedealStock(Long policyId, Integer stock, LocalDateTime endTime) {
-        productCacheService.cacheTimedealStock(policyId, stock, endTime);
-    }
+  @DistributedLock(key = "#policyId.toString()")
+  public void cacheTimedealStock(Long policyId, Integer stock, LocalDateTime endTime) {
+    productCacheService.cacheTimedealStock(policyId, stock, endTime);
+  }
 }

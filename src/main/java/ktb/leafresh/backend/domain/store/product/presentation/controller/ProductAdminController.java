@@ -19,25 +19,22 @@ import org.springframework.web.bind.annotation.*;
 @Slf4j
 public class ProductAdminController {
 
-    private final ProductCreateService productCreateService;
-    private final ProductUpdateService productUpdateService;
+  private final ProductCreateService productCreateService;
+  private final ProductUpdateService productUpdateService;
 
-    @PreAuthorize("hasRole('ADMIN')")
-    @PostMapping
-    public ResponseEntity<ApiResponse<ProductCreateResponseDto>> createProduct(
-            @Valid @RequestBody ProductCreateRequestDto dto
-    ) {
-        ProductCreateResponseDto response = productCreateService.createProduct(dto);
-        return ResponseEntity.ok(ApiResponse.success("일반 상품이 등록되었습니다.", response));
-    }
+  @PreAuthorize("hasRole('ADMIN')")
+  @PostMapping
+  public ResponseEntity<ApiResponse<ProductCreateResponseDto>> createProduct(
+      @Valid @RequestBody ProductCreateRequestDto dto) {
+    ProductCreateResponseDto response = productCreateService.createProduct(dto);
+    return ResponseEntity.ok(ApiResponse.success("일반 상품이 등록되었습니다.", response));
+  }
 
-    @PreAuthorize("hasRole('ADMIN')")
-    @PatchMapping("/{productId}")
-    public ResponseEntity<Void> updateProduct(
-            @PathVariable Long productId,
-            @Valid @RequestBody ProductUpdateRequestDto dto
-    ) {
-        productUpdateService.update(productId, dto);
-        return ResponseEntity.noContent().build();
-    }
+  @PreAuthorize("hasRole('ADMIN')")
+  @PatchMapping("/{productId}")
+  public ResponseEntity<Void> updateProduct(
+      @PathVariable Long productId, @Valid @RequestBody ProductUpdateRequestDto dto) {
+    productUpdateService.update(productId, dto);
+    return ResponseEntity.noContent().build();
+  }
 }

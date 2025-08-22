@@ -14,27 +14,27 @@ import java.util.List;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class GroupChallengeCategory {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Long id;
 
-    @OneToMany(mappedBy = "category", cascade = CascadeType.ALL)
-    private List<GroupChallenge> groupChallenges = new ArrayList<>();
+  @OneToMany(mappedBy = "category", cascade = CascadeType.ALL)
+  private List<GroupChallenge> groupChallenges = new ArrayList<>();
 
-    @Column(nullable = false, length = 20)
-    private String name;
+  @Column(nullable = false, length = 20)
+  private String name;
 
-    @Column(nullable = false, length = 512)
-    private String imageUrl;
+  @Column(nullable = false, length = 512)
+  private String imageUrl;
 
-    @Column(nullable = false)
-    private Integer sequenceNumber;
+  @Column(nullable = false)
+  private Integer sequenceNumber;
 
-    @Column(nullable = false)
-    private Boolean activated;
+  @Column(nullable = false)
+  private Boolean activated;
 
-    @PrePersist
-    public void prePersist() {
-        if (activated == null) activated = true;
-    }
+  @PrePersist
+  public void prePersist() {
+    if (activated == null) activated = true;
+  }
 }

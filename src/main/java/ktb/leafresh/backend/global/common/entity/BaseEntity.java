@@ -15,24 +15,23 @@ import java.time.LocalDateTime;
 @EntityListeners(AuditingEntityListener.class)
 public abstract class BaseEntity {
 
-    @CreatedDate
-    @Column(nullable = false, updatable = false)
-    private LocalDateTime createdAt;
+  @CreatedDate
+  @Column(nullable = false, updatable = false)
+  private LocalDateTime createdAt;
 
-    @LastModifiedDate
-    private LocalDateTime updatedAt;
+  @LastModifiedDate private LocalDateTime updatedAt;
 
-    private LocalDateTime deletedAt;
+  private LocalDateTime deletedAt;
 
-    public void softDelete() {
-        this.deletedAt = LocalDateTime.now();
-    }
+  public void softDelete() {
+    this.deletedAt = LocalDateTime.now();
+  }
 
-    public boolean isDeleted() {
-        return deletedAt != null;
-    }
+  public boolean isDeleted() {
+    return deletedAt != null;
+  }
 
-    protected void restore() {
-        this.deletedAt = null;
-    }
+  protected void restore() {
+    this.deletedAt = null;
+  }
 }

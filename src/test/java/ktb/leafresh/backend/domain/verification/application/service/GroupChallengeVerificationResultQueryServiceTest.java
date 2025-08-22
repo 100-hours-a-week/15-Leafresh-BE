@@ -25,72 +25,75 @@ import static org.mockito.BDDMockito.given;
 @ExtendWith(MockitoExtension.class)
 class GroupChallengeVerificationResultQueryServiceTest {
 
-    @Mock
-    private GroupChallengeVerificationRepository verificationRepository;
+  @Mock private GroupChallengeVerificationRepository verificationRepository;
 
-    @InjectMocks
-    private GroupChallengeVerificationResultQueryService resultQueryService;
+  @InjectMocks private GroupChallengeVerificationResultQueryService resultQueryService;
 
-    private Member member;
-    private GroupChallenge challenge;
-    private GroupChallengeParticipantRecord participantRecord;
+  private Member member;
+  private GroupChallenge challenge;
+  private GroupChallengeParticipantRecord participantRecord;
 
-    @BeforeEach
-    void setUp() {
-        member = MemberFixture.of();
-        GroupChallengeCategory category = GroupChallengeCategoryFixture.defaultCategory();
-        challenge = GroupChallengeFixture.of(member, category);
-        participantRecord = GroupChallengeParticipantRecordFixture.of(challenge, member);
-    }
+  @BeforeEach
+  void setUp() {
+    member = MemberFixture.of();
+    GroupChallengeCategory category = GroupChallengeCategoryFixture.defaultCategory();
+    challenge = GroupChallengeFixture.of(member, category);
+    participantRecord = GroupChallengeParticipantRecordFixture.of(challenge, member);
+  }
 
-    @Test
-    @DisplayName("오늘 날짜에 성공 인증이 있으면 SUCCESS 상태를 반환한다")
-    void getLatestStatus_withSuccessVerification_returnsSuccess() {
-        // given
-        GroupChallengeVerification verification = GroupChallengeVerificationFixture.of(participantRecord, ChallengeStatus.SUCCESS);
-        Long memberId = member.getId();
-        Long challengeId = challenge.getId();
+  @Test
+  @DisplayName("오늘 날짜에 성공 인증이 있으면 SUCCESS 상태를 반환한다")
+  void getLatestStatus_withSuccessVerification_returnsSuccess() {
+    // given
+    GroupChallengeVerification verification =
+        GroupChallengeVerificationFixture.of(participantRecord, ChallengeStatus.SUCCESS);
+    Long memberId = member.getId();
+    Long challengeId = challenge.getId();
 
-        ZoneId kst = ZoneId.of("Asia/Seoul");
-        LocalDateTime startKst = LocalDate.now(kst).atStartOfDay();
-        LocalDateTime endKst = LocalDate.now(kst).atTime(23, 59, 59);
-        LocalDateTime startUtc = startKst.atZone(kst).withZoneSameInstant(ZoneOffset.UTC).toLocalDateTime();
-        LocalDateTime endUtc = endKst.atZone(kst).withZoneSameInstant(ZoneOffset.UTC).toLocalDateTime();
+    ZoneId kst = ZoneId.of("Asia/Seoul");
+    LocalDateTime startKst = LocalDate.now(kst).atStartOfDay();
+    LocalDateTime endKst = LocalDate.now(kst).atTime(23, 59, 59);
+    LocalDateTime startUtc =
+        startKst.atZone(kst).withZoneSameInstant(ZoneOffset.UTC).toLocalDateTime();
+    LocalDateTime endUtc = endKst.atZone(kst).withZoneSameInstant(ZoneOffset.UTC).toLocalDateTime();
 
-        given(verificationRepository
+    given(
+            verificationRepository
                 .findTopByParticipantRecord_Member_IdAndParticipantRecord_GroupChallenge_IdAndCreatedAtBetween(
-                        memberId, challengeId, startUtc, endUtc))
-                .willReturn(Optional.of(verification));
+                    memberId, challengeId, startUtc, endUtc))
+        .willReturn(Optional.of(verification));
 
-        // when
-        ChallengeStatus result = resultQueryService.getLatestStatus(memberId, challengeId);
+    // when
+    ChallengeStatus result = resultQueryService.getLatestStatus(memberId, challengeId);
 
-        // then
-        assertThat(result).isEqualTo(ChallengeStatus.SUCCESS);
-    }
+    // then
+    assertThat(result).isEqualTo(ChallengeStatus.SUCCESS);
+  }
 
-    @Test
-    @DisplayName("오늘 날짜에 인증이 없으면 NOT_SUBMITTED 상태를 반환한다")
-    void getLatestStatus_withNoVerification_returnsNotSubmitted() {
-        // given
-        Long memberId = member.getId();
-        Long challengeId = challenge.getId();
+  @Test
+  @DisplayName("오늘 날짜에 인증이 없으면 NOT_SUBMITTED 상태를 반환한다")
+  void getLatestStatus_withNoVerification_returnsNotSubmitted() {
+    // given
+    Long memberId = member.getId();
+    Long challengeId = challenge.getId();
 
-        ZoneId kst = ZoneId.of("Asia/Seoul");
-        LocalDateTime startKst = LocalDate.now(kst).atStartOfDay();
-        LocalDateTime endKst = LocalDate.now(kst).atTime(23, 59, 59);
-        LocalDateTime startUtc = startKst.atZone(kst).withZoneSameInstant(ZoneOffset.UTC).toLocalDateTime();
-        LocalDateTime endUtc = endKst.atZone(kst).withZoneSameInstant(ZoneOffset.UTC).toLocalDateTime();
+    ZoneId kst = ZoneId.of("Asia/Seoul");
+    LocalDateTime startKst = LocalDate.now(kst).atStartOfDay();
+    LocalDateTime endKst = LocalDate.now(kst).atTime(23, 59, 59);
+    LocalDateTime startUtc =
+        startKst.atZone(kst).withZoneSameInstant(ZoneOffset.UTC).toLocalDateTime();
+    LocalDateTime endUtc = endKst.atZone(kst).withZoneSameInstant(ZoneOffset.UTC).toLocalDateTime();
 
-        given(verificationRepository
+    given(
+            verificationRepository
                 .findTopByParticipantRecord_Member_IdAndParticipantRecord_GroupChallenge_IdAndCreatedAtBetween(
-                        memberId, challengeId, startUtc, endUtc))
-                .willReturn(Optional.empty());
+                    memberId, challengeId, startUtc, endUtc))
+        .willReturn(Optional.empty());
 
-        // when
-        ChallengeStatus result = resultQueryService.getLatestStatus(memberId, challengeId);
+    // when
+    ChallengeStatus result = resultQueryService.getLatestStatus(memberId, challengeId);
 
-        // then
-        assertThat(result).isEqualTo(ChallengeStatus.NOT_SUBMITTED);
-    }
+    // then
+    assertThat(result).isEqualTo(ChallengeStatus.NOT_SUBMITTED);
+  }
 }

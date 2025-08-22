@@ -11,12 +11,12 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class GroupChallengeVerificationResultSaveService {
 
-    private final VerificationResultProcessor verificationResultProcessor;
+  private final VerificationResultProcessor verificationResultProcessor;
 
-    @Transactional
-    public void saveResult(Long verificationId, VerificationResultRequestDto dto) {
-        log.info("[단체 인증 결과 위임 시작] verificationId={}, result={}", verificationId, dto.result());
-        verificationResultProcessor.process(verificationId, dto);
-        log.info("[단체 인증 결과 위임 완료] verificationId={}", verificationId);
-    }
+  @Transactional
+  public void saveResult(Long verificationId, VerificationResultRequestDto dto) {
+    log.info("[단체 인증 결과 위임 시작] verificationId={}, result={}", verificationId, dto.result());
+    verificationResultProcessor.process(verificationId, dto);
+    log.info("[단체 인증 결과 위임 완료] verificationId={}", verificationId);
+  }
 }

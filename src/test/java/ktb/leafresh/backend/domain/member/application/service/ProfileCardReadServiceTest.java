@@ -31,104 +31,99 @@ import static org.mockito.BDDMockito.*;
 @ExtendWith(MockitoExtension.class)
 class ProfileCardReadServiceTest {
 
-    @Mock
-    private MemberRepository memberRepository;
+  @Mock private MemberRepository memberRepository;
 
-    @Mock
-    private MemberBadgeRepository memberBadgeRepository;
+  @Mock private MemberBadgeRepository memberBadgeRepository;
 
-    @Mock
-    private TreeLevelRepository treeLevelRepository;
+  @Mock private TreeLevelRepository treeLevelRepository;
 
-    @InjectMocks
-    private ProfileCardReadService profileCardReadService;
+  @InjectMocks private ProfileCardReadService profileCardReadService;
 
-    private Member member;
-    private TreeLevel currentLevel;
-    private TreeLevel nextLevel;
+  private Member member;
+  private TreeLevel currentLevel;
+  private TreeLevel nextLevel;
 
-    @BeforeEach
-    void setUp() {
-        currentLevel = TreeLevelFixture.of(TreeLevelName.SPROUT);
-        nextLevel = TreeLevelFixture.of(TreeLevelName.YOUNG);
-        ReflectionTestUtils.setField(currentLevel, "minLeafPoint", 0);
-        ReflectionTestUtils.setField(nextLevel, "minLeafPoint", 100);
+  @BeforeEach
+  void setUp() {
+    currentLevel = TreeLevelFixture.of(TreeLevelName.SPROUT);
+    nextLevel = TreeLevelFixture.of(TreeLevelName.YOUNG);
+    ReflectionTestUtils.setField(currentLevel, "minLeafPoint", 0);
+    ReflectionTestUtils.setField(nextLevel, "minLeafPoint", 100);
 
-        member = MemberFixture.of();
-        ReflectionTestUtils.setField(member, "treeLevel", currentLevel);
-        ReflectionTestUtils.setField(member, "totalLeafPoints", 50);
-        ReflectionTestUtils.setField(member, "id", 1L);
+    member = MemberFixture.of();
+    ReflectionTestUtils.setField(member, "treeLevel", currentLevel);
+    ReflectionTestUtils.setField(member, "totalLeafPoints", 50);
+    ReflectionTestUtils.setField(member, "id", 1L);
+  }
+
+  @Nested
+  @DisplayName("getProfileCard")
+  class GetProfileCard {
+
+    @Test
+    @DisplayName("정상적으로 프로필 카드를 조회한다.")
+    void getProfileCard_success() {
+      // given
+      given(memberRepository.findById(1L)).willReturn(Optional.of(member));
+      given(treeLevelRepository.findFirstByMinLeafPointGreaterThanOrderByMinLeafPointAsc(0))
+          .willReturn(Optional.of(nextLevel));
+      given(memberBadgeRepository.findRecentBadgesByMemberId(1L, 3))
+          .willReturn(Collections.emptyList());
+
+      // when
+      ProfileCardResponseDto response = profileCardReadService.getProfileCard(1L);
+
+      // then
+      assertThat(response).isNotNull();
+      assertThat(response.nickname()).isEqualTo(member.getNickname());
+      assertThat(response.profileImageUrl()).isEqualTo(member.getImageUrl());
+      assertThat(response.treeLevelName()).isEqualTo(currentLevel.getName().name());
+      assertThat(response.nextTreeLevelName()).isEqualTo(nextLevel.getName().name());
+      assertThat(response.totalLeafPoints()).isEqualTo(50);
+      assertThat(response.leafPointsToNextLevel()).isEqualTo(50);
+      assertThat(response.badges()).isEmpty();
     }
 
-    @Nested
-    @DisplayName("getProfileCard")
-    class GetProfileCard {
+    @Test
+    @DisplayName("다음 TreeLevel이 없는 경우 leafPointsToNextLevel은 0이 된다.")
+    void getProfileCard_noNextTreeLevel() {
+      // given
+      given(memberRepository.findById(1L)).willReturn(Optional.of(member));
+      given(treeLevelRepository.findFirstByMinLeafPointGreaterThanOrderByMinLeafPointAsc(anyInt()))
+          .willReturn(Optional.empty());
+      given(memberBadgeRepository.findRecentBadgesByMemberId(1L, 3))
+          .willReturn(Collections.emptyList());
 
-        @Test
-        @DisplayName("정상적으로 프로필 카드를 조회한다.")
-        void getProfileCard_success() {
-            // given
-            given(memberRepository.findById(1L)).willReturn(Optional.of(member));
-            given(treeLevelRepository.findFirstByMinLeafPointGreaterThanOrderByMinLeafPointAsc(0))
-                    .willReturn(Optional.of(nextLevel));
-            given(memberBadgeRepository.findRecentBadgesByMemberId(1L, 3))
-                    .willReturn(Collections.emptyList());
+      // when
+      ProfileCardResponseDto response = profileCardReadService.getProfileCard(1L);
 
-            // when
-            ProfileCardResponseDto response = profileCardReadService.getProfileCard(1L);
-
-            // then
-            assertThat(response).isNotNull();
-            assertThat(response.nickname()).isEqualTo(member.getNickname());
-            assertThat(response.profileImageUrl()).isEqualTo(member.getImageUrl());
-            assertThat(response.treeLevelName()).isEqualTo(currentLevel.getName().name());
-            assertThat(response.nextTreeLevelName()).isEqualTo(nextLevel.getName().name());
-            assertThat(response.totalLeafPoints()).isEqualTo(50);
-            assertThat(response.leafPointsToNextLevel()).isEqualTo(50);
-            assertThat(response.badges()).isEmpty();
-        }
-
-        @Test
-        @DisplayName("다음 TreeLevel이 없는 경우 leafPointsToNextLevel은 0이 된다.")
-        void getProfileCard_noNextTreeLevel() {
-            // given
-            given(memberRepository.findById(1L)).willReturn(Optional.of(member));
-            given(treeLevelRepository.findFirstByMinLeafPointGreaterThanOrderByMinLeafPointAsc(anyInt()))
-                    .willReturn(Optional.empty());
-            given(memberBadgeRepository.findRecentBadgesByMemberId(1L, 3))
-                    .willReturn(Collections.emptyList());
-
-            // when
-            ProfileCardResponseDto response = profileCardReadService.getProfileCard(1L);
-
-            // then
-            assertThat(response.nextTreeLevelName()).isNull();
-            assertThat(response.leafPointsToNextLevel()).isEqualTo(0);
-        }
-
-        @Test
-        @DisplayName("회원이 존재하지 않으면 PROFILE_CARD_NOT_FOUND 예외를 던진다.")
-        void getProfileCard_memberNotFound() {
-            // given
-            given(memberRepository.findById(999L)).willReturn(Optional.empty());
-
-            // when & then
-            assertThatThrownBy(() -> profileCardReadService.getProfileCard(999L))
-                    .isInstanceOf(CustomException.class)
-                    .hasMessageContaining(MemberErrorCode.PROFILE_CARD_NOT_FOUND.getMessage());
-        }
-
-        @Test
-        @DisplayName("예상치 못한 예외가 발생하면 PROFILE_CARD_QUERY_FAILED 예외를 던진다.")
-        void getProfileCard_unexpectedException() {
-            // given
-            given(memberRepository.findById(anyLong()))
-                    .willThrow(new RuntimeException("DB 연결 실패"));
-
-            // when & then
-            assertThatThrownBy(() -> profileCardReadService.getProfileCard(1L))
-                    .isInstanceOf(CustomException.class)
-                    .hasMessageContaining(MemberErrorCode.PROFILE_CARD_QUERY_FAILED.getMessage());
-        }
+      // then
+      assertThat(response.nextTreeLevelName()).isNull();
+      assertThat(response.leafPointsToNextLevel()).isEqualTo(0);
     }
+
+    @Test
+    @DisplayName("회원이 존재하지 않으면 PROFILE_CARD_NOT_FOUND 예외를 던진다.")
+    void getProfileCard_memberNotFound() {
+      // given
+      given(memberRepository.findById(999L)).willReturn(Optional.empty());
+
+      // when & then
+      assertThatThrownBy(() -> profileCardReadService.getProfileCard(999L))
+          .isInstanceOf(CustomException.class)
+          .hasMessageContaining(MemberErrorCode.PROFILE_CARD_NOT_FOUND.getMessage());
+    }
+
+    @Test
+    @DisplayName("예상치 못한 예외가 발생하면 PROFILE_CARD_QUERY_FAILED 예외를 던진다.")
+    void getProfileCard_unexpectedException() {
+      // given
+      given(memberRepository.findById(anyLong())).willThrow(new RuntimeException("DB 연결 실패"));
+
+      // when & then
+      assertThatThrownBy(() -> profileCardReadService.getProfileCard(1L))
+          .isInstanceOf(CustomException.class)
+          .hasMessageContaining(MemberErrorCode.PROFILE_CARD_QUERY_FAILED.getMessage());
+    }
+  }
 }
