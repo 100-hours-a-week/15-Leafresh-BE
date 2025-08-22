@@ -1,0 +1,86 @@
+spring:
+  application:
+    name: backend
+  datasource:
+    url: jdbc:h2:mem:swagger
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: 
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false
+  h2:
+    console:
+      enabled: false
+  security:
+    basic:
+      enabled: false
+  jackson:
+    time-zone: UTC
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 10MB
+      max-request-size: 50MB
+
+management:
+  server:
+    port: 9102
+  endpoints:
+    web:
+      exposure:
+        include: "health,info"
+  endpoint:
+    prometheus:
+      access: unrestricted
+
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true
+    path: /swagger-ui.html
+
+server:
+  forward-headers-strategy: framework
+
+jwt:
+  secret: dummy-secret-for-documentation-generation-only-not-for-production-use
+
+kakao:
+  client-id: dummy
+  client-secret: dummy
+
+ai-server:
+  text-base-url: http://dummy
+  image-base-url: http://dummy
+  make-challenge-base-url: http://dummy
+
+cookie:
+  secure: false
+
+logging:
+  level:
+    org:
+      springframework:
+        security: WARN
+      hibernate:
+        SQL: OFF
+        type:
+          descriptor:
+            sql:
+              BasicBinder: OFF
+    ktb.leafresh.backend: WARN
+    com.zaxxer.hikari: WARN
+
+# 필요한 더미 값들 (GCP 설정 등이 있다면)
+gcp:
+  project-id: dummy
+  storage:
+    bucket: dummy
+
+redis:
+  redisson:
+    address: redis://dummy:6379
