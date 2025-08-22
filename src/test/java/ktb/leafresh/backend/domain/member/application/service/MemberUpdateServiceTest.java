@@ -16,6 +16,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import java.util.Optional;
+
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.BDDMockito.*;
 
@@ -27,11 +29,13 @@ class MemberUpdateServiceTest {
   @InjectMocks private MemberUpdateService memberUpdateService;
 
   private Member member;
+  private Long memberId;
 
   @BeforeEach
   void setUp() {
     member = MemberFixture.of("user@leafresh.com", "기존닉네임");
-    ReflectionTestUtils.setField(member, "id", 1L);
+    memberId = 1L;
+    ReflectionTestUtils.setField(member, "id", memberId);
   }
 
   @Nested
@@ -44,12 +48,13 @@ class MemberUpdateServiceTest {
       // given
       String newNickname = "새닉네임";
       String newImageUrl = "https://new.image/profile.png";
+      given(memberRepository.findById(memberId)).willReturn(Optional.of(member));
       given(memberRepository.existsByNicknameAndIdNot(newNickname, member.getId()))
           .willReturn(false);
 
       // when
       MemberUpdateResponseDto response =
-          memberUpdateService.updateMemberInfo(member, newNickname, newImageUrl);
+          memberUpdateService.updateMemberInfo(memberId, newNickname, newImageUrl);
 
       // then
       assertThat(response).isNotNull();
@@ -62,12 +67,13 @@ class MemberUpdateServiceTest {
     void updateNicknameOnly_success() {
       // given
       String newNickname = "변경된닉네임";
+      given(memberRepository.findById(memberId)).willReturn(Optional.of(member));
       given(memberRepository.existsByNicknameAndIdNot(newNickname, member.getId()))
           .willReturn(false);
 
       // when
       MemberUpdateResponseDto response =
-          memberUpdateService.updateMemberInfo(member, newNickname, member.getImageUrl());
+          memberUpdateService.updateMemberInfo(memberId, newNickname, member.getImageUrl());
 
       // then
       assertThat(response.getNickname()).isEqualTo(newNickname);
@@ -79,10 +85,11 @@ class MemberUpdateServiceTest {
     void updateImageOnly_success() {
       // given
       String newImageUrl = "https://changed.image/new.png";
+      given(memberRepository.findById(memberId)).willReturn(Optional.of(member));
 
       // when
       MemberUpdateResponseDto response =
-          memberUpdateService.updateMemberInfo(member, member.getNickname(), newImageUrl);
+          memberUpdateService.updateMemberInfo(memberId, member.getNickname(), newImageUrl);
 
       // then
       assertThat(response.getNickname()).isEqualTo(member.getNickname());
@@ -90,16 +97,31 @@ class MemberUpdateServiceTest {
     }
 
     @Test
+    @DisplayName("존재하지 않는 회원 ID로 요청하면 MEMBER_NOT_FOUND 예외를 던진다.")
+    void updateMemberInfo_memberNotFound_throwsException() {
+      // given
+      Long nonExistentMemberId = 999L;
+      given(memberRepository.findById(nonExistentMemberId)).willReturn(Optional.empty());
+
+      // when & then
+      assertThatThrownBy(
+              () -> memberUpdateService.updateMemberInfo(nonExistentMemberId, "새닉네임", null))
+          .isInstanceOf(CustomException.class)
+          .hasMessageContaining(MemberErrorCode.MEMBER_NOT_FOUND.getMessage());
+    }
+
+    @Test
     @DisplayName("닉네임이 중복되면 ALREADY_EXISTS 예외를 던진다.")
     void updateNickname_duplicateNickname_throwsException() {
       // given
       String duplicatedNickname = "중복닉네임";
+      given(memberRepository.findById(memberId)).willReturn(Optional.of(member));
       given(memberRepository.existsByNicknameAndIdNot(duplicatedNickname, member.getId()))
           .willReturn(true);
 
       // when & then
       assertThatThrownBy(
-              () -> memberUpdateService.updateMemberInfo(member, duplicatedNickname, null))
+              () -> memberUpdateService.updateMemberInfo(memberId, duplicatedNickname, null))
           .isInstanceOf(CustomException.class)
           .hasMessageContaining(MemberErrorCode.ALREADY_EXISTS.getMessage());
     }
@@ -109,9 +131,10 @@ class MemberUpdateServiceTest {
     void updateNickname_invalidFormat_throwsException() {
       // given
       String invalidNickname = "Invalid!!@#";
+      given(memberRepository.findById(memberId)).willReturn(Optional.of(member));
 
       // when & then
-      assertThatThrownBy(() -> memberUpdateService.updateMemberInfo(member, invalidNickname, null))
+      assertThatThrownBy(() -> memberUpdateService.updateMemberInfo(memberId, invalidNickname, null))
           .isInstanceOf(CustomException.class)
           .hasMessageContaining(MemberErrorCode.NICKNAME_INVALID_FORMAT.getMessage());
     }
@@ -119,11 +142,14 @@ class MemberUpdateServiceTest {
     @Test
     @DisplayName("닉네임과 이미지가 모두 변경되지 않으면 NO_CHANGES 예외를 던진다.")
     void updateNothing_throwsNoChangeException() {
+      // given
+      given(memberRepository.findById(memberId)).willReturn(Optional.of(member));
+
       // when & then
       assertThatThrownBy(
               () ->
                   memberUpdateService.updateMemberInfo(
-                      member, member.getNickname(), member.getImageUrl()))
+                      memberId, member.getNickname(), member.getImageUrl()))
           .isInstanceOf(CustomException.class)
           .hasMessageContaining(MemberErrorCode.NO_CHANGES.getMessage());
     }
@@ -133,11 +159,12 @@ class MemberUpdateServiceTest {
     void unexpectedException_throwsUpdateFailedException() {
       // given
       String newNickname = "정상닉네임";
+      given(memberRepository.findById(memberId)).willReturn(Optional.of(member));
       given(memberRepository.existsByNicknameAndIdNot(any(), any()))
           .willThrow(new RuntimeException("DB 오류"));
 
       // when & then
-      assertThatThrownBy(() -> memberUpdateService.updateMemberInfo(member, newNickname, null))
+      assertThatThrownBy(() -> memberUpdateService.updateMemberInfo(memberId, newNickname, null))
           .isInstanceOf(CustomException.class)
           .hasMessageContaining(MemberErrorCode.NICKNAME_UPDATE_FAILED.getMessage());
     }
