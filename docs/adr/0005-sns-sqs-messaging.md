@@ -46,23 +46,26 @@ Implement AWS SNS + SQS FIFO messaging architecture for reliable business proces
 
 ### Message Flow Architecture
 ```
-User Action → Redis Pub/Sub (immediate feedback) + SQS (reliable processing)
-           ↓
-    Real-time UI Update + Background Business Logic Execution
+User Action → SNS Topic → Multiple SQS FIFO Queues (specialized processing)
+                      ↓
+            Parallel Business Logic Execution with Guaranteed Ordering
 ```
 
-### Use Case Distribution
-- **Redis Pub/Sub**: UI notifications, real-time feeds, user interaction feedback
-- **AWS SQS**: Payment processing, inventory updates, challenge completion, AI result processing
+### Queue Specialization
+- **Payment Processing Queue**: Order payments, refunds, billing updates
+- **Inventory Management Queue**: Stock updates, time-deal availability, product management
+- **User Notification Queue**: Push notifications, email triggers, real-time updates
+- **AI Processing Queue**: Challenge verification, image analysis, result processing
 
 ### Reliability Measures
-- **Dual Publishing**: Critical events published to both Redis and SQS
+- **SNS Fan-out**: Single publish to multiple specialized SQS FIFO queues
 - **Message Deduplication**: SQS deduplication IDs prevent duplicate processing
 - **Dead Letter Queues**: Failed messages automatically moved to DLQ for investigation
-- **Monitoring**: CloudWatch metrics for queue depth and processing rates
+- **Visibility Timeout**: Configurable timeout prevents message loss during processing
+- **Monitoring**: CloudWatch metrics for queue depth, processing rates, and error rates
 
 ### Example: Time-deal Purchase Flow
-1. User clicks "Purchase" → Immediate Redis notification for UI feedback
-2. Purchase request → SQS FIFO queue for reliable inventory and payment processing
-3. Processing result → Redis notification for real-time status update
-4. Final confirmation → SQS for order fulfillment and user notification
+1. User clicks \"Purchase\" → SNS publishes purchase event
+2. SNS fans out to multiple queues: Payment, Inventory, Notification
+3. Each queue processes in FIFO order: payment authorization, stock deduction, user notification
+4. Processing results trigger completion events through the same SNS/SQS pattern
