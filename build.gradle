@@ -44,7 +44,12 @@ dependencies {
 	implementation 'org.thymeleaf.extras:thymeleaf-extras-springsecurity6'
 	compileOnly 'org.projectlombok:lombok'
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'
+	// Database
 	runtimeOnly 'com.mysql:mysql-connector-j'
+	
+	// H2 for documentation generation
+	implementation 'com.h2database:h2'
+	
 	annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
 	annotationProcessor 'org.projectlombok:lombok'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
@@ -177,4 +182,50 @@ tasks.named('test') {
 tasks.named('asciidoctor') {
 	inputs.dir snippetsDir
 	dependsOn test
+}
+
+// Swagger JSON 생성을 위한 태스크
+task generateSwaggerDocs(type: JavaExec) {
+	group = 'documentation'
+	description = 'Generate Swagger/OpenAPI documentation'
+	
+	classpath = sourceSets.main.runtimeClasspath
+	mainClass = 'ktb.leafresh.backend.BackendApplication'
+	
+	systemProperty 'spring.profiles.active', 'local'
+	systemProperty 'server.port', '0'  // 랜덤 포트 사용
+	systemProperty 'spring.datasource.url', 'jdbc:h2:mem:testdb'
+	systemProperty 'spring.datasource.driver-class-name', 'org.h2.Driver'
+	systemProperty 'spring.jpa.hibernate.ddl-auto', 'create-drop'
+	systemProperty 'jwt.secret', 'dummy-secret-for-documentation-generation-only'
+	systemProperty 'kakao.client-id', 'dummy'
+	systemProperty 'kakao.client-secret', 'dummy'
+	
+	doFirst {
+		mkdir "${buildDir}/swagger"
+	}
+}
+
+// 로컬에서 Swagger UI 실행하는 태스크
+task runSwagger(type: JavaExec) {
+	group = 'application'
+	description = 'Run application with Swagger UI for documentation'
+	
+	classpath = sourceSets.main.runtimeClasspath
+	mainClass = 'ktb.leafresh.backend.BackendApplication'
+	
+	systemProperty 'spring.profiles.active', 'local'
+	systemProperty 'server.port', '8080'
+	systemProperty 'spring.datasource.url', 'jdbc:h2:mem:testdb'
+	systemProperty 'spring.datasource.driver-class-name', 'org.h2.Driver'
+	systemProperty 'spring.jpa.hibernate.ddl-auto', 'create-drop'
+	systemProperty 'jwt.secret', 'dummy-secret-for-documentation-generation-only'
+	systemProperty 'kakao.client-id', 'dummy'
+	systemProperty 'kakao.client-secret', 'dummy'
+	
+	doFirst {
+		println "Starting Swagger UI server..."
+		println "Access Swagger UI at: http://localhost:8080/swagger-ui.html"
+		println "API Docs JSON at: http://localhost:8080/v3/api-docs"
+	}
 }

@@ -200,6 +200,60 @@ docker-compose -f docker-compose-local.yml up -d
 ./gradlew k6Test
 ```
 
+## API Documentation
+
+### Swagger UI Access
+
+**Development Environment**
+- Swagger UI: https://springboot.dev-leafresh.app/swagger-ui.html
+- OpenAPI JSON: https://springboot.dev-leafresh.app/v3/api-docs
+
+**Production Environment**
+- Swagger UI: https://api.leafresh.app/swagger-ui.html
+- OpenAPI JSON: https://api.leafresh.app/v3/api-docs
+
+**Local Development**
+```bash
+# Run Swagger documentation server
+./scripts/run-swagger.sh
+# Access at http://localhost:8080/swagger-ui.html
+```
+
+**Generate Swagger Documentation**
+```bash
+# Build application and start documentation server
+./gradlew runSwagger
+
+# Or use the shell script for a better experience
+chmod +x scripts/run-swagger.sh
+./scripts/run-swagger.sh
+```
+
+### GitHub Pages Documentation
+
+The API documentation is automatically deployed to GitHub Pages:
+- **Live Documentation**: https://100-hours-a-week.github.io/15-Leafresh-BE/
+- **Raw OpenAPI JSON**: https://100-hours-a-week.github.io/15-Leafresh-BE/swagger.json
+
+The documentation is automatically updated whenever changes are pushed to the `main` or `develop` branches.
+
+### API Overview
+
+**Authentication Required**
+Most endpoints require JWT token authentication. Include the following header:
+```
+Authorization: Bearer YOUR_JWT_TOKEN
+```
+
+**Main API Groups**
+- **인증 (Auth)**: OAuth2 로그인, JWT 토큰 관리
+- **멤버 (Members)**: 사용자 프로필, 배지, 포인트 관리
+- **챌린지 (Challenges)**: 개인/그룹 챌린지 CRUD 및 참여
+- **검증 (Verifications)**: AI 기반 이미지 검증 및 피드백
+- **상점 (Store)**: 상품 관리 및 주문 처리
+- **챗봇 (Chatbot)**: AI 기반 챌린지 추천
+- **이미지 (Images)**: 파일 업로드 및 관리
+
 ## Deployment
 
 ### Container Build
