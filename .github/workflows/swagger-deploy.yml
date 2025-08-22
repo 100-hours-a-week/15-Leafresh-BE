@@ -1,0 +1,168 @@
+name: Deploy Swagger Documentation
+
+on:
+  push:
+    branches: [ main, develop ]
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      
+    - name: Set up JDK 21
+      uses: actions/setup-java@v4
+      with:
+        java-version: '21'
+        distribution: 'corretto'
+        
+    - name: Grant execute permission for gradlew
+      run: chmod +x gradlew
+      
+    - name: Cache Gradle packages
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.gradle/caches
+          ~/.gradle/wrapper
+        key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+        restore-keys: |
+          ${{ runner.os }}-gradle-
+          
+    - name: Build and extract Swagger JSON
+      run: |
+        # 애플리케이션 빌드
+        ./gradlew build -x test
+        
+        # 백그라운드에서 애플리케이션 시작
+        nohup java -jar build/libs/*.jar --spring.profiles.active=local \
+          --server.port=8080 \
+          --spring.datasource.url=jdbc:h2:mem:testdb \
+          --spring.datasource.driver-class-name=org.h2.Driver \
+          --spring.jpa.hibernate.ddl-auto=create-drop \
+          --jwt.secret=dummy-secret-for-documentation-generation-only-not-for-production-use \
+          --kakao.client-id=dummy \
+          --kakao.client-secret=dummy > app.log 2>&1 &
+        
+        # 애플리케이션이 시작될 때까지 대기
+        echo "Waiting for application to start..."
+        for i in {1..60}; do
+          if curl -s http://localhost:8080/actuator/health > /dev/null; then
+            echo "Application is ready!"
+            break
+          fi
+          echo "Waiting... ($i/60)"
+          sleep 5
+        done
+        
+        # Swagger JSON 다운로드
+        curl -o swagger.json http://localhost:8080/v3/api-docs
+        
+        # 애플리케이션 종료
+        pkill -f "java -jar"
+        
+    - name: Create Swagger UI
+      run: |
+        mkdir -p docs
+        
+        # Swagger UI 파일들 생성
+        cat > docs/index.html << 'EOF'
+        <!DOCTYPE html>
+        <html lang="ko">
+        <head>
+          <meta charset="UTF-8">
+          <title>Leafresh API Documentation</title>
+          <link rel="stylesheet" type="text/css" href="https://unpkg.com/swagger-ui-dist@5.9.0/swagger-ui.css" />
+          <style>
+            html {
+              box-sizing: border-box;
+              overflow: -moz-scrollbars-vertical;
+              overflow-y: scroll;
+            }
+            *, *:before, *:after {
+              box-sizing: inherit;
+            }
+            body {
+              margin:0;
+              background: #fafafa;
+            }
+          </style>
+        </head>
+        <body>
+          <div id="swagger-ui"></div>
+          <script src="https://unpkg.com/swagger-ui-dist@5.9.0/swagger-ui-bundle.js"></script>
+          <script src="https://unpkg.com/swagger-ui-dist@5.9.0/swagger-ui-standalone-preset.js"></script>
+          <script>
+            window.onload = function() {
+              const ui = SwaggerUIBundle({
+                url: './swagger.json',
+                dom_id: '#swagger-ui',
+                deepLinking: true,
+                presets: [
+                  SwaggerUIBundle.presets.apis,
+                  SwaggerUIStandalonePreset
+                ],
+                plugins: [
+                  SwaggerUIBundle.plugins.DownloadUrl
+                ],
+                layout: "StandaloneLayout"
+              });
+            };
+          </script>
+        </body>
+        </html>
+        EOF
+        
+        # Swagger JSON 파일 복사
+        cp swagger.json docs/
+        
+        # README 생성
+        cat > docs/README.md << 'EOF'
+        # Leafresh API Documentation
+        
+        이 페이지는 Leafresh 백엔드 API의 문서입니다.
+        
+        ## 사용 방법
+        
+        - [API 문서 보기](https://100-hours-a-week.github.io/15-Leafresh-BE/)
+        - [Swagger JSON 다운로드](https://100-hours-a-week.github.io/15-Leafresh-BE/swagger.json)
+        
+        ## API 엔드포인트
+        
+        ### 개발 환경
+        - Base URL: `https://springboot.dev-leafresh.app`
+        - Swagger UI: `https://springboot.dev-leafresh.app/swagger-ui.html`
+        
+        ### 프로덕션 환경
+        - Base URL: `https://api.leafresh.app`
+        - Swagger UI: `https://api.leafresh.app/swagger-ui.html`
+        
+        ## 인증
+        
+        대부분의 API는 JWT 토큰 인증이 필요합니다. 다음 헤더를 포함하여 요청하세요:
+        
+        ```
+        Authorization: Bearer YOUR_JWT_TOKEN
+        ```
+        
+        ## 주요 API 그룹
+        
+        - **인증 (Auth)**: 로그인, 로그아웃, 토큰 갱신
+        - **멤버 (Members)**: 사용자 관리
+        - **챌린지 (Challenges)**: 개인/그룹 챌린지 관리
+        - **검증 (Verifications)**: AI 기반 활동 검증
+        - **상점 (Store)**: 상품 및 주문 관리
+        - **챗봇 (Chatbot)**: AI 추천 서비스
+        - **이미지 (Images)**: 이미지 업로드 및 관리
+        EOF
+        
+    - name: Deploy to GitHub Pages
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./docs
+        publish_branch: gh-pages
+        force_orphan: true
