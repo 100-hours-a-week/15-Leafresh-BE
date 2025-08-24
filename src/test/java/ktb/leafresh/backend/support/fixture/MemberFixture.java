@@ -1,7 +1,6 @@
 package ktb.leafresh.backend.support.fixture;
 
 import ktb.leafresh.backend.domain.member.domain.entity.Member;
-import ktb.leafresh.backend.domain.member.domain.entity.TreeLevel;
 import ktb.leafresh.backend.domain.member.domain.entity.enums.LoginType;
 import ktb.leafresh.backend.domain.member.domain.entity.enums.Role;
 

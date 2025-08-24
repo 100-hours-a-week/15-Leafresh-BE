@@ -3,7 +3,6 @@ package ktb.leafresh.backend.domain.store.order.domain.entity;
 import jakarta.persistence.*;
 import ktb.leafresh.backend.domain.member.domain.entity.Member;
 import ktb.leafresh.backend.domain.store.product.domain.entity.Product;
-import ktb.leafresh.backend.global.common.entity.BaseEntity;
 import ktb.leafresh.backend.domain.store.order.domain.entity.enums.PurchaseType;
 import lombok.*;
 

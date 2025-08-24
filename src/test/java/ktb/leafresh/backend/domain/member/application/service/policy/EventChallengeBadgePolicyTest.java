@@ -2,7 +2,6 @@ package ktb.leafresh.backend.domain.member.application.service.policy;
 
 import ktb.leafresh.backend.domain.member.domain.entity.Badge;
 import ktb.leafresh.backend.domain.member.domain.entity.Member;
-import ktb.leafresh.backend.domain.member.domain.service.policy.BadgeGrantPolicy;
 import ktb.leafresh.backend.domain.member.infrastructure.repository.BadgeRepository;
 import ktb.leafresh.backend.domain.member.infrastructure.repository.MemberBadgeRepository;
 import ktb.leafresh.backend.domain.verification.infrastructure.repository.GroupChallengeVerificationRepository;

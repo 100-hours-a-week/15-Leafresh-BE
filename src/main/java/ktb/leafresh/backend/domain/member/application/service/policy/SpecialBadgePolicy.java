@@ -1,6 +1,5 @@
 package ktb.leafresh.backend.domain.member.application.service.policy;
 
-import ktb.leafresh.backend.domain.challenge.group.domain.entity.GroupChallengeCategory;
 import ktb.leafresh.backend.domain.challenge.group.domain.entity.enums.GroupChallengeCategoryName;
 import ktb.leafresh.backend.domain.challenge.group.infrastructure.repository.GroupChallengeCategoryRepository;
 import ktb.leafresh.backend.domain.member.domain.entity.Badge;

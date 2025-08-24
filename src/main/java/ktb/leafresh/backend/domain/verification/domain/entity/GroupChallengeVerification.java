@@ -28,9 +28,11 @@ public class GroupChallengeVerification extends BaseEntity {
   private GroupChallengeParticipantRecord participantRecord;
 
   @OneToMany(mappedBy = "verification", cascade = CascadeType.ALL, orphanRemoval = true)
+  @Builder.Default
   private List<Like> likes = new ArrayList<>();
 
   @OneToMany(mappedBy = "verification", cascade = CascadeType.ALL, orphanRemoval = true)
+  @Builder.Default
   private List<Comment> comments = new ArrayList<>();
 
   @Column(nullable = false, length = 512)
@@ -72,10 +74,6 @@ public class GroupChallengeVerification extends BaseEntity {
   public void markVerified(ChallengeStatus status) {
     this.status = status;
     this.verifiedAt = LocalDateTime.now();
-  }
-
-  public boolean isRewarded() {
-    return this.rewarded;
   }
 
   public void markRewarded() {

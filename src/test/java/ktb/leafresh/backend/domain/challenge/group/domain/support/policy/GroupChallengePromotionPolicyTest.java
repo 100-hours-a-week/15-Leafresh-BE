@@ -10,7 +10,6 @@ import ktb.leafresh.backend.support.fixture.GroupChallengeFixture;
 import ktb.leafresh.backend.support.fixture.GroupChallengeParticipantRecordFixture;
 import ktb.leafresh.backend.support.fixture.MemberFixture;
 import ktb.leafresh.backend.domain.member.domain.entity.Member;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

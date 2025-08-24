@@ -7,7 +7,6 @@ import ktb.leafresh.backend.domain.member.infrastructure.repository.MemberBadgeR
 import ktb.leafresh.backend.domain.member.infrastructure.repository.MemberRepository;
 import ktb.leafresh.backend.domain.member.infrastructure.repository.TreeLevelRepository;
 import ktb.leafresh.backend.domain.member.presentation.dto.response.ProfileCardResponseDto;
-import ktb.leafresh.backend.domain.member.presentation.dto.response.ProfileCardResponseDto.RecentBadgeDto;
 import ktb.leafresh.backend.global.exception.CustomException;
 import ktb.leafresh.backend.global.exception.MemberErrorCode;
 import ktb.leafresh.backend.support.fixture.MemberFixture;

@@ -4,8 +4,6 @@ import ktb.leafresh.backend.domain.challenge.personal.domain.entity.PersonalChal
 import ktb.leafresh.backend.domain.challenge.personal.presentation.dto.request.PersonalChallengeCreateRequestDto;
 import org.springframework.stereotype.Component;
 
-import java.time.LocalTime;
-
 @Component
 public class PersonalChallengeFactory {
 

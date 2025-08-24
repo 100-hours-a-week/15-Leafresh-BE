@@ -4,7 +4,6 @@ import ktb.leafresh.backend.domain.verification.infrastructure.cache.Verificatio
 import ktb.leafresh.backend.domain.verification.infrastructure.repository.CommentRepository;
 import ktb.leafresh.backend.domain.verification.infrastructure.repository.GroupChallengeVerificationRepository;
 import ktb.leafresh.backend.domain.verification.infrastructure.repository.LikeRepository;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

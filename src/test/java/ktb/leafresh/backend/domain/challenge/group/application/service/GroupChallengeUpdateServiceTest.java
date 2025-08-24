@@ -13,13 +13,11 @@ import ktb.leafresh.backend.global.exception.CustomException;
 import ktb.leafresh.backend.support.fixture.GroupChallengeCategoryFixture;
 import ktb.leafresh.backend.support.fixture.GroupChallengeFixture;
 import ktb.leafresh.backend.support.fixture.MemberFixture;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalTime;
