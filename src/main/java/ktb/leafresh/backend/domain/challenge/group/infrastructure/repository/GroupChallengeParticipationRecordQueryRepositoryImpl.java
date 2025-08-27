@@ -88,7 +88,7 @@ public class GroupChallengeParticipationRecordQueryRepositoryImpl
                     JPAExpressions.select(
                         Expressions.numberTemplate(
                             Long.class,
-                            "DATEDIFF({0}, {1}) + 1",
+                            "TIMESTAMPDIFF(DAY, {1}, {0}) + 1",
                             challenge.endDate,
                             record.createdAt)),
                     "total"),
