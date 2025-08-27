@@ -8,11 +8,12 @@ plugins {
 
 group = 'ktb.leafresh'
 version = '0.0.1-SNAPSHOT'
-sourceCompatibility = '21'
-
 java {
+	sourceCompatibility = JavaVersion.VERSION_21
+	targetCompatibility = JavaVersion.VERSION_21
 	toolchain {
 		languageVersion = JavaLanguageVersion.of(21)
+		vendor = JvmVendorSpec.ORACLE
 	}
 }
 
@@ -24,7 +25,9 @@ configurations {
 
 repositories {
 	mavenCentral()
-	maven { url 'https://jitpack.io' }
+	maven { 
+		url = 'https://jitpack.io' 
+	}
 }
 
 ext {
@@ -137,6 +140,25 @@ jacoco {
 test {
 	useJUnitPlatform()
 	finalizedBy jacocoTestReport
+	
+	// CI 환경 최적화
+	systemProperty 'file.encoding', 'UTF-8'
+	systemProperty 'user.timezone', 'UTC'
+	systemProperty 'java.awt.headless', 'true'
+	
+	// 메모리 설정
+	minHeapSize = "512m"
+	maxHeapSize = "2g"
+	
+	// 테스트 실패 시 즉시 중단하지 않고 모든 테스트 실행
+	ignoreFailures = false
+	
+	// 테스트 로그 레벨
+	testLogging {
+		events "passed", "skipped", "failed"
+		exceptionFormat "full"
+		showStandardStreams = false
+	}
 }
 
 jacocoTestReport {
