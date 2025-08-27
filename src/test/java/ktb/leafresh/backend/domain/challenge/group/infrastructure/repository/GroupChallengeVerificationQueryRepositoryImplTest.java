@@ -12,16 +12,13 @@ import ktb.leafresh.backend.domain.member.infrastructure.repository.MemberReposi
 import ktb.leafresh.backend.domain.verification.domain.entity.GroupChallengeVerification;
 import ktb.leafresh.backend.domain.verification.infrastructure.repository.GroupChallengeVerificationRepository;
 import ktb.leafresh.backend.global.common.entity.enums.ChallengeStatus;
-import ktb.leafresh.backend.global.config.QuerydslConfig;
+import ktb.leafresh.backend.support.config.RepositoryTestSupport;
 import ktb.leafresh.backend.support.fixture.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.context.annotation.Import;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.LocalDateTime;
@@ -42,9 +39,7 @@ import static org.assertj.core.api.Assertions.tuple;
  * - 엣지 케이스 포함
  * - Nested 클래스를 통한 테스트 구조화
  */
-@DataJpaTest
-@Import(QuerydslConfig.class)
-@ActiveProfiles("test")
+@RepositoryTestSupport
 @DisplayName("GroupChallengeVerificationQueryRepositoryImpl 통합 테스트")
 class GroupChallengeVerificationQueryRepositoryImplTest {
 

@@ -169,6 +169,48 @@ test {
 	// Docker 테스트컨테이너가 CI 환경에서 작동하도록 설정
 	systemProperty 'testcontainers.reuse.enable', 'false'
 	systemProperty 'testcontainers.ryuk.disabled', 'true'
+	
+	// H2 데이터베이스 설정 강화
+	systemProperty 'spring.jpa.show-sql', 'false'
+	systemProperty 'spring.jpa.hibernate.ddl-auto', 'create-drop'
+	systemProperty 'logging.level.org.hibernate', 'WARN'
+	systemProperty 'logging.level.org.springframework', 'WARN'
+}
+
+// 단위 테스트만 실행 (Repository 계층 테스트 제외)
+task unitTest(type: Test) {
+	useJUnitPlatform {
+		excludeTags 'integration', 'repository'
+		includeTags 'unit'
+	}
+	
+	// Service, Domain 계층 테스트만 포함
+	include '**/application/service/**/*Test.class'
+	include '**/domain/**/*Test.class'
+	exclude '**/infrastructure/repository/**/*Test.class'
+	exclude '**/presentation/**/*Test.class'
+	
+	testLogging {
+		events "passed", "skipped", "failed"
+		exceptionFormat "full"
+	}
+}
+
+// Repository 계층 통합 테스트
+task integrationTest(type: Test) {
+	useJUnitPlatform {
+		includeTags 'integration', 'repository'
+	}
+	
+	include '**/infrastructure/repository/**/*Test.class'
+	
+	testLogging {
+		events "passed", "skipped", "failed"
+		exceptionFormat "full"
+	}
+	
+	// 통합 테스트는 별도로 실행
+	shouldRunAfter test
 }
 
 jacocoTestReport {

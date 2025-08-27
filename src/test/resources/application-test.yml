@@ -13,12 +13,25 @@ spring:
       hibernate:
         format_sql: false
         globally_quoted_identifiers: true
+        # JPA 엔터티 스캔 및 테이블 생성 설정 강화
+        hbm2ddl:
+          auto: create-drop
+        jdbc:
+          batch_size: 20
+        order_inserts: true
+        order_updates: true
+        use_sql_comments: false
+    # JPA 패키지 스캔 명시적 설정
+    mapping-resources: []
   h2:
     console:
       enabled: false  # CI 환경에서 불필요한 기능 비활성화
   sql:
     init:
       mode: never
+  # 추가 테스트 설정
+  autoconfigure:
+    exclude: []
 
 # H2 Mode=MySQL enables MySQL compatibility including DATEDIFF function
 

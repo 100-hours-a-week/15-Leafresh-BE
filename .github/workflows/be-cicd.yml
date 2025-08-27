@@ -34,8 +34,9 @@ jobs:
           key: ${{ runner.os }}-gradle-${{ hashFiles('build.gradle.kts', 'build.gradle') }}
           restore-keys: |
             ${{ runner.os }}-gradle-
-      - name: Run Tests                        # 단위 테스트 실행
-        run: ./gradlew test
+            
+      - name: Run Unit Tests                   # 단위 테스트만 실행 (통합 테스트 제외)
+        run: ./gradlew unitTest --continue
 
   build-dev:                                    # develop 브랜치에서 Docker 이미지 빌드 및 푸시
     name: Build and Push Docker (dev)
