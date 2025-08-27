@@ -54,6 +54,9 @@ public class JwtFilter extends OncePerRequestFilter {
 
       // accessToken 쿠키 제거 (브라우저에서 자동 삭제됨)
       response.addHeader("Set-Cookie", authCookieProvider.clearAccessTokenCookie().toString());
+    } catch (Exception ex) {
+      // 4. 기타 예외 발생 시 로그만 남기고 인증 없이 통과
+      log.warn("토큰 처리 중 예상치 못한 예외 발생: {}", ex.getMessage());
     }
 
     filterChain.doFilter(request, response);
