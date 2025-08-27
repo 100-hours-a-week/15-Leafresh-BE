@@ -8,15 +8,23 @@ spring:
     database-platform: org.hibernate.dialect.H2Dialect
     hibernate:
       ddl-auto: create-drop
-    show-sql: true
+    show-sql: false  # CI 환경에서 SQL 로그 줄이기
     properties:
       hibernate:
-        format_sql: true
+        format_sql: false
   h2:
     console:
-      enabled: true
+      enabled: false  # CI 환경에서 불필요한 기능 비활성화
   sql:
     init:
       mode: never
 
 # H2 Mode=MySQL enables MySQL compatibility including DATEDIFF function
+
+# CI 환경을 위한 로깅 설정
+logging:
+  level:
+    org.hibernate: WARN
+    org.springframework: WARN
+    org.testcontainers: WARN
+    ktb.leafresh: DEBUG
