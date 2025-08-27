@@ -146,6 +146,9 @@ test {
 	systemProperty 'user.timezone', 'UTC'
 	systemProperty 'java.awt.headless', 'true'
 	
+	// 테스트 프로파일 명시적 설정
+	systemProperty 'spring.profiles.active', 'test'
+	
 	// 메모리 설정
 	minHeapSize = "512m"
 	maxHeapSize = "2g"
@@ -159,6 +162,13 @@ test {
 		exceptionFormat "full"
 		showStandardStreams = false
 	}
+	
+	// CI 환경에서 테스트 타임아웃 설정
+	timeout = Duration.ofMinutes(30)
+	
+	// Docker 테스트컨테이너가 CI 환경에서 작동하도록 설정
+	systemProperty 'testcontainers.reuse.enable', 'false'
+	systemProperty 'testcontainers.ryuk.disabled', 'true'
 }
 
 jacocoTestReport {
