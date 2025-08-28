@@ -1,131 +1,58 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ko">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Leafresh API Documentation</title>
-    <link rel="stylesheet" type="text/css" href="https://unpkg.com/swagger-ui-dist@5.9.0/swagger-ui.css" />
-    <link rel="icon" type="image/png" href="https://unpkg.com/swagger-ui-dist@5.9.0/favicon-32x32.png" sizes="32x32" />
-    <link rel="icon" type="image/png" href="https://unpkg.com/swagger-ui-dist@5.9.0/favicon-16x16.png" sizes="16x16" />
     <style>
-        html {
-            box-sizing: border-box;
-            overflow: -moz-scrollbars-vertical;
-            overflow-y: scroll;
-        }
-        *, *:before, *:after {
-            box-sizing: inherit;
-        }
         body {
-            margin: 0;
-            background: #fafafa;
-        }
-        .swagger-ui .topbar {
-            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-        .swagger-ui .topbar .download-url-wrapper .select-label {
-            color: #fff;
-        }
-        .swagger-ui .topbar .download-url-wrapper .download-url-button {
-            background: #45a049;
-            border-color: #45a049;
-        }
-        .swagger-ui .topbar .download-url-wrapper .download-url-button:hover {
-            background: #3d8b40;
-            border-color: #3d8b40;
-        }
-        .swagger-ui .topbar .topbar-wrapper {
-            max-width: 1460px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 800px;
             margin: 0 auto;
+            padding: 2rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: white;
         }
-        .swagger-ui .topbar .topbar-wrapper a {
-            color: #fff;
-            text-decoration: none;
-            font-weight: bold;
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 2rem;
+            text-align: center;
         }
-        .swagger-ui .topbar .topbar-wrapper::before {
-            content: "🌱 ";
-            font-size: 1.2em;
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(45deg, #4CAF50, #8BC34A);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
-        .swagger-ui .info .title {
-            color: #4CAF50;
+        .status {
+            font-size: 1.2rem;
+            margin: 2rem 0;
+            padding: 1rem;
+            background: rgba(255, 193, 7, 0.2);
+            border-radius: 10px;
+            border: 1px solid rgba(255, 193, 7, 0.3);
         }
-        .swagger-ui .scheme-container {
-            background: #f8f9fa;
-            border: 1px solid #e9ecef;
-            border-radius: 4px;
-            padding: 10px;
-            margin: 20px 0;
-        }
-        .swagger-ui .opblock.opblock-get .opblock-summary {
-            border-color: #4CAF50;
-        }
-        .swagger-ui .opblock.opblock-get {
-            border-color: #4CAF50;
-        }
-        .swagger-ui .opblock.opblock-get .opblock-summary-method {
-            background: #4CAF50;
-        }
-        .swagger-ui .opblock.opblock-post .opblock-summary {
-            border-color: #2196F3;
-        }
-        .swagger-ui .opblock.opblock-post {
-            border-color: #2196F3;
-        }
-        .swagger-ui .opblock.opblock-post .opblock-summary-method {
-            background: #2196F3;
-        }
-        .swagger-ui .opblock.opblock-patch .opblock-summary {
-            border-color: #FF9800;
-        }
-        .swagger-ui .opblock.opblock-patch {
-            border-color: #FF9800;
-        }
-        .swagger-ui .opblock.opblock-patch .opblock-summary-method {
-            background: #FF9800;
+        .emoji {
+            font-size: 3rem;
+            margin-bottom: 1rem;
         }
     </style>
 </head>
 <body>
-    <div id="swagger-ui"></div>
-    
-    <script src="https://unpkg.com/swagger-ui-dist@5.9.0/swagger-ui-bundle.js"></script>
-    <script src="https://unpkg.com/swagger-ui-dist@5.9.0/swagger-ui-standalone-preset.js"></script>
-    <script>
-        window.onload = function() {
-            const ui = SwaggerUIBundle({
-                url: './openapi.yaml',
-                dom_id: '#swagger-ui',
-                deepLinking: true,
-                presets: [
-                    SwaggerUIBundle.presets.apis,
-                    SwaggerUIStandalonePreset
-                ],
-                plugins: [
-                    SwaggerUIBundle.plugins.DownloadUrl
-                ],
-                layout: "StandaloneLayout",
-                validatorUrl: null,
-                docExpansion: 'list',
-                operationsSorter: 'alpha',
-                defaultModelRendering: 'model',
-                showExtensions: true,
-                showCommonExtensions: true,
-                tryItOutEnabled: true,
-                supportedSubmitMethods: ['get', 'post', 'put', 'delete', 'patch'],
-                onComplete: function() {
-                    console.log('🌱 Leafresh API Documentation loaded successfully!');
-                },
-                requestInterceptor: function(req) {
-                    // API 호출 시 CORS 헤더 추가
-                    req.headers['Access-Control-Allow-Origin'] = '*';
-                    return req;
-                }
-            });
-            
-            window.ui = ui;
-        };
-    </script>
+    <div class="container">
+        <div class="emoji">🌱</div>
+        <h1>Leafresh API Documentation</h1>
+        <p>환경보호 챌린지 플랫폼 Leafresh의 API 문서</p>
+        
+        <div class="status">
+            <strong>🚧 준비 중...</strong><br>
+            Swagger UI 문서를 새롭게 설정하고 있습니다.
+        </div>
+    </div>
 </body>
 </html>
