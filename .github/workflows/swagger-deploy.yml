@@ -2,7 +2,7 @@ name: Deploy Swagger UI to GitHub Pages
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, develop ]
     paths:
       - 'swagger.yaml'
       - 'docs/openapi.yaml'
