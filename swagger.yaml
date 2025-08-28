@@ -1,6 +1,3 @@
-# Leafresh API Documentation
-# 이 파일은 GitHub Actions에 의해 자동으로 생성되고 업데이트됩니다.
-# Spring Boot 애플리케이션에서 생성된 OpenAPI 스펙이 여기에 저장됩니다.
 openapi: 3.0.3
 info:
   title: Leafresh API Documentation
@@ -20,20 +17,61 @@ info:
     ## 🌍 서버 환경
     - 개발: https://springboot.dev-leafresh.app
     - 프로덕션: https://api.leafresh.app
+    
+    ## 📝 주요 기능
+    - **OAuth 인증**: 카카오 로그인을 통한 회원가입/로그인
+    - **개인 챌린지**: 개인별 환경보호 챌린지 참여
+    - **그룹 챌린지**: 그룹 단위의 챌린지 참여 및 관리
+    - **인증 시스템**: AI 기반 활동 인증 및 검증
+    - **포인트 시스템**: 활동에 대한 리프 포인트 적립
+    - **상점**: 포인트를 활용한 상품 구매
+    - **피드백**: 인증에 대한 피드백 및 댓글
+    - **챗봇**: AI 기반 챌린지 추천
   version: '1.0.0'
   contact:
     name: Leafresh Team
     url: https://leafresh.app
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
 servers:
   - url: https://api.leafresh.app
     description: 프로덕션 서버
   - url: https://springboot.dev-leafresh.app
     description: 개발 서버
+  - url: http://localhost:8080
+    description: 로컬 개발 서버
+
+tags:
+  - name: Health Check
+    description: 서버 상태 확인
+  - name: OAuth
+    description: OAuth 인증 관련 API
+  - name: Member
+    description: 회원 관리 API
+  - name: Personal Challenge
+    description: 개인 챌린지 API
+  - name: Group Challenge
+    description: 그룹 챌린지 API
+  - name: Verification
+    description: 인증 관련 API
+  - name: Store
+    description: 상점 관련 API
+  - name: Feedback
+    description: 피드백 API
+  - name: Chatbot
+    description: 챗봇 API
+  - name: Image
+    description: 이미지 업로드 API
+
 paths:
   /health:
     get:
-      summary: Health Check
-      description: 서버 상태를 확인합니다.
+      tags:
+        - Health Check
+      summary: 서버 상태 확인
+      description: 서버가 정상적으로 작동하는지 확인합니다.
       responses:
         '200':
           description: 서버가 정상 작동 중입니다.
@@ -45,3 +83,386 @@ paths:
                   status:
                     type: string
                     example: UP
+                  timestamp:
+                    type: string
+                    format: date-time
+                    example: "2024-01-15T10:30:00Z"
+
+  /member/kakao/callback:
+    get:
+      tags:
+        - OAuth
+      summary: 카카오 OAuth 콜백
+      description: 카카오 OAuth 인증 후 인가 코드를 받아 로그인을 처리합니다.
+      parameters:
+        - name: code
+          in: query
+          required: true
+          schema:
+            type: string
+          description: 카카오에서 발급한 인가 코드
+          example: "abc123"
+      responses:
+        '200':
+          description: 카카오 로그인 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthLoginResponse'
+        '400':
+          description: 잘못된 인가 코드
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: 서버 내부 오류
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/members:
+    get:
+      tags:
+        - Member
+      summary: 회원 정보 조회
+      description: 로그인한 회원의 정보를 반환합니다.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: 회원 정보 조회 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MemberInfoResponse'
+        '401':
+          description: 인증되지 않은 사용자
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    patch:
+      tags:
+        - Member
+      summary: 회원 정보 수정
+      description: 닉네임, 이미지 URL을 수정합니다.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MemberUpdateRequest'
+      responses:
+        '200':
+          description: 회원 정보 수정 완료
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MemberUpdateResponse'
+
+  /api/challenges/personal:
+    get:
+      tags:
+        - Personal Challenge
+      summary: 개인 챌린지 목록 조회
+      description: 요일별 개인 챌린지 목록을 조회합니다.
+      parameters:
+        - name: dayOfWeek
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY, SATURDAY, SUNDAY]
+          description: 조회할 요일
+      responses:
+        '200':
+          description: 개인 챌린지 목록 조회 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PersonalChallengeListResponse'
+
+  /api/challenges/personal/{challengeId}:
+    get:
+      tags:
+        - Personal Challenge
+      summary: 개인 챌린지 상세 조회
+      description: 특정 개인 챌린지의 상세 정보를 조회합니다.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: challengeId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+          description: 챌린지 ID
+      responses:
+        '200':
+          description: 개인 챌린지 상세 정보 조회 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PersonalChallengeDetailResponse'
+
+  /api/challenges/personal/{challengeId}/rules:
+    get:
+      tags:
+        - Personal Challenge
+      summary: 개인 챌린지 인증 규약 조회
+      description: 개인 챌린지의 인증 규약 정보를 조회합니다.
+      parameters:
+        - name: challengeId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+          description: 챌린지 ID
+      responses:
+        '200':
+          description: 개인 챌린지 인증 규약 조회 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PersonalChallengeRuleResponse'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT 토큰을 사용한 인증. 'Authorization: Bearer {token}' 형태로 전송
+
+  schemas:
+    ApiResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          description: 요청 성공 여부
+        message:
+          type: string
+          description: 응답 메시지
+        data:
+          type: object
+          description: 응답 데이터
+        timestamp:
+          type: string
+          format: date-time
+          description: 응답 시간
+
+    ErrorResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponse'
+        - type: object
+          properties:
+            success:
+              type: boolean
+              example: false
+            error:
+              type: object
+              properties:
+                code:
+                  type: string
+                  description: 에러 코드
+                message:
+                  type: string
+                  description: 에러 메시지
+
+    OAuthLoginResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                isRegistered:
+                  type: boolean
+                  description: 회원가입 완료 여부
+                email:
+                  type: string
+                  format: email
+                  description: 이메일 주소
+                nickname:
+                  type: string
+                  description: 닉네임
+                imageUrl:
+                  type: string
+                  format: uri
+                  description: 프로필 이미지 URL
+
+    MemberInfoResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                id:
+                  type: integer
+                  format: int64
+                  description: 회원 ID
+                email:
+                  type: string
+                  format: email
+                  description: 이메일
+                nickname:
+                  type: string
+                  description: 닉네임
+                imageUrl:
+                  type: string
+                  format: uri
+                  description: 프로필 이미지 URL
+                leafPoint:
+                  type: integer
+                  description: 리프 포인트
+                joinDate:
+                  type: string
+                  format: date
+                  description: 가입일
+
+    MemberUpdateRequest:
+      type: object
+      properties:
+        nickname:
+          type: string
+          maxLength: 20
+          description: 새로운 닉네임
+        imageUrl:
+          type: string
+          format: uri
+          description: 새로운 프로필 이미지 URL
+
+    MemberUpdateResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                id:
+                  type: integer
+                  format: int64
+                  description: 회원 ID
+                nickname:
+                  type: string
+                  description: 업데이트된 닉네임
+                imageUrl:
+                  type: string
+                  format: uri
+                  description: 업데이트된 프로필 이미지 URL
+
+    PersonalChallengeListResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                challenges:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/PersonalChallenge'
+                totalCount:
+                  type: integer
+                  description: 전체 챌린지 수
+
+    PersonalChallenge:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: 챌린지 ID
+        title:
+          type: string
+          description: 챌린지 제목
+        description:
+          type: string
+          description: 챌린지 설명
+        imageUrl:
+          type: string
+          format: uri
+          description: 챌린지 이미지 URL
+        difficulty:
+          type: string
+          enum: [EASY, NORMAL, HARD]
+          description: 난이도
+        leafPoint:
+          type: integer
+          description: 획득 가능한 리프 포인트
+        dayOfWeek:
+          type: string
+          enum: [MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY, SATURDAY, SUNDAY]
+          description: 챌린지가 활성화되는 요일
+        isActive:
+          type: boolean
+          description: 챌린지 활성화 상태
+
+    PersonalChallengeDetailResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponse'
+        - type: object
+          properties:
+            data:
+              allOf:
+                - $ref: '#/components/schemas/PersonalChallenge'
+                - type: object
+                  properties:
+                    detailDescription:
+                      type: string
+                      description: 상세 설명
+                    verificationGuide:
+                      type: string
+                      description: 인증 가이드
+                    participantCount:
+                      type: integer
+                      description: 참가자 수
+                    isParticipating:
+                      type: boolean
+                      description: 현재 사용자 참가 여부
+                    todayVerified:
+                      type: boolean
+                      description: 오늘 인증 완료 여부
+
+    PersonalChallengeRuleResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                challengeId:
+                  type: integer
+                  format: int64
+                  description: 챌린지 ID
+                title:
+                  type: string
+                  description: 챌린지 제목
+                rules:
+                  type: array
+                  items:
+                    type: string
+                  description: 인증 규약 목록
+                verificationMethod:
+                  type: string
+                  description: 인증 방법
+                exampleImages:
+                  type: array
+                  items:
+                    type: string
+                    format: uri
+                  description: 예시 이미지 URL 목록
