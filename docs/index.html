@@ -1,41 +1,89 @@
-<!-- Leafresh API Documentation -->
 <!DOCTYPE html>
-<html lang="en">
-  <head>
+<html lang="ko">
+<head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Leafresh API Documentation</title>
-    <link rel="stylesheet" type="text/css" href="./swagger-ui.css" />
-    <link rel="stylesheet" type="text/css" href="index.css" />
-    <link rel="icon" type="image/png" href="./favicon-32x32.png" sizes="32x32" />
-    <link rel="icon" type="image/png" href="./favicon-16x16.png" sizes="16x16" />
     <style>
-      body {
-        margin: 0;
-        background: #fafafa;
-      }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: white;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 2rem;
+            text-align: center;
+        }
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(45deg, #4CAF50, #8BC34A);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .status {
+            font-size: 1.2rem;
+            margin: 2rem 0;
+            padding: 1rem;
+            background: rgba(76, 175, 80, 0.2);
+            border-radius: 10px;
+            border: 1px solid rgba(76, 175, 80, 0.3);
+        }
+        .link {
+            display: inline-block;
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            color: white;
+            padding: 1rem 2rem;
+            text-decoration: none;
+            border-radius: 50px;
+            margin: 0.5rem;
+            font-weight: 500;
+            transition: transform 0.2s;
+        }
+        .link:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(76, 175, 80, 0.4);
+        }
+        .emoji {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
     </style>
-  </head>
-
-  <body>
-    <div id="swagger-ui"></div>
-    <script src="./swagger-ui-bundle.js" charset="UTF-8"> </script>
-    <script src="./swagger-ui-standalone-preset.js" charset="UTF-8"> </script>
-    <script>
-      window.onload = function() {
-        window.ui = SwaggerUIBundle({
-          url: "./openapi.yaml",
-          dom_id: '#swagger-ui',
-          deepLinking: true,
-          presets: [
-            SwaggerUIBundle.presets.apis,
-            SwaggerUIStandalonePreset
-          ],
-          plugins: [
-            SwaggerUIBundle.plugins.DownloadUrl
-          ],
-          layout: "StandaloneLayout"
-        });
-      };
-    </script>
-  </body>
+</head>
+<body>
+    <div class="container">
+        <div class="emoji">🌱</div>
+        <h1>Leafresh API Documentation</h1>
+        <p>환경보호 챌린지 플랫폼 Leafresh의 API 문서</p>
+        
+        <div class="status">
+            <strong>✅ GitHub Pages 배포 완료!</strong><br>
+            Swagger UI가 곧 이 위치에 자동으로 배포됩니다.
+        </div>
+        
+        <div>
+            <a href="https://github.com/your-username/leafresh" class="link">
+                📱 GitHub 저장소
+            </a>
+            <a href="https://leafresh.app" class="link">
+                🌍 Leafresh 웹사이트
+            </a>
+        </div>
+        
+        <div style="margin-top: 2rem; opacity: 0.8;">
+            <small>
+                🔄 GitHub Actions로 자동 배포 중...<br>
+                Swagger UI는 swagger.yaml 파일이 업데이트될 때마다 자동으로 갱신됩니다.
+            </small>
+        </div>
+    </div>
+</body>
 </html>
