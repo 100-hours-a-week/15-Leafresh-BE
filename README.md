@@ -215,27 +215,32 @@ docker-compose -f docker-compose-local.yml up -d
 **Local Development**
 ```bash
 # Run Swagger documentation server
-./scripts/run-swagger.sh
+./gradlew runSwagger
 # Access at http://localhost:8080/swagger-ui.html
 ```
 
-**Generate Swagger Documentation**
+**Generate OpenAPI Documentation**
 ```bash
-# Build application and start documentation server
-./gradlew runSwagger
-
-# Or use the shell script for a better experience
-chmod +x scripts/run-swagger.sh
-./scripts/run-swagger.sh
+# Generate OpenAPI JSON file for deployment
+./gradlew generateOpenApiDocs
+# Output: build/openapi.json
 ```
 
 ### GitHub Pages Documentation
 
 The API documentation is automatically deployed to GitHub Pages:
 - **Live Documentation**: https://100-hours-a-week.github.io/15-Leafresh-BE/
-- **OpenAPI YAML**: https://100-hours-a-week.github.io/15-Leafresh-BE/swagger.yaml
+- **OpenAPI JSON**: Available after deployment via GitHub Actions
 
-The documentation is automatically updated whenever changes are pushed to the `main` branch or when the OpenAPI specification is updated.
+**Automatic Deployment**: The documentation is automatically updated when:
+- Changes are merged to the `main` branch
+- Pull requests are closed (triggers diff comparison)
+- Manual workflow dispatch is triggered
+
+**CI/CD Features**:
+- Automatic OpenAPI spec generation and comparison between prod/dev
+- Swagger UI deployment to GitHub Pages
+- API diff reporting for breaking changes detection
 
 ### API Overview
 

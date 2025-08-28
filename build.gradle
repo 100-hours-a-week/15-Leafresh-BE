@@ -234,25 +234,18 @@ bootJar {
 	}
 }
 
-// Swagger JSON 생성을 위한 태스크
-task generateSwaggerDocs(type: JavaExec) {
+// OpenAPI 문서 생성을 위한 태스크
+task generateOpenApiDocs(type: JavaExec) {
 	group = 'documentation'
-	description = 'Generate Swagger/OpenAPI documentation'
+	description = 'Generate OpenAPI documentation as JSON'
 	
 	classpath = sourceSets.main.runtimeClasspath
 	mainClass = 'ktb.leafresh.backend.BackendApplication'
 	
 	systemProperty 'spring.profiles.active', 'swagger'
-	systemProperty 'server.port', '0'  // 랜덤 포트 사용
-	systemProperty 'spring.datasource.url', 'jdbc:h2:mem:testdb'
-	systemProperty 'spring.datasource.driver-class-name', 'org.h2.Driver'
-	systemProperty 'spring.jpa.hibernate.ddl-auto', 'create-drop'
-	systemProperty 'jwt.secret', 'dummy-secret-for-documentation-generation-only-minimum-32-characters'
-	systemProperty 'kakao.client-id', 'dummy'
-	systemProperty 'kakao.client-secret', 'dummy'
 	
 	doFirst {
-		mkdir "${buildDir}/swagger"
+		file("${buildDir}").mkdirs()
 	}
 }
 
@@ -265,13 +258,6 @@ task runSwagger(type: JavaExec) {
 	mainClass = 'ktb.leafresh.backend.BackendApplication'
 	
 	systemProperty 'spring.profiles.active', 'swagger'
-	systemProperty 'server.port', '8080'
-	systemProperty 'spring.datasource.url', 'jdbc:h2:mem:testdb'
-	systemProperty 'spring.datasource.driver-class-name', 'org.h2.Driver'
-	systemProperty 'spring.jpa.hibernate.ddl-auto', 'create-drop'
-	systemProperty 'jwt.secret', 'dummy-secret-for-documentation-generation-only-minimum-32-characters'
-	systemProperty 'kakao.client-id', 'dummy'
-	systemProperty 'kakao.client-secret', 'dummy'
 	
 	doFirst {
 		println "Starting Swagger UI server..."

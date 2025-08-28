@@ -1,0 +1,85 @@
+name: openapi-extract and diff with develop
+
+# GitHub Pages 설정 필요:
+# Repository Settings -> Pages -> Source: Deploy from a branch -> gh-pages branch
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - main
+    types: [ closed ]
+
+jobs:
+  build-main:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main # main 브랜치
+
+      - name: Setup JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Generate OpenAPI spec for main
+        run: ./gradlew clean generateOpenApiDocs
+
+      - uses: actions/upload-artifact@v4 # 아티팩트 업로드
+        with:
+          name: main-spec
+          path: build/openapi.json
+
+      - name: Swagger UI Action
+        uses: Legion2/swagger-ui-action@v1.3.0
+        with:
+          output: swagger-ui
+          spec-file: build/openapi.json
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3  #gh-pages 브랜치 root에 swagger-ui push
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: swagger-ui
+
+  build-develop:
+    runs-on: ubuntu-latest
+    needs: build-main
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: develop  # develop 브랜치와 비교
+
+      - name: Setup JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Generate OpenAPI spec for develop
+        run: ./gradlew clean generateOpenApiDocs
+
+      - uses: actions/download-artifact@v4 # 아티팩트 다운로드
+        with:
+          name: main-spec
+          path: ./main
+
+      - name: List downloaded main artifact files # 경로 확인
+        run: ls -R ./main
+
+      - name: Run openapi-diff with docker # 도커 허브에서 이미지 사용
+        run: docker run --rm -v ${{ github.workspace }}:/specs openapitools/openapi-diff:latest /specs/main/openapi.json /specs/build/openapi.json --json /specs/diff.json
+
+      - name: Show diff result
+        run: |
+          echo "📊 API Diff Result (main vs develop):"
+          cat diff.json
