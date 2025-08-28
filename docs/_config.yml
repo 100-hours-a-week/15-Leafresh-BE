@@ -1,0 +1,33 @@
+# GitHub Pages configuration for Leafresh API Documentation
+
+title: "Leafresh API Documentation"
+description: "환경보호를 실천하는 사람들을 위한 웹진자 플랫폼 Leafresh의 백엔드 API 문서"
+author: "Leafresh Team"
+url: "https://100-hours-a-week.github.io"
+baseurl: "/15-Leafresh-BE"
+
+# Build settings
+plugins:
+  - jekyll-readme-index
+
+# Include/exclude files
+include:
+  - _config.yml
+  - .nojekyll
+  - openapi.json
+
+exclude:
+  - .DS_Store
+  - "*.log"
+  - node_modules/
+  - vendor/
+
+# Collections
+collections_dir: docs
+
+# Markdown settings
+markdown: kramdown
+highlighter: rouge
+kramdown:
+  input: GFM
+  syntax_highlighter: rouge

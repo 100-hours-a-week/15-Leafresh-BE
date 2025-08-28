@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Leafresh API Documentation</title>
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -13,6 +15,9 @@
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         .container {
             background: rgba(255, 255, 255, 0.1);
@@ -20,6 +25,7 @@
             border-radius: 20px;
             padding: 2rem;
             text-align: center;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
         }
         h1 {
             font-size: 2.5rem;
@@ -29,17 +35,46 @@
             -webkit-text-fill-color: transparent;
             background-clip: text;
         }
-        .status {
-            font-size: 1.2rem;
-            margin: 2rem 0;
-            padding: 1rem;
-            background: rgba(255, 193, 7, 0.2);
+        .description {
+            font-size: 1.1rem;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+        }
+        .button {
+            display: inline-block;
+            padding: 12px 24px;
+            background: linear-gradient(45deg, #4CAF50, #8BC34A);
+            color: white;
+            text-decoration: none;
             border-radius: 10px;
-            border: 1px solid rgba(255, 193, 7, 0.3);
+            font-weight: 500;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin: 0.5rem;
+        }
+        .button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(76, 175, 80, 0.4);
+            text-decoration: none;
+            color: white;
+        }
+        .loading {
+            display: none;
+            margin-top: 1rem;
+            opacity: 0.7;
         }
         .emoji {
             font-size: 3rem;
             margin-bottom: 1rem;
+        }
+        .links {
+            margin-top: 2rem;
+        }
+        .info {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 1rem;
+            border-radius: 10px;
+            margin-top: 1.5rem;
+            border-left: 4px solid #4CAF50;
         }
     </style>
 </head>
@@ -47,12 +82,51 @@
     <div class="container">
         <div class="emoji">🌱</div>
         <h1>Leafresh API Documentation</h1>
-        <p>환경보호 챌린지 플랫폼 Leafresh의 API 문서</p>
+        <div class="description">
+            환경보호를 실천하는 사람들을 위한 웹진자 플랫폼 Leafresh의 백엔드 API 문서입니다.
+        </div>
         
-        <div class="status">
-            <strong>🚧 준비 중...</strong><br>
-            Swagger UI 문서를 새롭게 설정하고 있습니다.
+        <div class="links">
+            <a href="./swagger-ui.html" class="button" id="swaggerBtn">
+                📖 API 문서 보기 (Swagger UI)
+            </a>
+        </div>
+        
+        <div class="loading" id="loading">
+            🔄 Swagger UI를 로드하고 있습니다...
+        </div>
+        
+        <div class="info">
+            <strong>📚 API 문서 정보</strong><br>
+            • 실시간 API 테스트 가능<br>
+            • 모든 엔드포인트 상세 명세<br>
+            • 요청/응답 예시 제공
         </div>
     </div>
+
+    <script>
+        // Swagger UI 버튼 클릭 시 로딩 표시
+        document.getElementById('swaggerBtn').addEventListener('click', function(e) {
+            document.getElementById('loading').style.display = 'block';
+        });
+
+        // 페이지 로드 시 swagger-ui.html 존재 여부 확인
+        fetch('./swagger-ui.html', {method: 'HEAD'})
+            .then(response => {
+                if (!response.ok) {
+                    document.getElementById('swaggerBtn').innerHTML = '⚠️ API 문서 생성 중...';
+                    document.getElementById('swaggerBtn').style.background = 'linear-gradient(45deg, #FF9800, #FF5722)';
+                    document.getElementById('swaggerBtn').onclick = function(e) {
+                        e.preventDefault();
+                        alert('API 문서가 아직 생성되지 않았습니다. 잠시 후 다시 시도해주세요.');
+                    };
+                }
+            })
+            .catch(() => {
+                // 파일이 없을 경우 처리
+                document.getElementById('swaggerBtn').innerHTML = '⚠️ API 문서 생성 중...';
+                document.getElementById('swaggerBtn').style.background = 'linear-gradient(45deg, #FF9800, #FF5722)';
+            });
+    </script>
 </body>
 </html>
