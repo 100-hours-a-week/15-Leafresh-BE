@@ -1,6 +1,0 @@
-# TEMPORARILY DISABLED - Use simple-swagger-deploy.yml instead
-
-# name: Deploy Swagger UI to GitHub Pages
-# 
-# This workflow has been temporarily disabled due to permission issues.
-# Using simple-swagger-deploy.yml as alternative.

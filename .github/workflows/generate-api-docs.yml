@@ -1,9 +1,0 @@
-# DISABLED - Use swagger-deploy.yml instead
-
-# This workflow has been replaced by swagger-deploy.yml
-# Please use the simplified workflow instead.
-
-# name: Generate and Deploy API Documentation (DISABLED)
-# 
-# This file is kept for reference but is no longer active.
-# The active workflow is swagger-deploy.yml
