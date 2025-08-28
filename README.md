@@ -233,9 +233,9 @@ chmod +x scripts/run-swagger.sh
 
 The API documentation is automatically deployed to GitHub Pages:
 - **Live Documentation**: https://100-hours-a-week.github.io/15-Leafresh-BE/
-- **Raw OpenAPI JSON**: https://100-hours-a-week.github.io/15-Leafresh-BE/swagger.json
+- **OpenAPI YAML**: https://100-hours-a-week.github.io/15-Leafresh-BE/swagger.yaml
 
-The documentation is automatically updated whenever changes are pushed to the `main` or `develop` branches.
+The documentation is automatically updated whenever changes are pushed to the `main` branch or when the OpenAPI specification is updated.
 
 ### API Overview
 
