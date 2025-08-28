@@ -1,0 +1,38 @@
+name: Simple Swagger UI Deploy
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'swagger.yaml'
+      - '.github/workflows/simple-swagger-deploy.yml'
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+      
+    - name: Generate Swagger UI
+      uses: Legion2/swagger-ui-action@v1
+      with:
+        output: swagger-ui
+        spec-file: swagger.yaml
+        
+    - name: Deploy to GitHub Pages
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./swagger-ui
+        publish_branch: gh-pages
+        force_orphan: true
+        enable_jekyll: false
+        
+    - name: Deploy Complete
+      run: |
+        echo "🎉 Swagger UI deployment completed!"
+        echo "📖 Documentation will be available at:"
+        echo "https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/"

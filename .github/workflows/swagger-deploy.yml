@@ -1,50 +1,6 @@
-name: Deploy Swagger UI to GitHub Pages
+# TEMPORARILY DISABLED - Use simple-swagger-deploy.yml instead
 
-on:
-  push:
-    branches: [ main, develop ]
-    paths:
-      - 'swagger.yaml'
-      - 'docs/openapi.yaml'
-      - '.github/workflows/swagger-deploy.yml'
-  workflow_dispatch:
-
-permissions:
-  contents: read
-  pages: write
-  id-token: write
-
-concurrency:
-  group: "pages"
-  cancel-in-progress: false
-
-jobs:
-  deploy:
-    runs-on: ubuntu-latest
-    
-    steps:
-    - name: Checkout Repository
-      uses: actions/checkout@v4
-      
-    - name: Generate Swagger UI
-      uses: Legion2/swagger-ui-action@v1
-      with:
-        output: swagger-ui
-        spec-file: swagger.yaml
-        
-    - name: Setup GitHub Pages
-      uses: actions/configure-pages@v4
-      
-    - name: Upload Pages Artifact  
-      uses: actions/upload-pages-artifact@v3
-      with:
-        path: './swagger-ui'
-        
-    - name: Deploy to GitHub Pages
-      id: deployment
-      uses: actions/deploy-pages@v4
-      
-    - name: Deploy Complete
-      run: |
-        echo "🎉 Swagger UI deployment completed!"
-        echo "📖 Documentation URL: ${{ steps.deployment.outputs.page_url }}"
+# name: Deploy Swagger UI to GitHub Pages
+# 
+# This workflow has been temporarily disabled due to permission issues.
+# Using simple-swagger-deploy.yml as alternative.
