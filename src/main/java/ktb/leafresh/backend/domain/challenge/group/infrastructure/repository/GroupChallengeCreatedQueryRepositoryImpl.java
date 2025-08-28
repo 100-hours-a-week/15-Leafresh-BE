@@ -26,6 +26,8 @@ public class GroupChallengeCreatedQueryRepositoryImpl
 
     return queryFactory
         .selectFrom(gc)
+        .leftJoin(gc.member).fetchJoin()
+        .leftJoin(gc.category).fetchJoin()
         .where(
             gc.deletedAt.isNull(),
             gc.member.id.eq(memberId),
