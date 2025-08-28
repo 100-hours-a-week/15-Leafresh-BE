@@ -20,22 +20,21 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.H2Dialect
         format_sql: false
-        
-  # 메시지 큐 비활성화
-  cloud:
-    gcp:
-      pubsub:
-        enabled: false
 
-  # Task Execution & Scheduling 비활성화
-  task:
-    execution:
-      pool:
-        core-size: 1
-        max-size: 1
-    scheduling:
-      pool:
-        size: 1
+  # Redis 비활성화
+  data:
+    redis:
+      repositories:
+        enabled: false
+        
+  # 자동 구성 제외
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.redis.RedisRepositoriesAutoConfiguration
+      - org.springframework.boot.autoconfigure.security.oauth2.client.servlet.OAuth2ClientAutoConfiguration
+      - org.springframework.cloud.gcp.autoconfigure.pubsub.GcpPubSubAutoConfiguration
+      - org.redisson.spring.starter.RedissonAutoConfiguration
 
 # Swagger UI 설정
 springdoc:
@@ -94,20 +93,10 @@ gcp:
   project-id: dummy-project
   pubsub:
     enabled: false
-    feedback:
-      topic: dummy-feedback-topic
-      subscription: dummy-feedback-subscription
-      dlq-subscription: dummy-feedback-dlq-subscription
-    verification:
-      topic: dummy-verification-topic
-      subscription: dummy-verification-subscription
-      dlq-subscription: dummy-verification-dlq-subscription
 
 # Redis 설정 (더미 값)
 redis:
   enabled: false
-  redisson:
-    address: "redis://localhost:6379"
   host: localhost
   port: 6379
 
@@ -124,21 +113,16 @@ ai:
 scheduling:
   enabled: false
 
-# ShedLock 비활성화
-shedlock:
-  defaults:
-    lock-at-most-for: PT30M
-    lock-at-least-for: PT5M
-
 logging:
   level:
     org.springframework.web: INFO
     org.springframework.security: INFO
-    org.springframework.cloud.gcp: WARN
-    com.google.cloud: WARN
     ktb.leafresh.backend: INFO
-    org.redisson: WARN
-    redis.clients.jedis: WARN
+    org.redisson: OFF
+    redis.clients.jedis: OFF
+    org.springframework.cloud.gcp: OFF
+    com.google.cloud: OFF
+    com.amazonaws: OFF
     
 # Management endpoints 설정 (Actuator)
 management:
@@ -149,11 +133,3 @@ management:
   endpoint:
     health:
       show-details: always
-      
-# 외부 의존성 Mock 활성화 플래그
-mock:
-  enabled: true
-  redis: true
-  aws: true
-  gcp: true
-  external-apis: true
