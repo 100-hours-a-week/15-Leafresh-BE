@@ -68,6 +68,8 @@ dependencies {
 	// testcontainers
 	testImplementation 'org.testcontainers:testcontainers'
 	testImplementation 'org.testcontainers:mysql'
+	testImplementation 'org.testcontainers:junit-jupiter'
+	testImplementation 'com.redis:testcontainers-redis:2.2.2'
 
 	// QueryDsl
 	implementation 'com.querydsl:querydsl-jpa:5.0.0:jakarta'
