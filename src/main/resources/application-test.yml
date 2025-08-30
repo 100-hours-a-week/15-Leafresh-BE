@@ -1,0 +1,72 @@
+spring:
+  # H2 인메모리 DB 사용으로 별도 DB 설정 불필요
+  datasource:
+    url: jdbc:h2:mem:testdb
+    username: sa
+    password: password
+    driver-class-name: org.h2.Driver
+  
+  # 인메모리 Redis 대신 간단한 설정
+  data:
+    redis:
+      host: localhost
+      port: 6379
+  
+  jpa:
+    hibernate:
+      ddl-auto: create-drop  # 테스트용으로 매번 새로 생성
+    show-sql: false
+
+  task:
+    scheduling:
+      pool:
+        size: 5
+
+# Redis 설정 (로컬 Redis 사용)
+redis:
+  redisson:
+    address: redis://localhost:6379
+
+# 테스트용 더미 값들
+jwt:
+  secret: test-secret-key-for-scheduler-test-only-very-long-key
+
+kakao:
+  client-id: dummy
+  client-secret: dummy
+
+ai-server:
+  text-base-url: http://localhost:9999
+  image-base-url: http://localhost:9999
+  make-challenge-base-url: http://localhost:9999
+
+gcp:
+  project-id: test-project
+  credentials:
+    location: test
+  storage:
+    bucket: test-bucket
+  pubsub:
+    topics:
+      order: test-order
+      image-verification: test-verification
+      feedback: test-feedback
+    subscriptions:
+      order: test-order-sub
+      dlq: test-order-dlq
+      image-verification-result: test-verification-result
+      verification-dlq: test-verification-dlq
+      feedback-result: test-feedback-result
+      feedback-result-dlq: test-feedback-result-dlq
+
+lock-image-url: http://localhost/lock.png
+
+cookie:
+  secure: false
+
+logging:
+  level:
+    ktb.leafresh.backend.domain.verification.infrastructure.scheduler: INFO
+    net.javacrumbs.shedlock: DEBUG
+  pattern:
+    console: "%d{HH:mm:ss.SSS} %-5level [%thread] %logger{36} - %msg%n"

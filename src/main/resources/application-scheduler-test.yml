@@ -1,0 +1,69 @@
+spring:
+  profiles:
+    include: local  # 기본 로컬 설정 포함
+  
+  task:
+    scheduling:
+      pool:
+        size: 5  # 스케줄러 스레드 풀 크기
+  
+  # 로컬 DB/Redis 설정 재정의 (환경변수 없이)
+  datasource:
+    url: jdbc:mysql://localhost:3306/leafresh_test
+    username: root
+    password: password
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  
+  data:
+    redis:
+      host: localhost
+      port: 6379
+
+redis:
+  redisson:
+    address: redis://localhost:6379
+  bloom:
+    host: localhost
+    port: 6379
+
+logging:
+  level:
+    ktb.leafresh.backend.test.scheduler: INFO
+    net.javacrumbs.shedlock: DEBUG  # ShedLock 디버그 로그
+    ktb.leafresh.backend.domain.verification.infrastructure.scheduler: INFO
+  pattern:
+    console: "%d{HH:mm:ss.SSS} [%thread] %-5level [%X{instance}] %logger{36} - %msg%n"
+
+# 테스트용 더미 값들
+jwt:
+  secret: test-secret-key-for-scheduler-test-only
+
+kakao:
+  client-id: dummy
+  client-secret: dummy
+
+ai-server:
+  text-base-url: http://localhost:9999
+  image-base-url: http://localhost:9999
+  make-challenge-base-url: http://localhost:9999
+
+gcp:
+  project-id: test-project
+  credentials:
+    location: test
+  storage:
+    bucket: test-bucket
+  pubsub:
+    topics:
+      order: test-order
+      image-verification: test-verification
+      feedback: test-feedback
+    subscriptions:
+      order: test-order-sub
+      dlq: test-order-dlq
+      image-verification-result: test-verification-result
+      verification-dlq: test-verification-dlq
+      feedback-result: test-feedback-result
+      feedback-result-dlq: test-feedback-result-dlq
+
+lock-image-url: http://localhost/lock.png

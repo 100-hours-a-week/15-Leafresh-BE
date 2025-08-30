@@ -11,6 +11,7 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import java.net.InetAddress;
 import java.util.Map;
 import java.util.Set;
 
@@ -20,6 +21,15 @@ import java.util.Set;
 public class VerificationStatSyncScheduler {
 
   private static final int MAX_BATCH_SIZE = 100;
+  private static final String INSTANCE_ID = generateInstanceId();
+
+  private static String generateInstanceId() {
+    try {
+      return InetAddress.getLocalHost().getHostName() + "-" + System.currentTimeMillis() % 10000;
+    } catch (Exception e) {
+      return "unknown-" + System.currentTimeMillis() % 10000;
+    }
+  }
 
   private final StringRedisTemplate stringRedisTemplate;
   private final VerificationStatCacheService verificationStatCacheService;
@@ -27,23 +37,25 @@ public class VerificationStatSyncScheduler {
 
   /** 5분마다 Redis → DB로 증가분 누적 동기화 */
   @Transactional
-  @Scheduled(fixedDelay = 5 * 60 * 1000)
+  @Scheduled(fixedDelay = 30 * 1000) // 테스트를 위해 30초로 단축
   @SchedulerLock(
       name = "VerificationStatSyncScheduler",
-      lockAtLeastFor = "1m",
-      lockAtMostFor = "10m")
+      lockAtLeastFor = "10s",
+      lockAtMostFor = "25s")
   public void syncVerificationStats() {
+    log.info("[ShedLock] [인스턴스 {}] 통계 동기화 스케줄러 실행 시작!", INSTANCE_ID);
+    
     Set<String> dirtyIds =
         stringRedisTemplate
             .opsForSet()
             .distinctRandomMembers(VerificationCacheKeys.dirtySetKey(), MAX_BATCH_SIZE);
 
     if (dirtyIds == null || dirtyIds.isEmpty()) {
-      log.debug("[VerificationStatSyncScheduler] 동기화 대상 없음");
+      log.debug("[VerificationStatSyncScheduler] [인스턴스 {}] 동기화 대상 없음", INSTANCE_ID);
       return;
     }
 
-    log.info("[VerificationStatSyncScheduler] 동기화 시작 - 대상 수: {}", dirtyIds.size());
+    log.info("[VerificationStatSyncScheduler] [인스턴스 {}] 동기화 시작 - 대상 수: {}", INSTANCE_ID, dirtyIds.size());
 
     for (String idStr : dirtyIds) {
       Long verificationId;
@@ -118,6 +130,31 @@ public class VerificationStatSyncScheduler {
       }
     }
 
-    log.info("[VerificationStatSyncScheduler] 동기화 종료");
+    log.info("[ShedLock] [인스턴스 {}] 통계 동기화 스케줄러 종료", INSTANCE_ID);
+  }
+
+  /** 
+   * 테스트 비교용: ShedLock 없는 스케줄러 - 5분마다 실행
+   * 분산 환경에서 중복 실행됨을 보여주기 위한 용도
+   */
+  @Scheduled(fixedDelay = 30 * 1000) // 테스트를 위해 30초로 단축
+  // @SchedulerLock 주석 처리 = 분산락 없음
+  public void syncVerificationStatsWithoutLock() {
+    log.info("[NO-LOCK] [인스턴스 {}] 락 없는 통계 동기화 실행!", INSTANCE_ID);
+    
+    // 간단한 작업 시뮬레이션
+    try {
+      Thread.sleep(1000); // 1초 작업
+      
+      // Redis에 실행 기록 저장
+      String key = "scheduler:no-lock:execution:" + System.currentTimeMillis();
+      stringRedisTemplate.opsForValue().set(key, INSTANCE_ID);
+      stringRedisTemplate.expire(key, java.time.Duration.ofMinutes(10));
+      
+      log.info("[NO-LOCK] [인스턴스 {}] 락 없는 통계 동기화 완료!", INSTANCE_ID);
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      log.warn("[NO-LOCK] [인스턴스 {}] 락 없는 스케줄러 인터럽트", INSTANCE_ID);
+    }
   }
 }
