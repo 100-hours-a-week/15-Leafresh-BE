@@ -59,6 +59,10 @@ logging:
 
 jwt:
   secret: ${JWT_SECRET}
+  bloom-filter:
+    key: accessTokenBlacklist
+    expected-insertions: 100000
+    false-positive-probability: 0.0001
 
 kakao:
   client-id: ${KAKAO_CLIENT_ID}
