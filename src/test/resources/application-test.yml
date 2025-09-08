@@ -18,5 +18,52 @@ spring:
   sql:
     init:
       mode: never
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      timeout: 2000ms
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 2
+
+# Redis 테스트 설정
+redis:
+  redisson:
+    address: redis://localhost:6379
+  bloom:
+    host: localhost
+    port: 6379
+
+# 쿠키 테스트 설정
+cookie:
+  secure: false
+  samesite: Strict
+  domain: localhost
+
+# 테스트용 더미 설정
+gcp:
+  project-id: test-project
+  credentials:
+    location: classpath:test-service-account.json
+  storage:
+    bucket: test-bucket
+  pubsub:
+    topics:
+      order: test-order-topic
+      image-verification: test-verification-topic
+      feedback: test-feedback-topic
+    subscriptions:
+      order: test-order-subscription
+      dlq: test-order-dlq
+      image-verification-result: test-verification-result
+      verification-dlq: test-verification-dlq
+      feedback-result: test-feedback-result
+      feedback-result-dlq: test-feedback-dlq
+
+# 테스트용 더미 URL
+lock-image-url: https://test-lock-image.com
 
 # H2 Mode=MySQL enables MySQL compatibility including DATEDIFF function
