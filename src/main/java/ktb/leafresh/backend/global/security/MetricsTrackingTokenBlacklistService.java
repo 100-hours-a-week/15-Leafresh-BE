@@ -1,9 +1,7 @@
 package ktb.leafresh.backend.global.security;
 
-import io.rebloom.client.Client;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
@@ -14,6 +12,7 @@ import java.util.concurrent.atomic.AtomicLong;
 /**
  * JWT 블랙리스트 서비스 - 성능 메트릭 추적 기능 포함
  * Bloom Filter로 1차 필터링 후 Redis로 2차 정확한 검증하는 2단계 시스템
+ * False Positive 확률: 0.01% (application.yml 설정)
  */
 @Slf4j
 @Service("metricsTrackingTokenBlacklistService")
@@ -22,10 +21,7 @@ import java.util.concurrent.atomic.AtomicLong;
 public class MetricsTrackingTokenBlacklistService implements TokenBlacklistService {
 
     private final StringRedisTemplate redisTemplate;
-    private final Client bloomClient;
-
-    @Value("${jwt.bloom-filter.key:accessTokenBlacklist}")
-    private String BLOOM_FILTER_NAME;
+    private final BloomFilterService bloomFilterService;
 
     // 성능 메트릭 추적용 카운터
     private final AtomicLong totalChecks = new AtomicLong(0);
@@ -36,22 +32,23 @@ public class MetricsTrackingTokenBlacklistService implements TokenBlacklistServi
 
     @Override
     public void blacklistAccessToken(String accessToken, long expirationTimeMillis) {
-        // Bloom Filter에 등록
-        bloomClient.add(BLOOM_FILTER_NAME, accessToken);
+        // Bloom Filter에 등록 (False Positive 확률: 0.01%)
+        bloomFilterService.addToken(accessToken);
 
         // Redis에 TTL과 함께 저장 (정확한 검증용)
         String key = "blacklist:" + accessToken;
         redisTemplate.opsForValue().set(key, "true", expirationTimeMillis, TimeUnit.MILLISECONDS);
 
-        log.info("[블랙리스트 등록] token={}, TTL={}ms", accessToken, expirationTimeMillis);
+        log.info("[블랙리스트 등록] token={}, TTL={}ms, falsePositiveProbability={}%", 
+            accessToken, expirationTimeMillis, bloomFilterService.getFalsePositiveProbability() * 100);
     }
 
     @Override
     public boolean isBlacklisted(String accessToken) {
         totalChecks.incrementAndGet();
 
-        // 1단계: Bloom Filter 검사
-        boolean mightExist = bloomClient.exists(BLOOM_FILTER_NAME, accessToken);
+        // 1단계: Bloom Filter 검사 (False Positive 확률: 0.01%)
+        boolean mightExist = bloomFilterService.mightContain(accessToken);
         
         if (!mightExist) {
             // Bloom Filter에서 확실히 없다고 판단 - Redis 조회 불필요
@@ -72,7 +69,8 @@ public class MetricsTrackingTokenBlacklistService implements TokenBlacklistServi
             actualBlacklistedTokens.incrementAndGet();
             log.debug("[실제 블랙리스트 토큰 발견] token={}", accessToken);
         } else {
-            log.debug("[False Positive] Bloom Filter 오판 - token={}", accessToken);
+            log.debug("[False Positive] Bloom Filter 오판 - token={}, 설정 확률: {}%", 
+                accessToken, bloomFilterService.getFalsePositiveProbability() * 100);
         }
 
         return isActuallyBlacklisted;
@@ -99,6 +97,8 @@ public class MetricsTrackingTokenBlacklistService implements TokenBlacklistServi
                 .actualBlacklistedTokens(actualBlacklisted)
                 .redisReductionRate(redisReductionRate)
                 .falsePositiveRate(falsePositiveRate)
+                .expectedInsertions(bloomFilterService.getExpectedInsertions())
+                .configuredFalsePositiveProbability(bloomFilterService.getFalsePositiveProbability())
                 .build();
     }
 
@@ -127,23 +127,34 @@ public class MetricsTrackingTokenBlacklistService implements TokenBlacklistServi
         private long actualBlacklistedTokens;
         private double redisReductionRate;
         private double falsePositiveRate;
+        private long expectedInsertions;
+        private double configuredFalsePositiveProbability;
 
         @Override
         public String toString() {
             return String.format("""
                 🎯 JWT 블랙리스트 성능 메트릭
                 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-                📊 전체 검사: %,d회
-                🎯 Bloom Filter Hit: %,d회 (%.1f%%)
-                ❌ Bloom Filter Miss: %,d회 (%.1f%%)
-                🔍 Redis 조회: %,d회 (%.1f%%)
-                ⚠️  실제 블랙리스트: %,d회
+                ⚙️  Bloom Filter 설정:
+                   - 예상 삽입 수: %,d개
+                   - 설정 False Positive 확률: %.4f%% (1만회 중 %.0f회)
                 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-                ✅ Redis 조회 감소율: %.1f%% (Bloom Filter 덕분에)
-                📈 False Positive 비율: %.1f%%
-                💡 성능 개선: Bloom Filter가 Redis 조회를 %,d회 절약
+                📊 실제 성능 지표:
+                   - 전체 검사: %,d회
+                   - Bloom Filter Hit: %,d회 (%.1f%%)
+                   - Bloom Filter Miss: %,d회 (%.1f%%)
+                   - Redis 조회: %,d회 (%.1f%%)
+                   - 실제 블랙리스트: %,d회
+                ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+                📈 성능 개선 결과:
+                   - Redis 조회 감소율: %.1f%% (Bloom Filter 덕분에)
+                   - 실제 False Positive 비율: %.4f%%
+                   - 설정 대비 오차: %.4f%% (설정 %.4f%% vs 실제 %.4f%%)
+                   - 절약된 Redis 조회: %,d회
                 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
                 """,
+                expectedInsertions,
+                configuredFalsePositiveProbability * 100, configuredFalsePositiveProbability * 10000,
                 totalChecks,
                 bloomFilterHits, totalChecks > 0 ? (double) bloomFilterHits / totalChecks * 100 : 0,
                 bloomFilterMisses, totalChecks > 0 ? (double) bloomFilterMisses / totalChecks * 100 : 0,
@@ -151,6 +162,8 @@ public class MetricsTrackingTokenBlacklistService implements TokenBlacklistServi
                 actualBlacklistedTokens,
                 redisReductionRate,
                 falsePositiveRate,
+                Math.abs(falsePositiveRate - configuredFalsePositiveProbability * 100),
+                configuredFalsePositiveProbability * 100, falsePositiveRate,
                 bloomFilterMisses
             );
         }
